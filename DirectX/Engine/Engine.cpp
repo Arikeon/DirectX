@@ -59,7 +59,7 @@ void CEngine::Initialize()
 	m_isRunning = true;
 
 	m_renderer = new CRenderer;
-	m_renderer->Initialize();
+	m_renderer->Initialize(m_window);
 }
 
 void CEngine::Update()
@@ -83,7 +83,7 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
-		//m_renderer->Update(Time.m_deltaTime);
+		m_renderer->Update(Time.m_deltaTime);
 
 		//Check if shutdown bit
 		{
@@ -99,6 +99,4 @@ void CEngine::Update()
 void CEngine::Restart()
 {
 	isRestarting = false;
-
-	//m_renderer->Restart();
 }

@@ -1,6 +1,11 @@
 #include "Renderer.h"
 
-void CRenderer::Initialize()
+void CRenderer::Initialize(TWindow window)
+{
+
+}
+
+void CRenderer::Update(float delta)
 {
 
 }
