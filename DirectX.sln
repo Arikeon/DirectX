@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine.vcxproj", "{C933395E-827B-49A4-9921-8806632E5BF8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX", "DirectX.vcxproj", "{8C563E42-5410-40F7-8D90-BA1A7AE4450D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B4506C87-5FD0-4130-BBDA-B4C4C72037DB} = {B4506C87-5FD0-4130-BBDA-B4C4C72037DB}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "Renderer.vcxproj", "{B2962620-CB36-4E67-80D9-719239F491AF}"
 EndProject

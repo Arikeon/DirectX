@@ -6,6 +6,9 @@
 #define ENABLE_CONSOLE_DEBUGGING 1
 #define ENABLE_INLINE 1
 #define ENABLE_CHECK 1
+#define ENABLE_DEBUG (1 && _DEBUG)
+#define ENABLE_DXGI_DEBUG (1 && ENABLE_DEBUG && _DEBUG)
+
 
 #if ENABLE_CHECK
 	#include <assert.h>
