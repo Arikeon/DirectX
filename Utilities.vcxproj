@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Utilities\Build.h" />
+    <ClInclude Include="DirectX\Utilities\Stream.h" />
+    <ClInclude Include="DirectX\Utilities\Typedef.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

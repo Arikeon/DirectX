@@ -18,5 +18,8 @@
     <ClInclude Include="DirectX\Engine\Engine.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Engine\Window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

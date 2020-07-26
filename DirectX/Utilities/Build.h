@@ -1,4 +1,5 @@
 #pragma once
+#include "Typedef.h"
 
 #define ENABLE_LEAK_DETECTION 1
 #define ENABLE_CONSOLE_DEBUGGING 1
@@ -38,9 +39,7 @@
 #endif
 
 #if ENABLE_CONSOLE_DEBUGGING
-	#define CONSOLE_LOG(exp) 
-	#define CONSOLE_REPORT_PROGRESS(index, cap, strtoappend)
+	#define CONSOLE_LOG(log) OutputDebugStringA(log)
 #else
 	#define CONSOLE_LOG(exp)
-	#define CONSOLE_REPORT_PROGRESS(index, cap, strtoappend)
 #endif

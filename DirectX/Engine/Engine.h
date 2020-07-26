@@ -1,5 +1,6 @@
 #pragma once
 #include "Build.h"
+#include "Window.h"
 
 class CEngine
 {
@@ -12,5 +13,6 @@ class CEngine
 	void Start();
 	void End();
 
+	TWindow window;
 	bool isRunning;
 };
