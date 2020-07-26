@@ -1,5 +1,7 @@
 #include "Engine.h"
 #include "Stream.h"
+#include "Time.h"
+#include "Input.h"
 #include <wchar.h>
 #include <string>
 
@@ -16,14 +18,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{
-		//TInput::GetInstance()->KeyDown(wParam);
+		TInput::GetInstance()->KeyDown(wParam);
 	}
 	break;
 
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		//TInput::GetInstance()->KeyUp(wParam);
+		TInput::GetInstance()->KeyUp(wParam);
 	}
 	break;
 
@@ -37,7 +39,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_CLOSE:
 	{
-		//CApplication::ExitProgram();
+		TInput::GetInstance()->isExiting = true;
 	}
 	break;
 
@@ -61,7 +63,39 @@ void CEngine::Start()
 
 }
 
-void CEngine::End()
+void CEngine::Update()
+{
+	TTime time;
+	MSG WndEvent = {};
+
+	while (isRunning)
+	{
+		isRunning = !TInput::GetInstance()->isExiting && !TInput::GetInstance()->IsKeyDown(VK_ESCAPE);
+
+		if (isRestarting)
+		{
+			isRestarting = false;
+			time.Restart();
+			Restart();
+		}
+
+		time.Tick();
+
+		//Recieve window event
+		while (PeekMessage(&WndEvent, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&WndEvent);
+			DispatchMessage(&WndEvent);
+		}
+	}
+}
+
+void CEngine::Restart()
 {
 
+}
+
+void CEngine::End()
+{
+	delete TInput::GetInstance();
 }

@@ -11,8 +11,10 @@ class CEngine
 
 	void Initialize();
 	void Start();
+	void Update();
+	void Restart();
 	void End();
 
 	TWindow window;
-	bool isRunning;
+	bool isRunning, isRestarting;
 };

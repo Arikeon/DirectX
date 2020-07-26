@@ -4,9 +4,9 @@
 //Engine.cpp
 extern LRESULT CALLBACK WndProc(HWND _hWnd, uint32_t _msg, WPARAM _wParam, LPARAM _lParam);
 
-bool TWindow::ConstructWindow()
+bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 {
-	LPCWSTR dir = L"DirectX/Defaults.ini";
+	LPCWSTR dir = Stream::GetDefaultDir();
 	LPCWSTR sectionname = L"Startup";
 	std::wstring AppName = L"NULL";
 	Stream::ReadIniString(dir, sectionname, L"WindowName", AppName);
@@ -25,12 +25,21 @@ bool TWindow::ConstructWindow()
 	wc.lpszClassName = AppName.c_str();
 	wc.cbSize = sizeof(WNDCLASSEX);
 
-	//Read from Default.ini
-	Stream::ReadIniInt(dir, sectionname, L"WindowPosX", posX);
-	Stream::ReadIniInt(dir, sectionname, L"WindowPosY", posY);
-	Stream::ReadIniInt(dir, sectionname, L"WindowWidth", width);
-	Stream::ReadIniInt(dir, sectionname, L"WindowHeight", height);
-	Stream::ReadIniBool(dir, sectionname, L"FullScreen", isFullScreen);
+	if (inposX == -1 || inposY == -1 || inwidth == -1 || inheight == -1)
+	{
+		//Read from Default.ini
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosX", posX);
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosY", posY);
+		Stream::ReadIniInt(dir, sectionname, L"WindowWidth", width);
+		Stream::ReadIniInt(dir, sectionname, L"WindowHeight", height);
+	}
+	else
+	{
+		posX = inposX;
+		posY = inposY;
+		width = inwidth;
+		height = inheight;
+	}
 
 	if (!RegisterClassEx(&wc))
 	{
@@ -63,10 +72,34 @@ bool TWindow::ConstructWindow()
 	ShowWindow(hWND, SW_SHOW);
 	SetForegroundWindow(hWND);
 	SetFocus(hWND);
+
+	if (!isInitialized)
+		Stream::ReadIniBool(dir, sectionname, L"FullScreen", isFullScreen);
+	SetFullScreen(isFullScreen);
+
+	isInitialized = true;
 	return true;
 }
 
-void SetFullScreen(bool isFullScreen)
+void TWindow::SetFullScreen(bool isFullScreen)
 {
+	//TODO Incomplete - returning to windowed loses window borders
+	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
+	DWORD dwStyle = GetWindowLong(hWND, GWL_STYLE);
+	if (isFullScreen) {
+		SetWindowLong(hWND, GWL_STYLE, GetWindowLong(hWND, GWL_STYLE) & ~(WS_CAPTION | WS_THICKFRAME));
+		SetWindowLong(hWND, GWL_EXSTYLE, GetWindowLong(hWND, GWL_EXSTYLE) & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+		MONITORINFO monitor_info;
+		monitor_info.cbSize = sizeof(monitor_info);
+		GetMonitorInfo(MonitorFromWindow(hWND, MONITOR_DEFAULTTONEAREST), &monitor_info);
+		RECT window_rect(monitor_info.rcMonitor);
+		SetWindowPos(hWND, NULL, window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+	}
+	else
+	{
+		SetWindowLong(hWND, GWL_STYLE, GetWindowLong(hWND, GWL_STYLE));
+		SetWindowLong(hWND, GWL_EXSTYLE, GetWindowLong(hWND, GWL_EXSTYLE));
+		SetWindowPos(hWND, NULL, posX, posY, width, height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
+	}
 }

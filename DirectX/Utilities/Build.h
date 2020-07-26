@@ -39,7 +39,7 @@
 #endif
 
 #if ENABLE_CONSOLE_DEBUGGING
-	#define CONSOLE_LOG(log) OutputDebugStringA(log)
+	#define CONSOLE_LOG(log) OutputDebugStringA(log);
 #else
 	#define CONSOLE_LOG(exp)
 #endif

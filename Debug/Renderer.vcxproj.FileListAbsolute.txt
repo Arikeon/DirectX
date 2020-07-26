@@ -1,0 +1,2 @@
+F:\DirectX\Debug\Renderer.lib
+F:\DirectX\Debug\Renderer.pdb

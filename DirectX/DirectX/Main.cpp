@@ -18,10 +18,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (Engine.isRunning)
 	{
 		Engine.Start();
+		Engine.Update();
 	}
 	else
 	{
-		CONSOLE_LOG("Invalid Params");
+		CONSOLE_LOG("Failed to start...")
 		return 0;
 	}
 

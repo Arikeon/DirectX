@@ -5,11 +5,14 @@
 
 namespace Stream
 {
+	static INLINE LPCWSTR GetDefaultDir()
+	{
+		return L"DirectX/Defaults.ini";
+	}
+
 	static INLINE void ReadIniBool(LPCWSTR dir, LPCWSTR sectionname, LPCWSTR keyname, bool& value)
 	{
-		value = GetPrivateProfileInt(sectionname, keyname, -1, dir);
-		if (value == -1) //resulted to default
-			CONSOLE_LOG("ERROR: ReadIniInt returned -1");
+		value = GetPrivateProfileInt(sectionname, keyname, false, dir);
 	}
 
 	static INLINE void ReadIniInt(LPCWSTR dir, LPCWSTR sectionname, LPCWSTR keyname, int& value)
