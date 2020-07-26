@@ -1,0 +1,12 @@
+
+*.pdb
+*.tlog
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.exe
+*.ilk
+*.log
+*.idb
+*.obj
