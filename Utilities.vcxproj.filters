@@ -7,8 +7,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DirectX\DirectX\Main.cpp">
+    <ClInclude Include="DirectX\Utilities\Build.h">
       <Filter>Source Files</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
 </Project>

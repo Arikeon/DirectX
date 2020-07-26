@@ -18,11 +18,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DirectX\Utilities\Build.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{c933395e-827b-49a4-9921-8806632e5bf8}</ProjectGuid>
-    <RootNamespace>Engine</RootNamespace>
+    <ProjectGuid>{b4506c87-5fd0-4130-bbda-b4c4c72037db}</ProjectGuid>
+    <RootNamespace>Utilities</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -93,7 +96,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Utilities;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -124,7 +127,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Utilities;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -148,13 +151,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="DirectX\Engine\Engine.cpp" />
-    <ClCompile Include="DirectX\Engine\Window.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DirectX\Engine\Engine.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

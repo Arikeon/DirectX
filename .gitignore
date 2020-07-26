@@ -10,3 +10,5 @@
 *.log
 *.idb
 *.obj
+*.ipch
+Build/
