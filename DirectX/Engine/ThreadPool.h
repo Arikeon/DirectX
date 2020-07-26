@@ -21,13 +21,13 @@ public:
 	{
 		auto wrapper = std::make_shared<std::packaged_task<decltype(_Task()) ()>>(std::move(_Task));
 		{
-			std::unique_lock<std::mutex> lock{ eventMutex };
-			tasks.emplace([=] {
+			std::unique_lock<std::mutex> lock{ m_eventMutex };
+			m_tasks.emplace([=] {
 				(*wrapper)();
 				});
 		}
 
-		eventVar.notify_one();
+		m_eventVar.notify_one();
 		return wrapper->get_future();
 	}
 
@@ -38,8 +38,8 @@ private:
 	INLINE void Initialize(uint32_t _NumThreads);
 	INLINE void End() noexcept;
 
-	std::queue<Task> tasks;
-	std::vector<std::thread> threads;
-	std::condition_variable eventVar;
-	std::mutex eventMutex;
+	std::queue<Task> m_tasks;
+	std::vector<std::thread> m_threads;
+	std::condition_variable m_eventVar;
+	std::mutex m_eventMutex;
 };

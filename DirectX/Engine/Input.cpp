@@ -3,13 +3,13 @@
 TInput::TInput()
 {
 	const int NumKeys = 256;
-	keyStrokes.resize(NumKeys);
-	isExiting = false;
+	m_keyStrokes.resize(NumKeys);
+	m_isExiting = false;
 }
 
 TInput::~TInput()
 {
-	keyStrokes.clear();
+	m_keyStrokes.clear();
 }
 
 TInput*& TInput::GetInstance()
@@ -28,20 +28,20 @@ TInput*& TInput::GetInstance()
 
 void TInput::KeyUp(WPARAM wParam)
 {
-	keyStrokes[wParam] = 0;
+	m_keyStrokes[wParam] = 0;
 }
 
 void TInput::KeyDown(WPARAM wParam)
 {
-	keyStrokes[wParam] = 1;
+	m_keyStrokes[wParam] = 1;
 }
 
 bool TInput::IsKeyUp(uint32_t id)
 {
-	return keyStrokes[id] == 0;
+	return m_keyStrokes[id] == 0;
 }
 
 bool TInput::IsKeyDown(uint32_t id)
 {
-	return keyStrokes[id] == 1;
+	return m_keyStrokes[id] == 1;
 }

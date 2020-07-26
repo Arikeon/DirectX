@@ -8,11 +8,11 @@ struct TTime
 
 	void Restart();
 	void Tick();
-	float deltaTime;
-	float totalTime;
-	float maxFrameTime;
-	Lint timeFreq;
-	Lint timeStart;
-	Lint timePrev;
-	Lint timeCurr;
+	float m_deltaTime;
+	float m_totalTime;
+	float m_maxFrameTime;
+	Lint m_timeFreq;
+	Lint m_timeStart;
+	Lint m_timePrev;
+	Lint m_timeCurr;
 };

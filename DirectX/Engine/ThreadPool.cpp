@@ -14,24 +14,24 @@ CThreadPool::~CThreadPool()
 
 void CThreadPool::Initialize(uint32_t _NumThreads)
 {
-	const static auto lambdaCondition = [&]() { return bStop || ExitThread || !tasks.empty(); };
+	const static auto lambdaCondition = [&]() { return bStop || ExitThread || !m_tasks.empty(); };
 
 	for (std::size_t perThread = 0; perThread < _NumThreads; ++perThread)
 	{
-		threads.emplace_back([=] {
+		m_threads.emplace_back([=] {
 			while (true)
 			{
 				Task task;
 
 				{
-					std::unique_lock<std::mutex> lock{ eventMutex };
-					eventVar.wait(lock, lambdaCondition);
+					std::unique_lock<std::mutex> lock{ m_eventMutex };
+					m_eventVar.wait(lock, lambdaCondition);
 
-					if (tasks.empty())
+					if (m_tasks.empty())
 						break;
 
-					task = std::move(tasks.front());
-					tasks.pop();
+					task = std::move(m_tasks.front());
+					m_tasks.pop();
 				}
 
 				task();
@@ -43,13 +43,13 @@ void CThreadPool::Initialize(uint32_t _NumThreads)
 void CThreadPool::End() noexcept
 {
 	{
-		std::unique_lock<std::mutex> lock{ eventMutex };
+		std::unique_lock<std::mutex> lock{ m_eventMutex };
 		bStop = true;
 	}
 
-	eventVar.notify_all();
+	m_eventVar.notify_all();
 
-	for (auto& thread : threads)
+	for (auto& thread : m_threads)
 		thread.join();
 }
 

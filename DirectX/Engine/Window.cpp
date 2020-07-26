@@ -11,37 +11,37 @@ bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 	std::wstring AppName = L"NULL";
 	Stream::ReadIniString(dir, sectionname, L"WindowName", AppName);
 
-	hInstance = GetModuleHandle(NULL);
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hIconSm = wc.hIcon;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = AppName.c_str();
-	wc.cbSize = sizeof(WNDCLASSEX);
+	m_hInstance = GetModuleHandle(NULL);
+	m_wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	m_wc.lpfnWndProc = WndProc;
+	m_wc.cbClsExtra = 0;
+	m_wc.cbWndExtra = 0;
+	m_wc.hInstance = m_hInstance;
+	m_wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	m_wc.hIconSm = m_wc.hIcon;
+	m_wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	m_wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	m_wc.lpszMenuName = NULL;
+	m_wc.lpszClassName = AppName.c_str();
+	m_wc.cbSize = sizeof(WNDCLASSEX);
 
 	if (inposX == -1 || inposY == -1 || inwidth == -1 || inheight == -1)
 	{
 		//Read from Default.ini
-		Stream::ReadIniInt(dir, sectionname, L"WindowPosX", posX);
-		Stream::ReadIniInt(dir, sectionname, L"WindowPosY", posY);
-		Stream::ReadIniInt(dir, sectionname, L"WindowWidth", width);
-		Stream::ReadIniInt(dir, sectionname, L"WindowHeight", height);
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosX", m_posX);
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosY", m_posY);
+		Stream::ReadIniInt(dir, sectionname, L"WindowWidth", m_width);
+		Stream::ReadIniInt(dir, sectionname, L"WindowHeight", m_height);
 	}
 	else
 	{
-		posX = inposX;
-		posY = inposY;
-		width = inwidth;
-		height = inheight;
+		m_posX = inposX;
+		m_posY = inposY;
+		m_width = inwidth;
+		m_height = inheight;
 	}
 
-	if (!RegisterClassEx(&wc))
+	if (!RegisterClassEx(&m_wc))
 	{
 		MessageBox(NULL, L"RegisterClassEx() failed", L"Error", MB_OK);
 		return false;
@@ -49,35 +49,35 @@ bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 
 	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX;
 
-	hWND = CreateWindowEx(
+	m_hWND = CreateWindowEx(
 		WS_EX_APPWINDOW,
 		AppName.c_str(),
 		AppName.c_str(),
 		nStyle,
-		posX,
-		posY,
-		width,
-		height,
+		m_posX,
+		m_posY,
+		m_width,
+		m_height,
 		NULL,
 		NULL,
-		hInstance,
+		m_hInstance,
 		NULL);
 
 	//Success
-	if (hWND == NULL)
+	if (m_hWND == NULL)
 	{
 		return false;
 	}
 
-	ShowWindow(hWND, SW_SHOW);
-	SetForegroundWindow(hWND);
-	SetFocus(hWND);
+	ShowWindow(m_hWND, SW_SHOW);
+	SetForegroundWindow(m_hWND);
+	SetFocus(m_hWND);
 
-	if (!isInitialized)
-		Stream::ReadIniBool(dir, sectionname, L"FullScreen", isFullScreen);
-	SetFullScreen(isFullScreen);
+	if (!m_isInitialized)
+		Stream::ReadIniBool(dir, sectionname, L"FullScreen", m_isFullScreen);
+	SetFullScreen(m_isFullScreen);
 
-	isInitialized = true;
+	m_isInitialized = true;
 	return true;
 }
 
@@ -85,21 +85,21 @@ void TWindow::SetFullScreen(bool isFullScreen)
 {
 	//TODO Incomplete - returning to windowed loses window borders
 	WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
-	DWORD dwStyle = GetWindowLong(hWND, GWL_STYLE);
+	DWORD dwStyle = GetWindowLong(m_hWND, GWL_STYLE);
 	if (isFullScreen) {
-		SetWindowLong(hWND, GWL_STYLE, GetWindowLong(hWND, GWL_STYLE) & ~(WS_CAPTION | WS_THICKFRAME));
-		SetWindowLong(hWND, GWL_EXSTYLE, GetWindowLong(hWND, GWL_EXSTYLE) & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+		SetWindowLong(m_hWND, GWL_STYLE, GetWindowLong(m_hWND, GWL_STYLE) & ~(WS_CAPTION | WS_THICKFRAME));
+		SetWindowLong(m_hWND, GWL_EXSTYLE, GetWindowLong(m_hWND, GWL_EXSTYLE) & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
 		MONITORINFO monitor_info;
 		monitor_info.cbSize = sizeof(monitor_info);
-		GetMonitorInfo(MonitorFromWindow(hWND, MONITOR_DEFAULTTONEAREST), &monitor_info);
+		GetMonitorInfo(MonitorFromWindow(m_hWND, MONITOR_DEFAULTTONEAREST), &monitor_info);
 		RECT window_rect(monitor_info.rcMonitor);
-		SetWindowPos(hWND, NULL, window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+		SetWindowPos(m_hWND, NULL, window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}
 	else
 	{
-		SetWindowLong(hWND, GWL_STYLE, GetWindowLong(hWND, GWL_STYLE));
-		SetWindowLong(hWND, GWL_EXSTYLE, GetWindowLong(hWND, GWL_EXSTYLE));
-		SetWindowPos(hWND, NULL, posX, posY, width, height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+		SetWindowLong(m_hWND, GWL_STYLE, GetWindowLong(m_hWND, GWL_STYLE));
+		SetWindowLong(m_hWND, GWL_EXSTYLE, GetWindowLong(m_hWND, GWL_EXSTYLE));
+		SetWindowPos(m_hWND, NULL, m_posX, m_posY, m_width, m_height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 	}
 }

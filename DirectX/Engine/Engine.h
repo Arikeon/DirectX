@@ -1,6 +1,10 @@
 #pragma once
 #include "Build.h"
 #include "Window.h"
+#include <memory>
+#include <thread>
+
+class CRenderer;
 
 class CEngine
 {
@@ -9,12 +13,13 @@ class CEngine
 		_In_ LPWSTR    lpCmdLine,
 		_In_ int       nCmdShow);
 
+	~CEngine();
+
 	void Initialize();
-	void Start();
 	void Update();
 	void Restart();
-	void End();
 
-	TWindow window;
-	bool isRunning, isRestarting;
+	TWindow m_window;
+	CRenderer* m_renderer;
+	bool m_isRunning, isRestarting;
 };

@@ -4,13 +4,13 @@
 
 struct TWindow
 {
-	HWND hWND;
-	HMODULE hInstance;
-	WNDCLASSEX wc;
-	MSG message;
+	HWND m_hWND;
+	HMODULE m_hInstance;
+	WNDCLASSEX m_wc;
+	MSG m_message;
 
-	int posX, posY, width, height;
-	bool isFullScreen, isInitialized = false;
+	int m_posX, m_posY, m_width, m_height;
+	bool m_isFullScreen, m_isInitialized = false;
 
 	//Grabs defaults from DirectX/Defaults.ini
 	bool ConstructWindow(int inposX = -1, int inposY = -1, int inwidth = -1, int inheight = -1);

@@ -1,5 +1,6 @@
 #pragma once
 #include "Typedef.h"
+#include <iostream>
 
 #define ENABLE_LEAK_DETECTION 1
 #define ENABLE_CONSOLE_DEBUGGING 1

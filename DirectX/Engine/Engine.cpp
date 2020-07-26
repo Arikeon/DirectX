@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Renderer.h"
 #include "Stream.h"
 #include "Time.h"
 #include "Input.h"
@@ -12,24 +13,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
-		///////////////
-		//Keyboard Inputs
-		///////////////
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{
-		TInput::GetInstance()->KeyDown(wParam);
+		InputInstance()->KeyDown(wParam);
 	}
 	break;
-
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		TInput::GetInstance()->KeyUp(wParam);
+		InputIsKeyUp((uint32_t)wParam);
 	}
 	break;
-
-	///////////////
 	case WM_PAINT:
 	{
 		hdc = BeginPaint(hWnd, &ps);
@@ -39,10 +34,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_CLOSE:
 	{
-		TInput::GetInstance()->isExiting = true;
+		InputInstance()->m_isExiting = true;
 	}
 	break;
-
 	default:
 	{
 		return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -52,34 +46,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void CEngine::Initialize()
+CEngine::~CEngine()
 {
-	window.ConstructWindow();
-	isRunning = true;
+	//delete m_renderer;
+
+	delete InputInstance();
 }
 
-void CEngine::Start()
+void CEngine::Initialize()
 {
+	m_window.ConstructWindow();
+	m_isRunning = true;
 
+	m_renderer = new CRenderer;
+	m_renderer->Initialize();
 }
 
 void CEngine::Update()
 {
-	TTime time;
+	TTime Time;
 	MSG WndEvent = {};
 
-	while (isRunning)
+	while (m_isRunning)
 	{
-		isRunning = !TInput::GetInstance()->isExiting && !TInput::GetInstance()->IsKeyDown(VK_ESCAPE);
-
+		Time.Tick();
 		if (isRestarting)
 		{
-			isRestarting = false;
-			time.Restart();
+			Time.Restart();
 			Restart();
 		}
-
-		time.Tick();
 
 		//Recieve window event
 		while (PeekMessage(&WndEvent, NULL, 0, 0, PM_REMOVE))
@@ -87,15 +82,23 @@ void CEngine::Update()
 			TranslateMessage(&WndEvent);
 			DispatchMessage(&WndEvent);
 		}
+
+		//m_renderer->Update(Time.m_deltaTime);
+
+		//Check if shutdown bit
+		{
+			if (InputInstance()->m_isExiting ||
+				InputIsKeyDown(VK_ESCAPE))
+			{
+				m_isRunning = false;
+			}
+		}
 	}
 }
 
 void CEngine::Restart()
 {
+	isRestarting = false;
 
-}
-
-void CEngine::End()
-{
-	delete TInput::GetInstance();
+	//m_renderer->Restart();
 }

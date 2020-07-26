@@ -13,13 +13,13 @@
     <ClCompile Include="DirectX\Engine\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\Engine\ThreaPool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DirectX\Engine\Time.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DirectX\Engine\Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectX\Engine\ThreadPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

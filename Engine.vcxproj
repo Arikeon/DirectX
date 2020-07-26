@@ -155,7 +155,7 @@
   <ItemGroup>
     <ClCompile Include="DirectX\Engine\Engine.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
-    <ClCompile Include="DirectX\Engine\ThreaPool.cpp" />
+    <ClCompile Include="DirectX\Engine\ThreadPool.cpp" />
     <ClCompile Include="DirectX\Engine\Time.cpp" />
     <ClCompile Include="DirectX\Engine\Window.cpp" />
   </ItemGroup>

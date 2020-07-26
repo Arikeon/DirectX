@@ -145,7 +145,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectX\Renderer\D3D11Interface.cpp" />
     <ClCompile Include="DirectX\Renderer\Renderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DirectX\Renderer\D3D11Interface.h" />
+    <ClInclude Include="DirectX\Renderer\D3DInterface.h" />
+    <ClInclude Include="DirectX\Renderer\Renderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
