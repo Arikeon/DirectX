@@ -11,7 +11,7 @@ class CD3D11Interface : public CD3DInterface
 public:
 	CD3D11Interface();
 	~CD3D11Interface();
-	void InitializeD3D(TWindow window) final;
+	void InitializeD3D(TWindow window) override final;
 
 private:
 	IDXGISwapChain* m_swapchain;

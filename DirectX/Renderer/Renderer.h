@@ -9,6 +9,8 @@ class CRenderer
 {
 	friend class CEngine;
 private:
+	CRenderer();
+	~CRenderer();
 	void Initialize(TWindow window);
 	void Update(float delta);
 

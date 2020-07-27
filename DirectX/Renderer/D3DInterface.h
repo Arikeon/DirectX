@@ -8,5 +8,6 @@
 class CD3DInterface
 {
 public:
+	virtual ~CD3DInterface() {};
 	virtual void InitializeD3D(TWindow window) = 0;
 };

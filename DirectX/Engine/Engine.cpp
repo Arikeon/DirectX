@@ -48,7 +48,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 
 CEngine::~CEngine()
 {
-	//delete m_renderer;
+	delete m_renderer;
 
 	delete InputInstance();
 }

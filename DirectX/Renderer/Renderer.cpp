@@ -3,6 +3,17 @@
 #include "D3D11Interface.h"
 #include "Stream.h"
 
+CRenderer::CRenderer() :
+	m_D3DInterface(nullptr)
+{
+
+}
+
+CRenderer::~CRenderer()
+{
+	delete m_D3DInterface;
+}
+
 void CRenderer::Initialize(TWindow window)
 {
 	bool bUsesD3D11 = true;

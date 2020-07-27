@@ -1,6 +1,7 @@
 #include "D3D11Interface.h"
 
 CD3D11Interface::CD3D11Interface() :
+	CD3DInterface(),
 	m_swapchain(nullptr),
 	m_device(nullptr),
 	m_context(nullptr),
@@ -27,7 +28,7 @@ CD3D11Interface::~CD3D11Interface()
 	m_depthbufferDSV->Release();
 	m_rasterizerstate->Release();
 #if ENABLE_DXGI_DEBUG
-	m_rasterizerstate->Release();
+	m_dxgidebug->Release();
 #endif
 }
 
