@@ -9,9 +9,13 @@
 class CD3D11Interface : public CD3DInterface
 {
 public:
+	friend class CRenderer;
 	CD3D11Interface();
 	~CD3D11Interface();
 	void InitializeD3D(TWindow window) override final;
+	void CompileShader(TShader& shader) override final;
+
+	void CreateShaderStage(TShader shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
 
 private:
 	IDXGISwapChain* m_swapchain;

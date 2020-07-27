@@ -35,11 +35,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="DirectX\Renderer\BaseVS.hlsl">
+    <FxCompile Include="DirectX\Renderer\BasePassPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DirectX\Renderer\BasePS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DirectX\Renderer\BasePassVS.hlsl" />
   </ItemGroup>
 </Project>

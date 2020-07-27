@@ -165,3 +165,70 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		exit(1);
 	}
 }
+
+void CD3D11Interface::CompileShader(TShader& shader)
+{
+	int NumberOfStages = 0;
+
+	for (int stage = 0; stage < EShaderStage::eCount; ++stage)
+	{
+		if (shader.m_shaderstages[(EShaderStage::Type)stage] == false)
+			continue;
+		NumberOfStages++;
+
+		std::string path = shader.GetDirectoryFromStage((EShaderStage::Type)stage);
+
+		std::string errmsg;
+		ID3D10Blob* pblob;
+
+
+	}
+
+	if (NumberOfStages == 0)
+		check(0);
+}
+
+void CD3D11Interface::CreateShaderStage(TShader shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)
+{
+	HRESULT r;
+
+	switch (stage)
+	{
+		case EShaderStage::eVS:
+		{
+			r = m_device->CreateVertexShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_vs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eHS:
+		{
+			r = m_device->CreateHullShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_hs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eDS:
+		{
+			r = m_device->CreateDomainShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_ds);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eGS:
+		{
+			r = m_device->CreateGeometryShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_gs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::ePS:
+		{
+			r = m_device->CreatePixelShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_ps);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eCS:
+		{
+			r = m_device->CreateComputeShader(pshadercode, shaderbinary, NULL, &shader.m_compiledstages.m_cs);
+			checkhr(r);
+		}
+		break;
+	}
+}
