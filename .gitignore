@@ -13,3 +13,4 @@
 *.ipch
 Build/
 Debug/
+x64/

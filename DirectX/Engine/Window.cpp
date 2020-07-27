@@ -2,7 +2,7 @@
 #include "Stream.h"
 
 //Engine.cpp
-extern LRESULT CALLBACK WndProc(HWND _hWnd, uint32_t _msg, WPARAM _wParam, LPARAM _lParam);
+extern LRESULT CALLBACK WndProc(HWND _hWnd, uint32 _msg, WPARAM _wParam, LPARAM _lParam);
 
 bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 {

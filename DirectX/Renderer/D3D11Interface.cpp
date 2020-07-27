@@ -14,7 +14,6 @@ CD3D11Interface::CD3D11Interface() :
 	m_dxgidebug(nullptr)
 #endif
 {
-
 }
 
 CD3D11Interface::~CD3D11Interface()

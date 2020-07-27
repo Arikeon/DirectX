@@ -13,6 +13,9 @@
     <ClInclude Include="DirectX\Utilities\Stream.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Utilities\Algorithm.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="DirectX\Utilities\Typedef.h">
       <Filter>Source Files</Filter>
     </ClInclude>

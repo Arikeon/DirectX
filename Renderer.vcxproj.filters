@@ -5,6 +5,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{a60bd900-70ac-4b13-8dbb-70f31c2ae7cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectX\Renderer\D3D11Interface.cpp">
@@ -24,5 +27,19 @@
     <ClInclude Include="DirectX\Renderer\Renderer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Renderer\D3DDefines.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Renderer\Shader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="DirectX\Renderer\BaseVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\BasePS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

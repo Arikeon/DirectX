@@ -12,7 +12,7 @@ using Task = std::function<void()>;
 class CThreadPool
 {
 public:
-	explicit CThreadPool(uint32_t _NumThreads);
+	explicit CThreadPool(uint32 _NumThreads);
 
 	~CThreadPool();
 
@@ -35,7 +35,7 @@ public:
 	static void ClearInstancePtr(void);
 private:
 	bool bStop = false;
-	INLINE void Initialize(uint32_t _NumThreads);
+	INLINE void Initialize(uint32 _NumThreads);
 	INLINE void End() noexcept;
 
 	std::queue<Task> m_tasks;

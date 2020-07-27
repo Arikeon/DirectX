@@ -1,5 +1,7 @@
 #include "Input.h"
 
+TInput* TInput::Instance = nullptr;
+
 TInput::TInput()
 {
 	const int NumKeys = 256;
@@ -9,12 +11,10 @@ TInput::TInput()
 
 TInput::~TInput()
 {
-	m_keyStrokes.clear();
 }
 
 TInput*& TInput::GetInstance()
 {
-	static TInput* Instance = nullptr;;
 	static bool bInitialized = false;
 
 	if (!bInitialized)
@@ -36,12 +36,18 @@ void TInput::KeyDown(WPARAM wParam)
 	m_keyStrokes[wParam] = 1;
 }
 
-bool TInput::IsKeyUp(uint32_t id)
+bool TInput::IsKeyUp(uint32 id)
 {
 	return m_keyStrokes[id] == 0;
 }
 
-bool TInput::IsKeyDown(uint32_t id)
+bool TInput::IsKeyDown(uint32 id)
 {
 	return m_keyStrokes[id] == 1;
+}
+
+void TInput::DeleteInstance()
+{
+	delete Instance;
+	Instance = nullptr;
 }

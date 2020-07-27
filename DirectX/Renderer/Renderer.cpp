@@ -2,11 +2,11 @@
 #include "D3DInterface.h"
 #include "D3D11Interface.h"
 #include "Stream.h"
+#include "Shader.h"
 
 CRenderer::CRenderer() :
 	m_D3DInterface(nullptr)
 {
-
 }
 
 CRenderer::~CRenderer()
@@ -23,9 +23,20 @@ void CRenderer::Initialize(TWindow window)
 		m_D3DInterface = new CD3D11Interface;
 
 	m_D3DInterface->InitializeD3D(window);
+
+	CompileShaders();
+}
+
+void CRenderer::CompileShaders()
+{
+	const int NumGlobalShaders = EShaderList::eCount;
+	m_shaders.resize(NumGlobalShaders);
+
+	m_shaders[0].Initialize<true, false, false, false, true, false>("Base");
 }
 
 void CRenderer::Update(float delta)
 {
 
 }
+

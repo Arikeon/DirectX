@@ -55,7 +55,7 @@ void CThreadPool::End() noexcept
 
 CThreadPool*& CThreadPool::GetInstance()
 {
-	static uint32_t ThreadCount = std::thread::hardware_concurrency();
+	static uint32 ThreadCount = std::thread::hardware_concurrency();
 	static CThreadPool* Instance = nullptr;
 	bool bInitialized = false;
 
