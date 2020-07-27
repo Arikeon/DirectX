@@ -17,7 +17,6 @@ public:
 	void CompileShader(TShader& shader) override final;
 
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
-
 private:
 	IDXGISwapChain* m_swapchain;
 	ID3D11Device* m_device;

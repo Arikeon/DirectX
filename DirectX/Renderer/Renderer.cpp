@@ -12,6 +12,7 @@ CRenderer::CRenderer() :
 CRenderer::~CRenderer()
 {
 	delete m_D3DInterface;
+	m_shaders.clear();
 }
 
 void CRenderer::Initialize(TWindow window)
