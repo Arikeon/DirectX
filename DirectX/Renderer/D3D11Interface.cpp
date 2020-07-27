@@ -33,6 +33,11 @@ CD3D11Interface::~CD3D11Interface()
 #endif
 }
 
+void CD3D11Interface::Present()
+{
+
+}
+
 void CD3D11Interface::InitializeD3D(TWindow window)
 {
 	bool bSuccess = true;
@@ -179,7 +184,7 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	int NumberOfStages = 0;
 
 	HRESULT r;
-	D3DBlobs Blobs;
+	TD3DBlobs Blobs;
 
 	for (int i = 0; i < EShaderStage::eCount; ++i)
 	{
@@ -246,6 +251,225 @@ void CD3D11Interface::CompileShader(TShader& shader)
 
 	//Atleast one shader have to compile
 	check(NumberOfStages > 0);
+
+	//Allocate textures
+	for (int stage = 0; stage < (int)EShaderStage::eCount; ++stage)
+	{
+		int texslot = 0, sampslot = 0, uavslot = 0;
+
+		ID3D11ShaderReflection* reflection = shader.m_shaderreflections.m_stagereflection[stage];
+
+		if (reflection)
+		{
+			D3D11_SHADER_DESC shaderdesc = {};
+			reflection->GetDesc(&shaderdesc);
+
+			for (int boundrescount = 0; boundrescount < (int)shaderdesc.BoundResources; ++boundrescount)
+			{
+				D3D11_SHADER_INPUT_BIND_DESC shaderinputdesc = {};
+				reflection->GetResourceBindingDesc(boundrescount, &shaderinputdesc);
+
+				switch (shaderinputdesc.Type)
+				{
+				case D3D_SIT_CBUFFER:
+						break;
+				case D3D_SIT_SAMPLER:
+				{
+					TSamplerBinding sampbinding;
+					sampbinding.m_shaderStage = (EShaderStage::Type)stage;
+					sampbinding.m_samplerSlot = sampslot++;
+					shader.m_samplerbindings.push_back(sampbinding);
+					shader.m_shadersamplerlookup[shaderinputdesc.Name] = static_cast<int>(shader.m_samplerbindings.size() - 1);
+				}
+				break;
+				case D3D_SIT_TEXTURE:
+				{
+					TTextureBinding textbinding;
+					textbinding.m_shaderStage = (EShaderStage::Type)stage;
+					textbinding.m_textureSlot = sampslot++;
+					shader.m_texturebindings.push_back(textbinding);
+					shader.m_shadertexturelookup[shaderinputdesc.Name] = static_cast<int>(shader.m_texturebindings.size() - 1);
+				}
+				break;
+				case D3D_SIT_UAV_RWTYPED:
+				{
+					TTextureBinding textbinding;
+					textbinding.m_shaderStage = (EShaderStage::Type)stage;
+					textbinding.m_textureSlot = uavslot++;
+					shader.m_texturebindings.push_back(textbinding);
+					shader.m_shadertexturelookup[shaderinputdesc.Name] = static_cast<int>(shader.m_texturebindings.size() - 1);
+				}
+				break;
+
+				}
+			}
+		}
+	}
+
+	//Allocate cbuffers (CPU&GPU)
+	{
+		for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
+		{
+			ID3D11ShaderReflection* Reflection = shader.m_shaderreflections.m_stagereflection[stage];
+			if (Reflection)
+			{
+				D3D11_SHADER_DESC shaderdesc;
+				Reflection->GetDesc(&shaderdesc);
+
+				int bufferslot = 0;
+				for (int cbuffercount = 0; cbuffercount < (int)shaderdesc.ConstantBuffers; ++cbuffercount)
+				{
+					TD3DConstantBufferLayout Layout;
+					Layout.m_bufferSize = 0;
+					ID3D11ShaderReflectionConstantBuffer* pcbuffer = Reflection->GetConstantBufferByIndex(cbuffercount);
+					pcbuffer->GetDesc(&Layout.m_desc);
+
+					for (int cbuffervariable = 0; cbuffervariable < (int)Layout.m_desc.Variables; ++cbuffervariable)
+					{
+						ID3D11ShaderReflectionVariable* pVariable = pcbuffer->GetVariableByIndex(cbuffervariable);
+						D3D11_SHADER_VARIABLE_DESC variabledesc;
+						pVariable->GetDesc(&variabledesc);
+						Layout.m_variables.push_back(variabledesc);
+
+						ID3D11ShaderReflectionType* ptype = pVariable->GetType();
+						D3D11_SHADER_TYPE_DESC typedesc;
+						ptype->GetDesc(&typedesc);
+						Layout.m_types.push_back(typedesc);
+
+						Layout.m_bufferSize += variabledesc.Size;
+					}
+					Layout.m_stage = (EShaderStage::Type)stage;
+					Layout.m_bufferSlot = bufferslot++;
+
+					shader.m_constantbufferlayouts.push_back(Layout);
+				}
+			}
+		}
+
+		//CPU
+		int cbufferregister = 0;
+		for (int cblayout = 0; cblayout < (int)shader.m_constantbufferlayouts.size(); ++cblayout)
+		{
+			TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[cblayout];
+
+			std::vector<CPUConstantID> cpubufferID;
+
+			for (int varcount = 0; varcount < (int)layout.m_variables.size(); ++varcount)
+			{
+				D3D11_SHADER_VARIABLE_DESC vardesc = layout.m_variables[varcount];
+
+				TCPUConstant c;
+				CPUConstantID c_id = static_cast<CPUConstantID>(shader.m_CPUconstantbuffers.size());
+
+				c.m_name = vardesc.Name;
+				c.m_size = vardesc.Size;
+				c.m_pdata = new char[c.m_size];
+				memset(c.m_pdata, 0, c.m_size);
+				shader.m_constantbuffermap.push_back(std::make_pair(cbufferregister, c_id));
+				shader.m_CPUconstantbuffers.push_back(c);
+			}
+			++cbufferregister;
+		}
+
+		//GPU
+		{
+			D3D11_BUFFER_DESC cbufferDesc = {};
+			cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+			cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			cbufferDesc.MiscFlags = 0;
+			cbufferDesc.StructureByteStride = 0;
+
+			for (int cblayout = 0; cblayout < shader.m_constantbufferlayouts.size(); ++cblayout)
+			{
+				TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[cblayout];
+
+				TConstantBufferBinding cbufferbinding;
+				cbufferDesc.ByteWidth = layout.m_desc.Size;
+
+				r = m_device->CreateBuffer(&cbufferDesc, NULL, &cbufferbinding.m_pdata);
+				checkhr(r);
+
+				cbufferbinding.m_dirty = true;
+				cbufferbinding.m_shaderstage = layout.m_stage;
+				cbufferbinding.m_bufferslot = layout.m_bufferSlot;
+				shader.m_constantbuffers.push_back(cbufferbinding);
+			}
+		}
+	}
+
+	//Compile InputLayout if it uses vertex shader
+	if (shader.m_usedshaderstages[EShaderStage::eVS] == true)
+	{
+		ID3D11ShaderReflection* VSReflection = shader.m_shaderreflections.m_vsreflection;
+
+		D3D11_SHADER_DESC shaderdesc = {};
+		VSReflection->GetDesc(&shaderdesc);
+		std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayout(shaderdesc.InputParameters);
+		D3D_PRIMITIVE primitiveDesc = shaderdesc.InputPrimitive;
+
+		shader.m_info.m_instructioncount = shaderdesc.InstructionCount;
+
+		for (int i = 0; i < (int)shaderdesc.InputParameters; ++i)
+		{
+			D3D11_SIGNATURE_PARAMETER_DESC ParamDesc;
+			VSReflection->GetInputParameterDesc(i, &ParamDesc);
+
+			D3D11_INPUT_ELEMENT_DESC elementDesc;
+			elementDesc.SemanticName = ParamDesc.SemanticName;
+			elementDesc.SemanticIndex = ParamDesc.SemanticIndex;
+			elementDesc.InputSlot = 0;
+			elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			elementDesc.InstanceDataStepRate = 0;
+
+			if (ParamDesc.Mask == 1)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 3)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 7)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 15)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			}
+
+			inputLayout[i] = elementDesc;
+		}
+
+		VSReflection = nullptr;
+
+		D3D11_INPUT_ELEMENT_DESC* pbuffer = inputLayout.data();
+		check(pbuffer);
+
+		r = m_device->CreateInputLayout(
+			pbuffer,
+			shaderdesc.InputParameters,
+			Blobs.m_vsBlob->GetBufferPointer(),
+			Blobs.m_vsBlob->GetBufferSize(),
+			&shader.m_inputlayout);
+
+		checkhr(r);
+	}
+
+	for (int i = 0; i < EShaderStage::eCount; ++i)
+	{
+		DXRelease(Blobs.m_stageblob[i]);
+	}
 }
 
 void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)

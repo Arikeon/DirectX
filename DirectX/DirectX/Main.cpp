@@ -10,9 +10,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow)
 {
+	//Add line# where the memory leak originated
+	MEMORY_LEAK_START(0);
 	{
-		//Add line# where the memory leak originated
-		MEMORY_LEAK_START(0);
 		CEngine Engine;
 		Engine.Initialize();
 
@@ -25,8 +25,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			CONSOLE_LOG("Failed to start...")
 				return 0;
 		}
-		MEMORY_LEAK_END;
 	}
+	MEMORY_LEAK_END;
 	return 1;
 }
 

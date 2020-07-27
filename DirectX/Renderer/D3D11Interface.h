@@ -12,11 +12,11 @@ public:
 	friend class CRenderer;
 	CD3D11Interface();
 	~CD3D11Interface();
+	void Present() override final;
 	void InitializeD3D(TWindow window) override final;
 	void CompileShader(TShader& shader) override final;
 
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
-
 private:
 	IDXGISwapChain* m_swapchain;
 	ID3D11Device* m_device;

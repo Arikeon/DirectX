@@ -7,6 +7,12 @@
 
 #define EShaderListToString(name) #name
 
+using CPUConstantID = int;
+using GPU_ConstantBufferSlotIndex = int;
+using ConstantBufferMapping = std::pair<GPU_ConstantBufferSlotIndex, CPUConstantID>;
+using ShaderTextureLookup = std::unordered_map<std::string, int>;
+using ShaderSamplerLookup = std::unordered_map<std::string, int>;
+
 namespace EShaderList
 {
 	enum Type
@@ -38,6 +44,12 @@ namespace EShaderStage
 	};
 }
 
+struct TShaderInfo
+{
+	std::string m_name;
+	int m_instructioncount;
+};
+
 struct TShaderStages
 {
 	ID3D11VertexShader* m_vs;
@@ -48,17 +60,17 @@ struct TShaderStages
 	ID3D11ComputeShader* m_cs;
 };
 
-struct D3DConstantBufferLayout
+struct TD3DConstantBufferLayout
 {
 	D3D11_SHADER_BUFFER_DESC m_desc;
 	std::vector<D3D11_SHADER_VARIABLE_DESC> m_variables;
 	std::vector<D3D11_SHADER_TYPE_DESC> m_types;
-	unsigned m_buffSize;
+	int m_bufferSize;
 	EShaderStage::Type m_stage;
-	unsigned  m_bufSlot;
+	int  m_bufferSlot;
 };
 
-union D3DBlobs
+union TD3DBlobs
 {
 	ID3D10Blob* m_stageblob[EShaderStage::eCount] = {};
 	struct
@@ -72,7 +84,7 @@ union D3DBlobs
 	};
 };
 
-union D3DReflections
+union TD3DReflections
 {
 	ID3D11ShaderReflection* m_stagereflection[EShaderStage::eCount] = {};
 	struct
@@ -86,11 +98,44 @@ union D3DReflections
 	};
 };
 
+struct TConstantBufferBinding
+{
+	EShaderStage::Type m_shaderstage;
+	int m_bufferslot;
+	ID3D11Buffer* m_pdata;
+	bool m_dirty;
+};
+struct TTextureBinding
+{
+	EShaderStage::Type m_shaderStage;
+	int m_textureSlot;
+};
+struct TSamplerBinding
+{
+	EShaderStage::Type m_shaderStage;
+	int m_samplerSlot;
+};
+
+struct TCPUConstant
+{
+	using CPUConstantRefIDPair = std::tuple<TCPUConstant&, CPUConstantID>;
+
+	TCPUConstant() : m_name(), m_size(0), m_pdata(nullptr) {}
+	std::string m_name;
+	size_t		m_size;
+	void* m_pdata;
+
+	inline bool operator==(const TCPUConstant& c) const { return (((this->m_pdata == c.m_pdata) && this->m_size == c.m_size) && this->m_name == c.m_name); }
+	inline bool operator!=(const TCPUConstant& c) const { return ((this->m_pdata != c.m_pdata) || this->m_size != c.m_size || this->m_name != c.m_name); }
+};
+
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
 	void Initialize(std::string shadername)
 	{
+		m_info.m_name = shadername;
+
 		std::wstring wShaderDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Renderer\\Shaders\\";
 		const std::string ShaderDir = Algorithm::wstring_to_string(wShaderDir);
 		m_shaderdir = ShaderDir + shadername;
@@ -174,9 +219,56 @@ struct TShader
 		}
 	}
 
+
+	~TShader()
+	{
+		DXRelease(m_shaderstages.m_vs);
+		DXRelease(m_shaderstages.m_hs);
+		DXRelease(m_shaderstages.m_ds);
+		DXRelease(m_shaderstages.m_gs);
+		DXRelease(m_shaderstages.m_ps);
+		DXRelease(m_shaderstages.m_cs);
+		DXRelease(m_inputlayout);
+
+		for (int i = 0; i < EShaderStage::eCount; ++i)
+		{
+			DXRelease(m_shaderreflections.m_stagereflection[i]);
+		}
+
+		for (int i = 0; i < m_constantbuffers.size(); ++i)
+		{
+			DXRelease(m_constantbuffers[i].m_pdata);
+		}
+		m_constantbuffers.clear();
+
+		for (int i = 0; i < m_CPUconstantbuffers.size(); ++i)
+		{
+			delete m_CPUconstantbuffers[i].m_pdata;
+			m_CPUconstantbuffers[i].m_pdata = nullptr;
+		}
+		m_CPUconstantbuffers.clear();
+
+		m_constantbufferlayouts.clear();
+		m_constantbuffermap.clear();
+		m_shadermacros.clear();
+	}
+
+	std::vector<TConstantBufferBinding>	m_constantbuffers;
+	std::vector<TD3DConstantBufferLayout> m_constantbufferlayouts;
+	std::vector<TCPUConstant> m_CPUconstantbuffers;
+	std::vector<ConstantBufferMapping> m_constantbuffermap;
+
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
 	std::vector<D3D10_SHADER_MACRO> m_shadermacros;
-	D3DReflections m_shaderreflections;
+	TD3DReflections m_shaderreflections;
 	TShaderStages m_shaderstages;
 	std::string m_shaderdir;
+
+	std::vector<TTextureBinding> m_texturebindings;
+	std::vector<TSamplerBinding> m_samplerbindings;
+	ShaderTextureLookup m_shadertexturelookup;
+	ShaderSamplerLookup m_shadersamplerlookup;
+
+	ID3D11InputLayout* m_inputlayout;
+	TShaderInfo m_info;
 	};
