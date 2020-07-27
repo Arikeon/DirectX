@@ -58,21 +58,91 @@ struct D3DConstantBufferLayout
 	unsigned  m_bufSlot;
 };
 
+union D3DBlobs
+{
+	ID3D10Blob* m_stageblob[EShaderStage::eCount] = {};
+	struct
+	{
+		ID3D10Blob* m_vsBlob;
+		ID3D10Blob* m_hsBlob;
+		ID3D10Blob* m_dsBlob;
+		ID3D10Blob* m_gsBlob;
+		ID3D10Blob* m_psBlob;
+		ID3D10Blob* m_csBlob;
+	};
+};
+
+union D3DReflections
+{
+	ID3D11ShaderReflection* m_stagereflection[EShaderStage::eCount] = {};
+	struct
+	{
+		ID3D11ShaderReflection* m_vsreflection;
+		ID3D11ShaderReflection* m_hsreflection;
+		ID3D11ShaderReflection* m_dsreflection;
+		ID3D11ShaderReflection* m_gsreflection;
+		ID3D11ShaderReflection* m_psreflection;
+		ID3D11ShaderReflection* m_csreflection;
+	};
+};
+
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
 	void Initialize(std::string shadername)
 	{
-		std::wstring wShaderDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Renderer\\";
+		std::wstring wShaderDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Renderer\\Shaders\\";
 		const std::string ShaderDir = Algorithm::wstring_to_string(wShaderDir);
 		m_shaderdir = ShaderDir + shadername;
 		
-		m_shaderstages[EShaderStage::eVS] = VS;
-		m_shaderstages[EShaderStage::eHS] = HS;
-		m_shaderstages[EShaderStage::eDS] = DS;
-		m_shaderstages[EShaderStage::eGS] = GS;
-		m_shaderstages[EShaderStage::ePS] = PS;
-		m_shaderstages[EShaderStage::eCS] = CS;
+		m_usedshaderstages[EShaderStage::eVS] = VS;
+		m_usedshaderstages[EShaderStage::eHS] = HS;
+		m_usedshaderstages[EShaderStage::eDS] = DS;
+		m_usedshaderstages[EShaderStage::eGS] = GS;
+		m_usedshaderstages[EShaderStage::ePS] = PS;
+		m_usedshaderstages[EShaderStage::eCS] = CS;
+
+		m_shadermacros.push_back({"SHADER", "1"});
+	}
+
+	static std::string GetEntryPointName(int stage)
+	{
+		return TShader::GetEntryPointName((EShaderStage::Type)stage);
+	}
+
+	static std::string GetEntryPointName(EShaderStage::Type stage)
+	{
+		const std::array<std::string, EShaderStage::eCount> EntryPointNames =
+		{
+			"MainVS",
+			"MainHS",
+			"MainDS",
+			"MainGS",
+			"MainPS",
+			"MainCS",
+		};
+
+		return EntryPointNames[stage];
+	}
+
+	static std::string GetFeatureLevel(int stage)
+	{
+		return TShader::GetFeatureLevel((EShaderStage::Type)stage);
+	}
+
+	static std::string GetFeatureLevel(EShaderStage::Type stage)
+	{
+		const std::array<std::string, EShaderStage::eCount> FeatureLevelNames =
+		{
+			"vs_5_0",
+			"hs_5_0",
+			"ds_5_0",
+			"gs_5_0",
+			"ps_5_0",
+			"cs_5_0",
+		};
+
+		return FeatureLevelNames[stage];
 	}
 
 	std::string GetDirectoryFromStage(EShaderStage::Type stage)
@@ -99,41 +169,14 @@ struct TShader
 			break;
 		default:
 			check(0);
+			return std::string("NULL");
 			break;
 		}
 	}
 
+	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
+	std::vector<D3D10_SHADER_MACRO> m_shadermacros;
+	D3DReflections m_shaderreflections;
+	TShaderStages m_shaderstages;
 	std::string m_shaderdir;
-	std::array<bool, EShaderStage::eCount> m_shaderstages;
-	TShaderStages m_compiledstages;
-
-	union D3DBlobs
-	{
-		ID3D10Blob* m_stageblob[EShaderStage::eCount] = {};
-		struct
-		{
-			ID3D10Blob* m_vsBlob;
-			ID3D10Blob* m_hsBlob;
-			ID3D10Blob* m_dsBlob;
-			ID3D10Blob* m_gsBlob;
-			ID3D10Blob* m_psBlob;
-			ID3D10Blob* m_csBlob;
-		};
 	};
-
-	union D3DReflections
-	{
-		ID3D11ShaderReflection* m_stagereflection[EShaderStage::eCount] = {};
-		struct
-		{
-			ID3D11ShaderReflection* m_vsreflection;
-			ID3D11ShaderReflection* m_hsreflection;
-			ID3D11ShaderReflection* m_dsreflection;
-			ID3D11ShaderReflection* m_gsreflection;
-			ID3D11ShaderReflection* m_psreflection;
-			ID3D11ShaderReflection* m_csreflection;
-		};
-	};
-
-
-};
