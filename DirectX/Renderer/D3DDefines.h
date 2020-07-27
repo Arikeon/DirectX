@@ -1,3 +1,4 @@
+#if __cplusplus
 #pragma once
 #include <typeinfo>
 #include <fstream>
@@ -20,3 +21,4 @@ typedef XMFLOAT4	float4;
 typedef XMFLOAT4X4	float4x4;
 typedef XMFLOAT3X3	float3x3;
 typedef XMMATRIX	matrix;
+#endif

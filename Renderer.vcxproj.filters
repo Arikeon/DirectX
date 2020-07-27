@@ -33,12 +33,18 @@
     <ClInclude Include="DirectX\Renderer\Shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="DirectX\Renderer\BaseVS.hlsl">
+    <FxCompile Include="DirectX\Renderer\Shaders\BasePassPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DirectX\Renderer\BasePS.hlsl">
+    <FxCompile Include="DirectX\Renderer\Shaders\BasePassVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\HLSLGlue.h">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

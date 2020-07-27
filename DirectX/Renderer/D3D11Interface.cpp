@@ -1,4 +1,6 @@
 #include "D3D11Interface.h"
+#include "HLSLGlue.h"
+#include <d3dcompiler.h>
 
 CD3D11Interface::CD3D11Interface() :
 	CD3DInterface(),
@@ -163,5 +165,132 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 	{
 		CONSOLE_LOG("Failed to initialized d3d");
 		exit(1);
+	}
+}
+
+void CD3D11Interface::CompileShader(TShader& shader)
+{
+#if ENABLE_DEBUG
+	const UINT SHADER_COMPILE_FLAGS = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	const UINT SHADER_COMPILE_FLAGS = D3DCOMPILE_ENABLE_STRICTNESS;
+#endif
+
+	int NumberOfStages = 0;
+
+	HRESULT r;
+	D3DBlobs Blobs;
+
+	for (int i = 0; i < EShaderStage::eCount; ++i)
+	{
+		EShaderStage::Type stage = (EShaderStage::Type)i;
+
+		if (shader.m_usedshaderstages[(EShaderStage::Type)stage] == false)
+			continue;
+		NumberOfStages++;
+
+		std::string pathstr = shader.GetDirectoryFromStage((EShaderStage::Type)stage);
+		std::wstring pathwstr = Algorithm::string_to_wstring(pathstr);
+
+		ID3DBlob* errmsg, *pblob;
+		std::vector<D3D10_SHADER_MACRO> NullTerminatedMacro = shader.m_shadermacros;
+		NullTerminatedMacro.push_back({ NULL, NULL });
+
+		r = D3DCompileFromFile(
+			pathwstr.c_str(),
+			NullTerminatedMacro.data(),
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			TShader::GetEntryPointName(stage).c_str(),
+			TShader::GetFeatureLevel(stage).c_str(),
+			SHADER_COMPILE_FLAGS,
+			NULL,
+			&pblob,
+			&errmsg);
+
+		if (r != S_OK || pblob == nullptr)
+		{
+			char* msg = (char*)errmsg->GetBufferPointer();
+			size_t msgsize = errmsg->GetBufferSize();
+
+			std::stringstream strs;
+			for (int i = 0; i < msgsize; ++i)
+				strs << msg;
+
+			volatile std::string errmsgstr = strs.str();
+
+			if (pblob)
+				pblob->Release();
+			errmsg->Release();
+
+			check(0);
+		}
+
+		Blobs.m_stageblob[stage] = pblob;
+
+		CreateShaderStage(shader, stage, Blobs.m_stageblob[stage]->GetBufferPointer(), Blobs.m_stageblob[stage]->GetBufferSize());
+
+
+		//set reflections
+		{
+			for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
+			{
+				if (Blobs.m_stageblob[stage] != nullptr)
+				{
+					void** pbuffer = reinterpret_cast<void**>(&shader.m_shaderreflections.m_stagereflection[stage]);
+					r = D3DReflect(Blobs.m_stageblob[stage]->GetBufferPointer(), Blobs.m_stageblob[stage]->GetBufferSize(), IID_ID3D11ShaderReflection, pbuffer);
+					checkhr(r);
+				}
+			}
+		}
+	}
+
+	//Atleast one shader have to compile
+	check(NumberOfStages > 0);
+}
+
+void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)
+{
+	check(shader.m_usedshaderstages[stage] == true);
+
+	HRESULT r;
+
+	switch (stage)
+	{
+		case EShaderStage::eVS:
+		{
+			r = m_device->CreateVertexShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_vs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eHS:
+		{
+			r = m_device->CreateHullShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_hs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eDS:
+		{
+			r = m_device->CreateDomainShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_ds);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eGS:
+		{
+			r = m_device->CreateGeometryShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_gs);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::ePS:
+		{
+			r = m_device->CreatePixelShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_ps);
+			checkhr(r);
+		}
+			break;
+		case EShaderStage::eCS:
+		{
+			r = m_device->CreateComputeShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_cs);
+			checkhr(r);
+		}
+		break;
 	}
 }
