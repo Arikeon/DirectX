@@ -47,3 +47,6 @@
 #else
 	#define CONSOLE_LOG(exp)
 #endif
+
+//dx easy release
+#define DXRelease(dx) if(dx) { dx->Release(); }

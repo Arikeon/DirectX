@@ -38,6 +38,12 @@ namespace EShaderStage
 	};
 }
 
+struct TShaderInfo
+{
+	std::string m_name;
+	int m_instructioncount;
+};
+
 struct TShaderStages
 {
 	ID3D11VertexShader* m_vs;
@@ -91,6 +97,8 @@ struct TShader
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
 	void Initialize(std::string shadername)
 	{
+		m_info.m_name = shadername;
+
 		std::wstring wShaderDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Renderer\\Shaders\\";
 		const std::string ShaderDir = Algorithm::wstring_to_string(wShaderDir);
 		m_shaderdir = ShaderDir + shadername;
@@ -174,9 +182,28 @@ struct TShader
 		}
 	}
 
+
+	~TShader()
+	{
+		DXRelease(m_shaderstages.m_vs);
+		DXRelease(m_shaderstages.m_hs);
+		DXRelease(m_shaderstages.m_ds);
+		DXRelease(m_shaderstages.m_gs);
+		DXRelease(m_shaderstages.m_ps);
+		DXRelease(m_shaderstages.m_cs);
+		DXRelease(m_inputlayout);
+
+		for (int i = 0; i < EShaderStage::eCount; ++i)
+		{
+			DXRelease(m_shaderreflections.m_stagereflection[i]);
+		}
+	}
+
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
 	std::vector<D3D10_SHADER_MACRO> m_shadermacros;
 	D3DReflections m_shaderreflections;
 	TShaderStages m_shaderstages;
+	ID3D11InputLayout* m_inputlayout;
 	std::string m_shaderdir;
+	TShaderInfo m_info;
 	};

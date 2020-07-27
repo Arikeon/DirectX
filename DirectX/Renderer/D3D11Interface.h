@@ -12,6 +12,7 @@ public:
 	friend class CRenderer;
 	CD3D11Interface();
 	~CD3D11Interface();
+	void Present() override final;
 	void InitializeD3D(TWindow window) override final;
 	void CompileShader(TShader& shader) override final;
 

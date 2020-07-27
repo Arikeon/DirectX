@@ -33,6 +33,11 @@ CD3D11Interface::~CD3D11Interface()
 #endif
 }
 
+void CD3D11Interface::Present()
+{
+
+}
+
 void CD3D11Interface::InitializeD3D(TWindow window)
 {
 	bool bSuccess = true;
@@ -246,6 +251,74 @@ void CD3D11Interface::CompileShader(TShader& shader)
 
 	//Atleast one shader have to compile
 	check(NumberOfStages > 0);
+
+	//Compile InputLayout if it uses vertex shader
+	if (shader.m_usedshaderstages[EShaderStage::eVS] == true)
+	{
+		ID3D11ShaderReflection* VSReflection = shader.m_shaderreflections.m_vsreflection;
+
+		D3D11_SHADER_DESC ShaderDesc = {};
+		VSReflection->GetDesc(&ShaderDesc);
+		std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayout(ShaderDesc.InputParameters);
+		D3D_PRIMITIVE primitiveDesc = ShaderDesc.InputPrimitive;
+
+		shader.m_info.m_instructioncount = ShaderDesc.InstructionCount;
+
+		for (int i = 0; i < (int)ShaderDesc.InputParameters; ++i)
+		{
+			D3D11_SIGNATURE_PARAMETER_DESC ParamDesc;
+			VSReflection->GetInputParameterDesc(i, &ParamDesc);
+
+			D3D11_INPUT_ELEMENT_DESC elementDesc;
+			elementDesc.SemanticName = ParamDesc.SemanticName;
+			elementDesc.SemanticIndex = ParamDesc.SemanticIndex;
+			elementDesc.InputSlot = 0;
+			elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			elementDesc.InstanceDataStepRate = 0;
+
+			if (ParamDesc.Mask == 1)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 3)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 7)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			}
+			else if (ParamDesc.Mask <= 15)
+			{
+				if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+				else if (ParamDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			}
+
+			inputLayout[i] = elementDesc;
+		}
+
+		VSReflection = nullptr;
+
+		D3D11_INPUT_ELEMENT_DESC* pbuffer = inputLayout.data();
+		check(pbuffer);
+
+		r = m_device->CreateInputLayout(
+			pbuffer,
+			ShaderDesc.InputParameters,
+			Blobs.m_vsBlob->GetBufferPointer(),
+			Blobs.m_vsBlob->GetBufferSize(),
+			&shader.m_inputlayout);
+
+		checkhr(r);
+	}
 }
 
 void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)
