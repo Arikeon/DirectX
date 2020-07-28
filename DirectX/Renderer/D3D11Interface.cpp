@@ -1,7 +1,11 @@
 #include "D3D11Interface.h"
 #include "HLSLGlue.h"
-#include <d3dcompiler.h>
 #include "Mesh.h"
+#include "Renderer.h"
+#include <d3dcompiler.h>
+
+//Resource Getter
+CRenderer* CD3D11Interface::prenderer = nullptr;
 
 CD3D11Interface::CD3D11Interface() :
 	m_swapchain(nullptr),
@@ -20,6 +24,8 @@ CD3D11Interface::CD3D11Interface() :
 
 CD3D11Interface::~CD3D11Interface()
 {
+	prenderer = nullptr;
+
 	m_swapchain->Release();
 	m_device->Release();
 	m_context->Release();
@@ -35,7 +41,7 @@ CD3D11Interface::~CD3D11Interface()
 
 void CD3D11Interface::Present()
 {
-
+	m_swapchain->Present(1, 0);
 }
 
 void CD3D11Interface::InitializeD3D(TWindow window)
@@ -164,6 +170,16 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		checkhr(r);
 
 		check(m_rasterizerstate);
+	}
+
+	//Initial VP
+	{
+		m_mainvp.TopLeftX = (float)window.m_posX;
+		m_mainvp.TopLeftY = (float)window.m_posY;
+		m_mainvp.Height = (float)window.m_height;
+		m_mainvp.Width = (float)window.m_width;
+		m_mainvp.MinDepth = (float)m_nearplane;
+		m_mainvp.MaxDepth = (float)m_farplane;
 	}
 
 	if (bSuccess == false)
@@ -517,4 +533,24 @@ void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stag
 		}
 		break;
 	}
+}
+
+void CD3D11Interface::IssueRenderCommands(float delta)
+{
+#if 1
+	//Test
+	m_context->OMGetRenderTargets(1, &m_backbufferRTV, &m_depthbufferDSV);
+	m_context->RSSetViewports(1, &m_mainvp);
+
+#else
+	//Base Pass
+	{
+
+	}
+#endif
+}
+
+void CD3D11Interface::UnbindTargets()
+{
+
 }

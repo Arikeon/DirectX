@@ -62,7 +62,7 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
-		m_renderer->Update(Time.m_deltaTime);
+		m_renderer->Render(Time.m_deltaTime);
 
 		//Check if shutdown bit
 		{

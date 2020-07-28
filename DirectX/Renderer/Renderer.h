@@ -13,13 +13,14 @@ struct TMesh;
 class CRenderer
 {
 	friend class CEngine;
+	friend class CD3D11Interface;
 	friend struct TMesh;
 private:
 	CRenderer();
 	~CRenderer();
 	void Initialize(TWindow window);
 	void CompileShaders();
-	void Update(float delta);
+	void Render(float delta);
 	void Restart();
 
 	std::vector<TShader> m_shaders;

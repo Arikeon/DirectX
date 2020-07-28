@@ -37,6 +37,9 @@
     <ClCompile Include="DirectX\Engine\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX\Engine\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Engine.h">
@@ -67,6 +70,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Transform.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Camera.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -27,7 +27,8 @@ void CRenderer::Initialize(TWindow window)
 		m_D3DInterface = new CD3D11Interface;
 
 	m_D3DInterface->InitializeD3D(window);
-	
+	CD3D11Interface::prenderer = this;
+
 	CompileShaders();
 }
 
@@ -43,9 +44,10 @@ void CRenderer::CompileShaders()
 	}
 }
 
-void CRenderer::Update(float delta)
+void CRenderer::Render(float delta)
 {
-
+	m_D3DInterface->IssueRenderCommands(delta);
+	m_D3DInterface->Present();
 }
 
 void CRenderer::Restart()

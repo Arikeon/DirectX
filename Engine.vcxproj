@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectX\Engine\Camera.cpp" />
     <ClCompile Include="DirectX\Engine\Engine.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
@@ -164,6 +165,7 @@
     <ClCompile Include="DirectX\Engine\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectX\Engine\Camera.h" />
     <ClInclude Include="DirectX\Engine\Engine.h" />
     <ClInclude Include="DirectX\Engine\Input.h" />
     <ClInclude Include="DirectX\Engine\Mesh.h" />
