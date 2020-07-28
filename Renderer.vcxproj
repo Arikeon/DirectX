@@ -149,12 +149,14 @@
     <ClCompile Include="DirectX\Renderer\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectX\Renderer\BufferKeys.h" />
+    <ClInclude Include="DirectX\Renderer\BufferStruct.h" />
     <ClInclude Include="DirectX\Renderer\D3D11Interface.h" />
     <ClInclude Include="DirectX\Renderer\D3DDefines.h" />
-    <ClInclude Include="DirectX\Renderer\D3DInterface.h" />
     <ClInclude Include="DirectX\Renderer\Renderer.h" />
     <ClInclude Include="DirectX\Renderer\Shader.h" />
     <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h" />
+    <ClInclude Include="DirectX\Renderer\StructCollection.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DirectX\Renderer\Shaders\BasePassPS.hlsl">

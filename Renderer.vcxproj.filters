@@ -5,7 +5,7 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Shaders">
+    <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{a60bd900-70ac-4b13-8dbb-70f31c2ae7cb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -21,9 +21,6 @@
     <ClInclude Include="DirectX\Renderer\D3D11Interface.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Renderer\D3DInterface.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="DirectX\Renderer\Renderer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -34,18 +31,25 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h">
-      <Filter>Shaders</Filter>
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Renderer\Shaders\HLSLGlue.h" />
+    <ClInclude Include="DirectX\Renderer\BufferKeys.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Renderer\StructCollection.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Renderer\BufferStruct.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DirectX\Renderer\Shaders\BasePassPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DirectX\Renderer\Shaders\BasePassVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DirectX\Renderer\Shaders\HLSLGlue.h">
-      <Filter>Shaders</Filter>
+      <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

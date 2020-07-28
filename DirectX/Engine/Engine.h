@@ -5,6 +5,7 @@
 #include <thread>
 
 class CRenderer;
+class CScene;
 
 class CEngine
 {
@@ -21,5 +22,6 @@ class CEngine
 
 	TWindow m_window;
 	CRenderer* m_renderer;
+	CScene* m_scene;
 	bool m_isRunning, isRestarting;
 };

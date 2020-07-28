@@ -1,23 +1,24 @@
 #pragma once
-#include "D3DInterface.h"
 #include "Window.h"
 #include <Window.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgidebug.h>
+#include "Shader.h"
 
-class CD3D11Interface : public CD3DInterface
+class CD3D11Interface
 {
-public:
+	friend struct TMesh;
 	friend class CRenderer;
+public:
 	CD3D11Interface();
 	~CD3D11Interface();
-	void Present() override final;
-	void InitializeD3D(TWindow window) override final;
-	void CompileShader(TShader& shader) override final;
-
+	void Present();
+	void InitializeD3D(TWindow window);
+	void CompileShader(TShader& shader);
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
 private:
+	ID3D11Device* GetDevice() { return m_device; }
 	IDXGISwapChain* m_swapchain;
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;

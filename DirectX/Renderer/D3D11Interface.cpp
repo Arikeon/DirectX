@@ -1,9 +1,9 @@
 #include "D3D11Interface.h"
 #include "HLSLGlue.h"
 #include <d3dcompiler.h>
+#include "Mesh.h"
 
 CD3D11Interface::CD3D11Interface() :
-	CD3DInterface(),
 	m_swapchain(nullptr),
 	m_device(nullptr),
 	m_context(nullptr),

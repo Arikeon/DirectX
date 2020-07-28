@@ -1,8 +1,9 @@
 #include "Renderer.h"
-#include "D3DInterface.h"
 #include "D3D11Interface.h"
 #include "Stream.h"
 #include "Shader.h"
+#include "Mesh.h"
+#include "Model.h"
 
 CRenderer::CRenderer() :
 	m_D3DInterface(nullptr)
@@ -13,6 +14,8 @@ CRenderer::~CRenderer()
 {
 	delete m_D3DInterface;
 	m_shaders.clear();
+	m_vertexbuffers.clear();
+	m_indexbuffers.clear();
 }
 
 void CRenderer::Initialize(TWindow window)
@@ -24,7 +27,7 @@ void CRenderer::Initialize(TWindow window)
 		m_D3DInterface = new CD3D11Interface;
 
 	m_D3DInterface->InitializeD3D(window);
-
+	
 	CompileShaders();
 }
 
@@ -45,3 +48,8 @@ void CRenderer::Update(float delta)
 
 }
 
+void CRenderer::Restart()
+{
+	m_vertexbuffers.clear();
+	m_indexbuffers.clear();
+}

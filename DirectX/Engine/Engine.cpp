@@ -7,6 +7,10 @@
 #include <wchar.h>
 #include <string>
 
+//Scenes
+#include "Scenes/Scene.h"
+#include "Scenes/BasicShapesScene.h"
+
 CEngine::~CEngine()
 {
 	delete m_renderer;
@@ -21,6 +25,20 @@ void CEngine::Initialize()
 
 	m_renderer = new CRenderer;
 	m_renderer->Initialize(m_window);
+
+	EScene::Type selectedscene = (EScene::Type)Stream::ReadIniInt(Stream::GetDefaultDir(), L"Scene", L"SelectedScene");
+
+	switch (selectedscene)
+	{
+	case EScene::eBasicShapesScene:
+		m_scene = new CBasicShapesScene;
+		break;
+	default:
+		check(0);
+		break;
+	}
+
+	m_scene->LoadScene(m_renderer);
 }
 
 void CEngine::Update()
@@ -60,6 +78,8 @@ void CEngine::Update()
 void CEngine::Restart()
 {
 	isRestarting = false;
+	m_scene->UnloadScene();
+	m_renderer->Restart();
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, uint32 msg, WPARAM wParam, LPARAM lParam)

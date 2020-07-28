@@ -3,7 +3,7 @@
 #if __cplusplus
 	//Buffer & Structs
 	#include "D3DDefines.h"
-	#define START_CBUFFER(CB, reg) struct CB : register(reg) {
+	#define START_CBUFFER(CB, reg) struct CB {
 	#define END_CBUFFER(CB) }
 	#define SEMANTIC(SM);
 
