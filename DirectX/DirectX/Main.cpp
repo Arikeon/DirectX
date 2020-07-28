@@ -22,7 +22,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		else
 		{
-			CONSOLE_LOG("Failed to start...")
+			CONSOLE_LOG(L"Failed to start...")
 				return 0;
 		}
 	}

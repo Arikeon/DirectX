@@ -72,6 +72,9 @@ void CEngine::Update()
 				m_isRunning = false;
 			}
 		}
+
+		//Has to be last
+		InputInstance()->Reset();
 	}
 }
 
@@ -89,6 +92,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32 msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
+	case WM_MOUSEMOVE:
+	{
+		InputInstance()->ReadMouseDelta(lParam);
+	}
+	break;
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{

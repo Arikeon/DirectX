@@ -26,16 +26,16 @@ CD3D11Interface::~CD3D11Interface()
 {
 	prenderer = nullptr;
 
-	m_swapchain->Release();
-	m_device->Release();
-	m_context->Release();
-	m_backbuffer2D->Release();
-	m_depthbuffer2D->Release();
-	m_backbufferRTV->Release();
-	m_depthbufferDSV->Release();
-	m_rasterizerstate->Release();
+	DXRelease(m_swapchain);
+	DXRelease(m_device);
+	DXRelease(m_context);
+	DXRelease(m_backbuffer2D);
+	DXRelease(m_depthbuffer2D);
+	DXRelease(m_backbufferRTV);
+	DXRelease(m_depthbufferDSV);
+	DXRelease(m_rasterizerstate);
 #if ENABLE_DXGI_DEBUG
-	m_dxgidebug->Release();
+	DXRelease(m_dxgidebug);
 #endif
 }
 
@@ -184,7 +184,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 
 	if (bSuccess == false)
 	{
-		CONSOLE_LOG("Failed to initialized d3d");
+		CONSOLE_LOG(L"Failed to initialized d3d");
 		exit(1);
 	}
 }

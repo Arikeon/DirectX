@@ -43,7 +43,9 @@
 #endif
 
 #if ENABLE_CONSOLE_DEBUGGING
-	#define CONSOLE_LOG(log) OutputDebugStringA(log);
+	#include <string>
+	static INLINE void OutputDebugstr(std::wstring in) { in += L"\n"; wchar_t szBuff[1024]; lstrcpyW(szBuff, in.c_str()); OutputDebugString(szBuff); }
+	#define CONSOLE_LOG(log) OutputDebugstr(log);
 #else
 	#define CONSOLE_LOG(exp)
 #endif

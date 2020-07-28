@@ -26,7 +26,7 @@ namespace Stream
 	{
 		value = GetPrivateProfileInt(sectionname, keyname, -1, dir);
 		if (value == -1) //resulted to default
-			CONSOLE_LOG("ERROR: ReadIniInt returned -1");
+			CONSOLE_LOG(L"ERROR: ReadIniInt returned -1");
 	}
 
 	static INLINE int ReadIniInt(LPCWSTR dir, LPCWSTR sectionname, LPCWSTR keyname)
@@ -43,7 +43,7 @@ namespace Stream
 		GetPrivateProfileString(sectionname, keyname, L"NULL", s, max, dir);
 		value = s;
 		if (value == L"NULL") //resulted to default
-			CONSOLE_LOG("ERROR: ReadIniInt returned -1");
+			CONSOLE_LOG(L"ERROR: ReadIniInt returned -1");
 	}
 
 	static INLINE std::wstring ReadIniString(LPCWSTR dir, LPCWSTR sectionname, LPCWSTR keyname)

@@ -64,12 +64,16 @@ struct TD3DBuffer
 
 	~TD3DBuffer()
 	{
-		delete m_pCPUdata;
+		if (m_pCPUdata)
+		{
+			delete m_pCPUdata;
+			m_pCPUdata = nullptr;
+		}
 		DXRelease(m_pGPUdata);
 	}
 
 	bool m_bdirty;
-	void* m_pCPUdata;
+	void* m_pCPUdata = nullptr;
 	ID3D11Buffer* m_pGPUdata = nullptr;
 	TBufferInfo m_info;
 
