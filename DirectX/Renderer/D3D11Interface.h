@@ -2,22 +2,14 @@
 #include "Window.h"
 #include "BufferKeys.h"
 #include "Shader.h"
+#include "RenderEnums.h"
 
-#include <Window.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgidebug.h>
+#include <Window.h>
 
 class CRenderer;
-
-struct TPipelineState
-{
-	ShaderID m_shader;
-	BufferID m_vertexBuffer;
-	BufferID m_indexBuffer;
-	ViewportID m_viewPort;
-	RenderTargetID m_renderTargets;
-};
 
 class CD3D11Interface
 {
@@ -44,12 +36,6 @@ private:
 	IDXGISwapChain* m_swapchain;
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
-	ID3D11Texture2D* m_backbuffer2D;
-	ID3D11Texture2D* m_depthbuffer2D;
-	ID3D11RenderTargetView* m_backbufferRTV;
-	ID3D11DepthStencilView* m_depthbufferDSV;
-	ID3D11RasterizerState* m_rasterizerstate;
-	D3D11_VIEWPORT m_mainvp;
 #if ENABLE_DXGI_DEBUG
 	IDXGIDebug* m_dxgidebug;
 #endif

@@ -220,7 +220,7 @@ struct TShader
 	}
 
 
-	~TShader()
+	void Release()
 	{
 		DXRelease(m_shaderstages.m_vs);
 		DXRelease(m_shaderstages.m_hs);

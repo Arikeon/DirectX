@@ -4,6 +4,8 @@
 #include "Shader.h"
 #include "BufferKeys.h"
 #include "BufferStruct.h"
+#include "RenderEnums.h"
+
 #include <Windows.h>
 #include <vector>
 
@@ -26,6 +28,12 @@ private:
 	std::vector<TShader> m_shaders;
 	std::vector<TD3DBuffer> m_vertexbuffers;
 	std::vector<TD3DBuffer> m_indexbuffers;
+	std::vector<TD3DRenderTarget> m_rtvs;
+	std::vector<TD3DTexture> m_textures;
+	std::vector<TD3DSampler> m_samplers;
+	std::vector<TD3DDepthTarget> m_depthtargets;
+	std::array<ID3D11RasterizerState*, ERasterizerStates::eCount> m_rasterizerstates;
+	std::array<D3D11_VIEWPORT, EViews::eCount> m_views;
 
 	CD3D11Interface* m_D3DInterface;
 };

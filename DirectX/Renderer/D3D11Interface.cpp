@@ -11,11 +11,6 @@ CD3D11Interface::CD3D11Interface() :
 	m_swapchain(nullptr),
 	m_device(nullptr),
 	m_context(nullptr),
-	m_backbuffer2D(nullptr),
-	m_depthbuffer2D(nullptr),
-	m_backbufferRTV(nullptr),
-	m_depthbufferDSV(nullptr),
-	m_rasterizerstate(nullptr),
 #if ENABLE_DXGI_DEBUG
 	m_dxgidebug(nullptr)
 #endif
@@ -25,15 +20,9 @@ CD3D11Interface::CD3D11Interface() :
 CD3D11Interface::~CD3D11Interface()
 {
 	prenderer = nullptr;
-
 	DXRelease(m_swapchain);
 	DXRelease(m_device);
 	DXRelease(m_context);
-	DXRelease(m_backbuffer2D);
-	DXRelease(m_depthbuffer2D);
-	DXRelease(m_backbufferRTV);
-	DXRelease(m_depthbufferDSV);
-	DXRelease(m_rasterizerstate);
 #if ENABLE_DXGI_DEBUG
 	DXRelease(m_dxgidebug);
 #endif
@@ -109,11 +98,16 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 #endif
 	}
 
+	TD3DRenderTarget MainRTV;
+	TD3DDepthTarget MainDepth;
+
 	//Initialize backbuffer ref
 	{
-		m_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&m_backbuffer2D);
-		r = m_device->CreateRenderTargetView(m_backbuffer2D, nullptr, &m_backbufferRTV);
+		m_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&MainRTV.m_texture.m_tex2D);
+		r = m_device->CreateRenderTargetView(MainRTV.m_texture.m_tex2D, nullptr, &MainRTV.m_rtv);
 		checkhr(r);
+
+		prenderer->m_rtvs.push_back(MainRTV);
 	}
 
 	//Initialize zbuffer ref
@@ -131,14 +125,14 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		DepthTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		DepthTextureDesc.CPUAccessFlags = false;
 
-		r = m_device->CreateTexture2D(&DepthTextureDesc, 0, &m_depthbuffer2D);
+		r = m_device->CreateTexture2D(&DepthTextureDesc, 0, &MainDepth.m_texture.m_tex2D);
 		checkhr(r);
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 		DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 
-		r = m_device->CreateDepthStencilView(m_depthbuffer2D, &DepthStencilViewDesc, &m_depthbufferDSV);
+		r = m_device->CreateDepthStencilView(MainDepth.m_texture.m_tex2D, &DepthStencilViewDesc, &MainDepth.m_dsv);
 		checkhr(r);
 
 		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
@@ -146,13 +140,11 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-		check(m_backbuffer2D
-			&& m_backbufferRTV
-			&& m_depthbuffer2D
-			&& m_depthbufferDSV);
+		prenderer->m_depthtargets.push_back(MainDepth);
 	}
 
-	//Initialize rasterizer state
+	//Initialize rasterizerstate
+	//TODO pre-alloc all states
 	{
 		D3D11_RASTERIZER_DESC RasterizerDesc = {};
 		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -166,20 +158,33 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		RasterizerDesc.MultisampleEnable = false;
 		RasterizerDesc.AntialiasedLineEnable = false;
 
-		r = m_device->CreateRasterizerState(&RasterizerDesc, &m_rasterizerstate);
+		r = m_device->CreateRasterizerState(&RasterizerDesc, &prenderer->m_rasterizerstates[0]);
 		checkhr(r);
-
-		check(m_rasterizerstate);
 	}
 
 	//Initial VP
+	//TODO pre-alloc all views
 	{
-		m_mainvp.TopLeftX = (float)window.m_posX;
-		m_mainvp.TopLeftY = (float)window.m_posY;
-		m_mainvp.Height = (float)window.m_height;
-		m_mainvp.Width = (float)window.m_width;
-		m_mainvp.MinDepth = (float)m_nearplane;
-		m_mainvp.MaxDepth = (float)m_farplane;
+		prenderer->m_views[0].TopLeftX = (float)window.m_posX;
+		prenderer->m_views[0].TopLeftY = (float)window.m_posY;
+		prenderer->m_views[0].Height = (float)window.m_height;
+		prenderer->m_views[0].Width = (float)window.m_width;
+		prenderer->m_views[0].MinDepth = (float)m_nearplane;
+		prenderer->m_views[0].MaxDepth = (float)m_farplane;
+	}
+
+	if (MainRTV.m_texture.m_tex2D == nullptr ||
+		MainRTV.m_rtv == nullptr ||
+		MainDepth.m_texture.m_tex2D == nullptr ||
+		MainDepth.m_dsv == nullptr)
+	{
+		bSuccess = false;
+	}
+
+	for (int i = 0; i < (int)prenderer->m_rasterizerstates.size(); i++)
+	{
+		if (prenderer->m_rasterizerstates[i] == nullptr)
+			bSuccess = false;
 	}
 
 	if (bSuccess == false)
@@ -538,9 +543,6 @@ void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stag
 void CD3D11Interface::IssueRenderCommands(float delta)
 {
 #if 1
-	//Test
-	m_context->OMGetRenderTargets(1, &m_backbufferRTV, &m_depthbufferDSV);
-	m_context->RSSetViewports(1, &m_mainvp);
 
 #else
 	//Base Pass

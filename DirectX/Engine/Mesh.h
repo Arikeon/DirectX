@@ -17,8 +17,8 @@ struct TMesh
 		//fix this memopry leak!
 		TD3DBuffer vbuffer;
 
-		vbuffer.m_info.m_buffertype = BufferType::eVertexBuffer;
-		vbuffer.m_info.m_bufferusage = BufferUsage::eGPU_READ_WRITE;
+		vbuffer.m_info.m_buffertype = EBufferType::eVertexBuffer;
+		vbuffer.m_info.m_bufferusage = EBufferUsage::eGPU_READ_WRITE;
 		vbuffer.m_info.m_elementcount = (int)verticies.size();
 		vbuffer.m_info.m_stride = sizeof(verticies[0]);
 
@@ -32,8 +32,8 @@ struct TMesh
 		{
 			TD3DBuffer ibuffer;
 
-			ibuffer.m_info.m_buffertype = BufferType::eIndexBuffer;
-			ibuffer.m_info.m_bufferusage = BufferUsage::eGPU_READ_WRITE;
+			ibuffer.m_info.m_buffertype = EBufferType::eIndexBuffer;
+			ibuffer.m_info.m_bufferusage = EBufferUsage::eGPU_READ_WRITE;
 			ibuffer.m_info.m_elementcount = (int)indicies.size();
 			ibuffer.m_info.m_stride = sizeof(unsigned int);
 

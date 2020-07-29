@@ -1,27 +1,81 @@
 #pragma once
+#include "RenderEnums.h"
+#include "Build.h"
+
 #include <d3d11.h>
 
-namespace BufferType
-{
-	enum Type
-	{
-		eVertexBuffer = D3D11_BIND_VERTEX_BUFFER,
-		eIndexBuffer = D3D11_BIND_INDEX_BUFFER,
-		eCount
-	};
-}
+struct TD3DBuffer;
+struct TBufferInfo;
+struct TD3DTexture;
+struct TD3DSampler;
+struct TD3DRenderTarget;
 
-namespace BufferUsage
+struct TD3DSampler
 {
-	enum Type
+	void Release()
 	{
-		eGPU_READ = D3D11_USAGE_IMMUTABLE,
-		eGPU_READ_WRITE = D3D11_USAGE_DEFAULT,
-		eGPU_READ_CPU_WRITE = D3D11_USAGE_DYNAMIC,
-		eGPU_READ_CPU_READ = D3D11_USAGE_STAGING,
-		eCount
+		DXRelease(m_samplerstate);
+	}
+
+	ID3D11SamplerState* m_samplerstate;
+	std::string m_name;
+	SamplerID m_id;
+};
+
+struct TD3DTexture
+{
+	void Release()
+	{
+		DXRelease(m_srv);
+		DXRelease(m_uav);
+
+		DXArrayRelease(m_srvarr);
+		DXArrayRelease(m_uavarr);
+
+		DXRelease(m_tex2D);
+	}
+
+	int m_with, m_height, m_depth;
+	TextureID m_id;
+	std::string m_name;
+
+	ID3D11ShaderResourceView* m_srv = nullptr;
+	ID3D11UnorderedAccessView* m_uav = nullptr;
+
+	//cube
+	std::vector<ID3D11ShaderResourceView*> m_srvarr;
+	std::vector<ID3D11UnorderedAccessView*> m_uavarr;
+
+	union
+	{
+		ID3D11Texture2D* m_tex2D;
+		ID3D11Texture3D* m_tex3D;
 	};
-}
+};
+
+struct TD3DDepthTarget
+{
+	void Release()
+	{
+		DXRelease(m_dsv);
+		D3DRelease(m_texture);
+	}
+
+	TD3DTexture m_texture;
+	ID3D11DepthStencilView* m_dsv = nullptr;
+};
+
+struct TD3DRenderTarget
+{
+	void Release()
+	{
+		DXRelease(m_rtv);
+		D3DRelease(m_texture);
+	}
+
+	TD3DTexture m_texture;
+	ID3D11RenderTargetView* m_rtv = nullptr;
+};
 
 struct TBufferInfo
 {
@@ -29,10 +83,9 @@ struct TBufferInfo
 	int m_elementcount;
 	int m_stride;
 	int m_structurebystide;
-	BufferType::Type m_buffertype;
-	BufferUsage::Type m_bufferusage;
+	EBufferType::Type m_buffertype;
+	EBufferUsage::Type m_bufferusage;
 };
-
 
 struct TD3DBuffer
 {
@@ -62,7 +115,7 @@ struct TD3DBuffer
 		checkhr(r);
 	}
 
-	~TD3DBuffer()
+	void Release()
 	{
 		if (m_pCPUdata)
 		{

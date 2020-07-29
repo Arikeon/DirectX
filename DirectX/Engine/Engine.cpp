@@ -14,6 +14,7 @@
 CEngine::~CEngine()
 {
 	delete m_renderer;
+	delete m_scene;
 
 	TInput::DeleteInstance();
 }

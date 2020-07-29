@@ -13,9 +13,15 @@ CRenderer::CRenderer() :
 CRenderer::~CRenderer()
 {
 	delete m_D3DInterface;
-	m_shaders.clear();
-	m_vertexbuffers.clear();
-	m_indexbuffers.clear();
+
+	D3DArrayRelease(m_shaders);
+	D3DArrayRelease(m_vertexbuffers);
+	D3DArrayRelease(m_indexbuffers);
+	D3DArrayRelease(m_rtvs);
+	D3DArrayRelease(m_textures);
+	D3DArrayRelease(m_samplers);
+	D3DArrayRelease(m_depthtargets);
+	DXArrayRelease(m_rasterizerstates);
 }
 
 void CRenderer::Initialize(TWindow window)
@@ -25,9 +31,9 @@ void CRenderer::Initialize(TWindow window)
 
 	if (bUsesD3D11)
 		m_D3DInterface = new CD3D11Interface;
+	CD3D11Interface::prenderer = this;
 
 	m_D3DInterface->InitializeD3D(window);
-	CD3D11Interface::prenderer = this;
 
 	CompileShaders();
 }
