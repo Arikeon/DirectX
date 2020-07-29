@@ -14,7 +14,6 @@ struct TMesh
 		ID3D11Device* device = renderer->m_D3DInterface->m_device;
 		check(device);
 
-		//fix this memopry leak!
 		TD3DBuffer vbuffer;
 
 		vbuffer.m_info.m_buffertype = EBufferType::eVertexBuffer;

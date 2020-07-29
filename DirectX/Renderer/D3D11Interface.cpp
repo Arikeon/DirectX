@@ -66,16 +66,19 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 
 		D3D_FEATURE_LEVEL OutputFeatureLevel;
 
-		D3D11_CREATE_DEVICE_FLAG DeviceFlags = D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_SINGLETHREADED;
+		UINT DeviceFlags =
+#if ENABLE_DXGI_DEBUG
+			//TODO switch to multithreaded
+			D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG;
+#else
+			D3D11_CREATE_DEVICE_SINGLETHREADED;
+#endif
+
 		r = D3D11CreateDeviceAndSwapChain(
 			NULL,
 			D3D_DRIVER_TYPE_HARDWARE,
 			NULL,
-#if ENABLE_DXGI_DEBUG
-			D3D11_CREATE_DEVICE_DEBUG,
-#else
-			NULL,
-#endif
+			DeviceFlags,
 			FeatureLevels,
 			1,
 			D3D11_SDK_VERSION,
