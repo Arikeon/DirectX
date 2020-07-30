@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include <Windows.h>
 
+//many inspirations from github.com/vilbeyli/VQEngine
+
 /*
 *	WinMain
 */
