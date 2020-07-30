@@ -21,6 +21,7 @@ class CRenderer
 public:
 	void ResetPipeline();
 	TShader& GetShader(ShaderID id);
+	D3D11_VIEWPORT& GetView(EViews::Type id);
 
 private:
 	CRenderer();

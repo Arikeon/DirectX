@@ -6,10 +6,13 @@ extern LRESULT CALLBACK WndProc(HWND _hWnd, uint32 _msg, WPARAM _wParam, LPARAM 
 
 bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 {
+	
 	LPCWSTR dir = Stream::GetDefaultDir();
 	LPCWSTR sectionname = L"Startup";
 	std::wstring AppName = L"NULL";
 	Stream::ReadIniString(dir, sectionname, L"WindowName", AppName);
+
+	FOV = (float)Stream::ReadIniInt(dir, L"Startup", L"FOV");
 
 	m_hInstance = GetModuleHandle(NULL);
 	m_wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;

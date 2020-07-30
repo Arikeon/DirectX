@@ -15,6 +15,12 @@ TShader& CRenderer::GetShader(ShaderID id)
 	return m_shaders[id];
 }
 
+D3D11_VIEWPORT& CRenderer::GetView(EViews::Type id)
+{
+	return m_views[id];
+}
+
+
 CRenderer::CRenderer() :
 	m_D3DInterface(nullptr)
 {

@@ -64,7 +64,7 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
-		m_scene->RenderScene(m_renderer, Time.m_deltaTime);
+		m_scene->RenderScene(m_renderer, m_window, Time.m_deltaTime);
 
 		//Check if shutdown bit
 		{

@@ -9,6 +9,7 @@ struct TWindow
 	WNDCLASSEX m_wc;
 	MSG m_message;
 
+	float FOV;
 	int m_posX, m_posY, m_width, m_height;
 	bool m_isFullScreen, m_isInitialized = false;
 
