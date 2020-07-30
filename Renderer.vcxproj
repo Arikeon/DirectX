@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Utilities;$(SolutionDir)DirectX\Renderer\Shaders</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Engine\Scenes;$(SolutionDir)DirectX\Engine\Passes;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Renderer\Shaders;$(SolutionDir)DirectX\Utilities</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -119,7 +119,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Utilities;$(SolutionDir)DirectX\Renderer\Shaders</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Engine\Scenes;$(SolutionDir)DirectX\Engine\Passes;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Renderer\Shaders;$(SolutionDir)DirectX\Utilities</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>

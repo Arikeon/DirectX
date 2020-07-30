@@ -101,20 +101,20 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 #endif
 	}
 
-	TD3DRenderTarget MainRTV;
-	TD3DDepthTarget MainDepth;
-
 	//Initialize backbuffer ref
 	{
+		TD3DRenderTarget MainRTV;
 		m_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&MainRTV.m_texture.m_tex2D);
 		r = m_device->CreateRenderTargetView(MainRTV.m_texture.m_tex2D, nullptr, &MainRTV.m_rtv);
 		checkhr(r);
 
+		check(MainRTV.m_rtv && MainRTV.m_texture.m_tex2D);
 		prenderer->m_rtvs.push_back(MainRTV);
 	}
 
 	//Initialize zbuffer ref
 	{
+		TD3DDepthTarget MainDepth;
 		//Depth Buffer
 		D3D11_TEXTURE2D_DESC DepthTextureDesc = {};
 		DepthTextureDesc.Height = window.m_height;
@@ -143,6 +143,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
+		check(MainDepth.m_dsv&& MainDepth.m_texture.m_tex2D);
 		prenderer->m_depthtargets.push_back(MainDepth);
 	}
 
@@ -174,14 +175,6 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		prenderer->m_views[0].Width = (float)window.m_width;
 		prenderer->m_views[0].MinDepth = (float)m_nearplane;
 		prenderer->m_views[0].MaxDepth = (float)m_farplane;
-	}
-
-	if (MainRTV.m_texture.m_tex2D == nullptr ||
-		MainRTV.m_rtv == nullptr ||
-		MainDepth.m_texture.m_tex2D == nullptr ||
-		MainDepth.m_dsv == nullptr)
-	{
-		bSuccess = false;
 	}
 
 	for (int i = 0; i < (int)prenderer->m_rasterizerstates.size(); i++)
@@ -385,12 +378,11 @@ void CD3D11Interface::CompileShader(TShader& shader)
 				TCPUConstant c;
 				CPUConstantID c_id = static_cast<CPUConstantID>(shader.m_CPUconstantbuffers.size());
 
-				c.m_name = vardesc.Name;
 				c.m_size = vardesc.Size;
 				c.m_pdata = new char[c.m_size];
 				memset(c.m_pdata, 0, c.m_size);
 				shader.m_constantbuffermap.push_back(std::make_pair(cbufferregister, c_id));
-				shader.m_CPUconstantbuffers.push_back(c);
+				shader.m_CPUconstantbuffers.emplace(std::pair<std::string, TCPUConstant>(vardesc.Name,c));
 			}
 			++cbufferregister;
 		}
@@ -543,19 +535,15 @@ void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stag
 	}
 }
 
-void CD3D11Interface::IssueRenderCommands(float delta)
+void CD3D11Interface::UnbindTargets()
 {
-#if 1
+	ID3D11RenderTargetView* NullRTVs[6] = {};
 
-#else
-	//Base Pass
-	{
-
-	}
-#endif
+	//Is this necessary?
+	m_context->OMSetRenderTargets(0, NullRTVs, nullptr);
 }
 
-void CD3D11Interface::UnbindTargets()
+void CD3D11Interface::ResizeViewPorts(TWindow window)
 {
 
 }

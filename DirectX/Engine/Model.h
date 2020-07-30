@@ -6,7 +6,9 @@
 
 struct TModel
 {
-	TModel() {};
+	TModel()
+	{
+	};
 	TMesh m_mesh;
 	std::string m_name;
 	TTransform m_transform;

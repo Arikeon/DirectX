@@ -5,6 +5,7 @@ TTransform::TTransform()
 {
 	m_position = {};
 	m_rotation = {};
+	m_scale = float3(1, 1, 1);
 }
 //chek if we can member initializer list unions
 TTransform::TTransform(float2 InVector)

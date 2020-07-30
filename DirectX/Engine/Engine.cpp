@@ -39,6 +39,7 @@ void CEngine::Initialize()
 		break;
 	}
 
+	m_scene->InitializePasses(m_renderer);
 	m_scene->LoadScene(m_renderer);
 }
 
@@ -63,7 +64,7 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
-		m_renderer->Render(Time.m_deltaTime);
+		m_scene->RenderScene(m_renderer, Time.m_deltaTime);
 
 		//Check if shutdown bit
 		{

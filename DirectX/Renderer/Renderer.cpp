@@ -5,6 +5,16 @@
 #include "Mesh.h"
 #include "Model.h"
 
+void CRenderer::ResetPipeline()
+{
+	m_D3DInterface->UnbindTargets();
+}
+
+TShader& CRenderer::GetShader(ShaderID id)
+{
+	return m_shaders[id];
+}
+
 CRenderer::CRenderer() :
 	m_D3DInterface(nullptr)
 {
@@ -49,13 +59,6 @@ void CRenderer::CompileShaders()
 		m_D3DInterface->CompileShader(m_shaders[0]);
 	}
 }
-
-void CRenderer::Render(float delta)
-{
-	m_D3DInterface->IssueRenderCommands(delta);
-	m_D3DInterface->Present();
-}
-
 void CRenderer::Restart()
 {
 	m_vertexbuffers.clear();

@@ -25,9 +25,8 @@ public:
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
 
 	//Render Commands
-	void IssueRenderCommands(float delta);
 	void UnbindTargets();
-	void ResizeViewPorts();
+	void ResizeViewPorts(TWindow window);
 
 	float m_nearplane = 0.1f, m_farplane = 1.0000f;
 

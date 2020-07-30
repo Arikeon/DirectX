@@ -8,6 +8,9 @@
     <Filter Include="Source Files\Scenes">
       <UniqueIdentifier>{d2215dfd-99ed-4716-b2c0-da02457b629b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Passes">
+      <UniqueIdentifier>{c6d55d67-e161-4cee-bb52-084337d7b9ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectX\Engine\Window.cpp">
@@ -39,6 +42,9 @@
     </ClCompile>
     <ClCompile Include="DirectX\Engine\Camera.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp">
+      <Filter>Source Files\Scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Camera.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Passes\Pass.h">
+      <Filter>Source Files\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Passes\BasePass.h">
+      <Filter>Source Files\Passes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

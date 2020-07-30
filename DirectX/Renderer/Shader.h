@@ -150,6 +150,105 @@ struct TShader
 		m_shadermacros.push_back({"SHADER", "1"});
 	}
 
+	void Reset()
+	{
+		//reset cbuffers
+	};
+
+	void WriteConstants(char* name, void* data)
+	{
+		for (int i = 0; i < (int)m_constantbuffermap.size(); i++)
+		{
+			ConstantBufferMapping& buffID = m_constantbuffermap[i];
+
+			CPUConstantID constantID = buffID.second;
+			TCPUConstant& CPUConstant = m_CPUconstantbuffers[constantID];
+
+			if (strcmp(CPUConstant.m_name.c_str(), name) == 0)
+			{
+				memcpy(CPUConstant.m_pdata, data, CPUConstant.m_size);
+				m_constantbuffers[buffID.first].m_dirty = true;
+			}
+		}
+
+		std::wstring wname(Algorithm::string_to_wstring(name));
+
+		CONSOLE_LOG(L"Unable to find: " + wname);
+	}
+
+	void Update(ID3D11DeviceContext* context, float delta)
+	{
+		for (int i = 0; i < (int)m_constantbuffers.size(); ++i)
+		{
+			TConstantBufferBinding& binding = m_constantbuffers[i];
+
+			if (binding.m_dirty)
+			{
+				ID3D11Buffer* pdata = binding.m_pdata;
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+				context->Map(pdata, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+				char* buffpos = (char*)mappedResource.pData;
+
+				for (ConstantBufferMapping& indexedPair : m_constantbuffermap)
+				{
+					if (indexedPair.first != i)
+						continue;
+
+					int slotIndex = indexedPair.first;
+					CPUConstantID cpuid = indexedPair.second;
+					check(cpuid < (int)m_CPUconstantbuffers.size());
+					TCPUConstant& constant = m_CPUconstantbuffers[cpuid];
+					memcpy(buffpos, constant.m_pdata, constant.m_size);
+					buffpos += constant.m_size;
+				}
+				context->Unmap(pdata, 0);
+			}
+
+			const auto GetStageSlot = [](ID3D11DeviceContext* context, EShaderStage::Type stage, int cbslot, ID3D11Buffer* pdata)
+			{
+				switch (stage)
+				{
+				case EShaderStage::eVS:
+				{
+					context->VSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				case EShaderStage::eHS:
+				{
+					context->HSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				case EShaderStage::eDS:
+				{
+					context->DSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				case EShaderStage::eGS:
+				{
+					context->GSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				case EShaderStage::ePS:
+				{
+					context->PSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				case EShaderStage::eCS:
+				{
+					context->CSSetConstantBuffers(cbslot, 1, &pdata);
+				}
+					break;
+				default:
+					check(0);
+					break;
+				}
+			};
+
+			binding.m_dirty = false;
+		}
+	}
+
 	static std::string GetEntryPointName(int stage)
 	{
 		return TShader::GetEntryPointName((EShaderStage::Type)stage);

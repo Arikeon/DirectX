@@ -17,12 +17,16 @@ class CRenderer
 	friend class CEngine;
 	friend class CD3D11Interface;
 	friend struct TMesh;
+
+public:
+	void ResetPipeline();
+	TShader& GetShader(ShaderID id);
+
 private:
 	CRenderer();
 	~CRenderer();
 	void Initialize(TWindow window);
 	void CompileShaders();
-	void Render(float delta);
 	void Restart();
 
 	std::vector<TShader> m_shaders;

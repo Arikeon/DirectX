@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Utilities;$(SolutionDir)DirectX\Renderer\Shaders</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Engine\Scenes;$(SolutionDir)DirectX\Engine\Passes;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Renderer\Shaders;$(SolutionDir)DirectX\Utilities</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -125,7 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Utilities;$(SolutionDir)DirectX\Renderer\Shaders</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Engine\Scenes;$(SolutionDir)DirectX\Engine\Passes;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Renderer\Shaders;$(SolutionDir)DirectX\Utilities</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -159,6 +159,7 @@
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
     <ClCompile Include="DirectX\Engine\Model.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
+    <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
     <ClCompile Include="DirectX\Engine\ThreadPool.cpp" />
     <ClCompile Include="DirectX\Engine\Time.cpp" />
     <ClCompile Include="DirectX\Engine\Transform.cpp" />
@@ -170,6 +171,8 @@
     <ClInclude Include="DirectX\Engine\Input.h" />
     <ClInclude Include="DirectX\Engine\Mesh.h" />
     <ClInclude Include="DirectX\Engine\Model.h" />
+    <ClInclude Include="DirectX\Engine\Passes\BasePass.h" />
+    <ClInclude Include="DirectX\Engine\Passes\Pass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\BasicShapesScene.h" />
     <ClInclude Include="DirectX\Engine\Scenes\Scene.h" />
     <ClInclude Include="DirectX\Engine\ThreadPool.h" />

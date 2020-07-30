@@ -1,8 +1,11 @@
 #pragma once
+#include "Shader.h"
+
 #include <array>
+
 #define RTV_MAX 7
 
-using ShaderID = int;
+using ShaderID = EShaderList::Type;
 using TextureID = int;
 using SamplerID = int;
 using BufferID = int;
