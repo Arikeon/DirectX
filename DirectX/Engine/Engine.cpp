@@ -64,7 +64,9 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
+		m_renderer->Clear();
 		m_scene->RenderScene(m_renderer, m_window, Time.m_deltaTime);
+		m_renderer->Present();
 
 		//Check if shutdown bit
 		{
@@ -108,7 +110,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32 msg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		InputIsKeyUp((uint32)wParam);
+		InputInstance()->KeyUp(wParam);
 	}
 	break;
 	case WM_PAINT:

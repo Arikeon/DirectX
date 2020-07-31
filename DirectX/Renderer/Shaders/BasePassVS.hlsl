@@ -4,13 +4,12 @@
 BasePassInPS MainVS(BasePassInVS input )
 {
 	BasePassInPS output;
-
-	output.position = mul(float4(input.position, 0), World);
-	output.svposition = mul(output.position, World);
-	output.svposition = mul(output.svposition, View);
-	output.svposition = mul(output.svposition, Proj);
-
 	output.texcoord = input.texcoord;
 
+	output.position = input.position;
+	output.svposition = float4(output.position, 1.0f);
+	output.svposition = mul(output.svposition, World);
+	output.svposition = mul(output.svposition, View);
+	output.svposition = mul(output.svposition, Proj);
 	return output;
 }

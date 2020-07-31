@@ -22,6 +22,11 @@ public:
 	void ResetPipeline();
 	TShader& GetShader(ShaderID id);
 	D3D11_VIEWPORT& GetView(EViews::Type id);
+	CD3D11Interface*& GetD3DInterface() { return m_D3DInterface; }
+	TD3DRenderTarget& GetRenderTarget(int index) { return m_rtvs[index]; }
+	TD3DDepthTarget& GetDepthTarget(int index) { return m_depthtargets[index]; }
+	TD3DBuffer& GetVertexBuffer(BufferID index) { return m_vertexbuffers[index]; }
+	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 
 private:
 	CRenderer();
@@ -29,6 +34,8 @@ private:
 	void Initialize(TWindow window);
 	void CompileShaders();
 	void Restart();
+	void Clear();
+	void Present();
 
 	std::vector<TShader> m_shaders;
 	std::vector<TD3DBuffer> m_vertexbuffers;

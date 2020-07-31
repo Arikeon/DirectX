@@ -43,7 +43,7 @@ struct TMesh
 			renderer->m_indexbuffers.push_back(ibuffer);
 		}
 	}
-
+	D3D11_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
 };

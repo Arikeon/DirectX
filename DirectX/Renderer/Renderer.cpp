@@ -70,3 +70,13 @@ void CRenderer::Restart()
 	m_vertexbuffers.clear();
 	m_indexbuffers.clear();
 }
+
+void CRenderer::Clear()
+{
+	m_D3DInterface->ClearBackBuffer();
+}
+
+void CRenderer::Present()
+{
+	m_D3DInterface->Present();
+}
