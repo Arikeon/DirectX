@@ -1,7 +1,8 @@
+#pragma pack_matrix(row_major)
 #include "HLSLGlue.h"
 #include "BasePassStructs.h"
 
-BasePassInPS MainVS(BasePassInVS input )
+BasePassInPS MainVS(BasePassInVS input)
 {
 	BasePassInPS output;
 	output.texcoord = input.texcoord;

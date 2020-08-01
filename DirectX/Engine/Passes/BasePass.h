@@ -37,8 +37,8 @@ struct TBasePass : public TPass
 			TD3DBuffer vbuffer;
 			vbuffer = renderer->GetVertexBuffer(mesh.m_vertexkey);
 
-			const float aspectratio = (float)window.m_width / (float)window.m_height;
-			D3D11_VIEWPORT& d3dview=  renderer->GetView(EViews::eMain);
+			const float aspectratio = static_cast<float>(window.m_width) / static_cast<float>(window.m_height);
+			D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
 
 			//World View Proj buffer
 			{
@@ -46,25 +46,10 @@ struct TBasePass : public TPass
 				XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, false>());
 				WVP.World._44 = 1.f;
 
-
-
-				XMFLOAT3* EyePosVector = new XMFLOAT3(0.0f, 0.0f, -5.0f);
-				XMFLOAT3* FocusPosVector = new XMFLOAT3(0.0f, 0.0f, 1.0f);
-				XMFLOAT3* UpDirectionVector = new XMFLOAT3(0.0f, 1.0f, 0.0f);
-				XMVECTOR EyePos = XMLoadFloat3(EyePosVector);						//Position of camera
-				XMVECTOR FocusPos = XMLoadFloat3(FocusPosVector);						//Position of focal point
-				XMVECTOR UpDirection = XMLoadFloat3(UpDirectionVector);					//Up direction of cam
-				delete EyePosVector;
-				delete FocusPosVector;
-				delete UpDirectionVector;
-
-				matrix view = XMMatrixLookToLH(EyePos, FocusPos, UpDirection);
-				XMStoreFloat4x4(&WVP.View, view);
-				//WVP.View = camera.m_cameramatrix;
+				WVP.View = camera.m_cameramatrix;
 
 				//Setup projection per frame
-				XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, d3dview.MinDepth, d3dview.MaxDepth));
-
+				XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FLT_MAX));
 				BasePassShader.WriteConstants("World", (void*)&WVP.World);
 				BasePassShader.WriteConstants("View", (void*)&WVP.View);
 				BasePassShader.WriteConstants("Proj", (void*)&WVP.Proj);

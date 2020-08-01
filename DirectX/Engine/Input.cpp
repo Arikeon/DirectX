@@ -46,13 +46,15 @@ void TInput::Reset()
 #if 0
 	CONSOLE_LOG(std::to_wstring(m_currX) + L"  " + std::to_wstring(m_currY));
 #endif
-	m_deltaX = m_deltaY = m_currX = m_currY = 0.f;
+	m_deltaX = m_deltaY = 0.f;
 }
 
 void TInput::ReadMouseDelta(LPARAM lparam)
 {
 	POINT P;
 	GetCursorPos(&P);
+
+	//CONSOLE_LOG(std::to_wstring(m_currX) + L" - " + std::to_wstring((float)P.x));
 
 	m_deltaX = m_currX - (float)P.x;
 	m_deltaY = m_currY - (float)P.y;
