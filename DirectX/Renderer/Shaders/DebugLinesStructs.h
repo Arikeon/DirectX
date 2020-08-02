@@ -4,21 +4,22 @@
 
 #include "HLSLGlue.h"
 
-START_CBUFFER(BasePassWVP, b0)
+START_CBUFFER(DebugLinesWVP, b0)
 float4x4 World;
 float4x4 View;
 float4x4 Proj;
-END_CBUFFER(BasePassWVP);
+END_CBUFFER(DebugLinesWVP);
 
-struct BasePassInVS
+struct DebugLinesInVS
 {
 	float3 position SEMANTIC(POSITION)
-	float2 texcoord SEMANTIC(TEXCOORD0)
+	float3 color SEMANTIC(COLOR)
 };
 
-struct BasePassInPS
+struct DebugLinesInPS
 {
 	float4 svposition SEMANTIC(SV_POSITION)
 	float3 position SEMANTIC(POSITION)
-	float2 texcoord SEMANTIC(TEXCOORD0)
+	float3 color SEMANTIC(COLOR)
 };
+

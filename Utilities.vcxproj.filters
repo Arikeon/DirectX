@@ -19,5 +19,8 @@
     <ClInclude Include="DirectX\Utilities\Typedef.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Utilities\Colors.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

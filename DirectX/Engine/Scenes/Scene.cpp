@@ -12,6 +12,5 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 
 	m_camera.Update(delta);
 
-	m_basepass.Render(renderer, GetModels(), m_camera, ,delta);
-
+	m_basepass.Render(renderer, GetModels(), m_debuglines, m_camera, window,delta);
 }

@@ -59,14 +59,26 @@ void CRenderer::CompileShaders()
 	const int NumGlobalShaders = EShaderList::eCount;
 	m_shaders.resize(NumGlobalShaders);
 	m_shaders[0].Initialize<true, false, false, false, true, false>("BasePass");
+	//TODO permutate debugLines
+	m_shaders[1].Initialize<true, false, false, false, true, false>("DebugLines");
 
 	for (int i = 0; i < NumGlobalShaders; ++i)
 	{
-		m_D3DInterface->CompileShader(m_shaders[0]);
+		m_D3DInterface->CompileShader(m_shaders[i]);
 	}
 }
 void CRenderer::Restart()
 {
 	m_vertexbuffers.clear();
 	m_indexbuffers.clear();
+}
+
+void CRenderer::Clear()
+{
+	m_D3DInterface->ClearBackBuffer();
+}
+
+void CRenderer::Present()
+{
+	m_D3DInterface->Present();
 }

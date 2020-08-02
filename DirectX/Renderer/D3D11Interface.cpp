@@ -28,6 +28,13 @@ CD3D11Interface::~CD3D11Interface()
 #endif
 }
 
+void CD3D11Interface::ClearBackBuffer()
+{
+	const float defaultcolor[4] = { 0.2f, 0.2f, 0.2f, 0 };
+	m_context->ClearRenderTargetView(prenderer->GetRenderTarget(0).m_rtv, defaultcolor);
+	m_context->ClearDepthStencilView(prenderer->GetDepthTarget(0).m_dsv, D3D11_CLEAR_DEPTH, 1, 1);
+}
+
 void CD3D11Interface::Present()
 {
 	m_swapchain->Present(1, 0);
@@ -378,11 +385,12 @@ void CD3D11Interface::CompileShader(TShader& shader)
 				TCPUConstant c;
 				CPUConstantID c_id = static_cast<CPUConstantID>(shader.m_CPUconstantbuffers.size());
 
+				c.m_name = vardesc.Name;
 				c.m_size = vardesc.Size;
 				c.m_pdata = new char[c.m_size];
 				memset(c.m_pdata, 0, c.m_size);
 				shader.m_constantbuffermap.push_back(std::make_pair(cbufferregister, c_id));
-				shader.m_CPUconstantbuffers.emplace(std::pair<std::string, TCPUConstant>(vardesc.Name,c));
+				shader.m_CPUconstantbuffers.push_back(c);
 			}
 			++cbufferregister;
 		}

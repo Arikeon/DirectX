@@ -1,16 +1,17 @@
 #pragma pack_matrix(row_major)
 #include "HLSLGlue.h"
-#include "BasePassStructs.h"
+#include "DebugLinesStructs.h"
 
-BasePassInPS MainVS(BasePassInVS input)
+DebugLinesInPS MainVS(DebugLinesInVS input)
 {
-	BasePassInPS output;
-	output.texcoord = input.texcoord;
+	DebugLinesInPS output;
+	output.color = input.color;
 
 	output.position = input.position;
 	output.svposition = float4(output.position, 1.0f);
 	output.svposition = mul(output.svposition, World);
 	output.svposition = mul(output.svposition, View);
 	output.svposition = mul(output.svposition, Proj);
+
 	return output;
 }

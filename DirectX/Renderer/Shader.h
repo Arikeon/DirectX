@@ -19,6 +19,7 @@ namespace EShaderList
 	{
 		//Base Pass
 		BasePass = 0,
+		DebugBasePass,
 
 		eCount,
 	};
@@ -132,7 +133,7 @@ struct TCPUConstant
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
-	void Initialize(std::string shadername)
+	void Initialize(std::string shadername, std::vector<D3D10_SHADER_MACRO>* macros = nullptr)
 	{
 		m_info.m_name = shadername;
 
@@ -148,6 +149,14 @@ struct TShader
 		m_usedshaderstages[EShaderStage::eCS] = CS;
 
 		m_shadermacros.push_back({"SHADER", "1"});
+
+		if (macros)
+		{
+			for (int i = 0; i < macros->size(); ++i)
+			{
+				m_shadermacros.push_back((*macros)[i]);
+			}
+		}
 	}
 
 	void Reset()
@@ -155,7 +164,40 @@ struct TShader
 		//reset cbuffers
 	};
 
-	void WriteConstants(char* name, void* data)
+	void SetShaderStages(ID3D11DeviceContext* context)
+	{
+		if (m_usedshaderstages[EShaderStage::eVS])
+		{
+			context->VSSetShader(m_shaderstages.m_vs, nullptr, 0);
+		}
+
+		if (m_usedshaderstages[EShaderStage::eHS])
+		{
+			context->HSSetShader(m_shaderstages.m_hs, nullptr, 0);
+		}
+
+		if (m_usedshaderstages[EShaderStage::eDS])
+		{
+			context->DSSetShader(m_shaderstages.m_ds, nullptr, 0);
+		}
+
+		if (m_usedshaderstages[EShaderStage::eGS])
+		{
+			context->GSSetShader(m_shaderstages.m_gs, nullptr, 0);
+		}
+
+		if (m_usedshaderstages[EShaderStage::ePS])
+		{
+			context->PSSetShader(m_shaderstages.m_ps, nullptr, 0);
+		}
+
+		if (m_usedshaderstages[EShaderStage::eCS])
+		{
+			context->CSSetShader(m_shaderstages.m_cs, nullptr, 0);
+		}
+	}
+
+	void WriteConstants(std::string name, void* data)
 	{
 		for (int i = 0; i < (int)m_constantbuffermap.size(); i++)
 		{
@@ -164,10 +206,11 @@ struct TShader
 			CPUConstantID constantID = buffID.second;
 			TCPUConstant& CPUConstant = m_CPUconstantbuffers[constantID];
 
-			if (strcmp(CPUConstant.m_name.c_str(), name) == 0)
+			if (strcmp(CPUConstant.m_name.c_str(), name.c_str()) == 0)
 			{
 				memcpy(CPUConstant.m_pdata, data, CPUConstant.m_size);
 				m_constantbuffers[buffID.first].m_dirty = true;
+				return;
 			}
 		}
 
@@ -176,7 +219,7 @@ struct TShader
 		CONSOLE_LOG(L"Unable to find: " + wname);
 	}
 
-	void Update(ID3D11DeviceContext* context, float delta)
+	void BindData(ID3D11DeviceContext* context)
 	{
 		for (int i = 0; i < (int)m_constantbuffers.size(); ++i)
 		{
@@ -203,47 +246,49 @@ struct TShader
 					buffpos += constant.m_size;
 				}
 				context->Unmap(pdata, 0);
-			}
 
-			const auto GetStageSlot = [](ID3D11DeviceContext* context, EShaderStage::Type stage, int cbslot, ID3D11Buffer* pdata)
-			{
-				switch (stage)
+				const auto GetStageSlot = [](ID3D11DeviceContext* context, EShaderStage::Type stage, int cbslot, ID3D11Buffer* pdata)
 				{
-				case EShaderStage::eVS:
-				{
-					context->VSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					switch (stage)
+					{
+					case EShaderStage::eVS:
+					{
+						context->VSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				case EShaderStage::eHS:
-				{
-					context->HSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					case EShaderStage::eHS:
+					{
+						context->HSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				case EShaderStage::eDS:
-				{
-					context->DSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					case EShaderStage::eDS:
+					{
+						context->DSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				case EShaderStage::eGS:
-				{
-					context->GSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					case EShaderStage::eGS:
+					{
+						context->GSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				case EShaderStage::ePS:
-				{
-					context->PSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					case EShaderStage::ePS:
+					{
+						context->PSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				case EShaderStage::eCS:
-				{
-					context->CSSetConstantBuffers(cbslot, 1, &pdata);
-				}
+					case EShaderStage::eCS:
+					{
+						context->CSSetConstantBuffers(cbslot, 1, &pdata);
+					}
 					break;
-				default:
-					check(0);
-					break;
-				}
-			};
+					default:
+						check(0);
+						break;
+					}
+				};
+
+				GetStageSlot(context, binding.m_shaderstage, binding.m_bufferslot, pdata);
+			}
 
 			binding.m_dirty = false;
 		}

@@ -157,7 +157,6 @@
     <ClCompile Include="DirectX\Engine\Engine.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
-    <ClCompile Include="DirectX\Engine\Model.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
     <ClCompile Include="DirectX\Engine\ThreadPool.cpp" />
@@ -179,6 +178,9 @@
     <ClInclude Include="DirectX\Engine\Time.h" />
     <ClInclude Include="DirectX\Engine\Transform.h" />
     <ClInclude Include="DirectX\Engine\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DirectX\Defaults.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

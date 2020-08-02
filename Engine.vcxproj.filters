@@ -34,9 +34,6 @@
     <ClCompile Include="DirectX\Engine\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\Engine\Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DirectX\Engine\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,5 +84,8 @@
     <ClInclude Include="DirectX\Engine\Passes\BasePass.h">
       <Filter>Source Files\Passes</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DirectX\Defaults.ini" />
   </ItemGroup>
 </Project>

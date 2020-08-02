@@ -37,37 +37,3 @@ TTransform::TTransform(float x, float y, float z)
 {
 
 }
-
-matrix TTransform::GetMatrix(bool bUseRotation, bool bUsePosition, bool bUseScale)
-{
-	//Must use one
-	check(bUsePosition || bUseRotation || bUseScale);
-
-	XMMATRIX r, p, s;
-
-	if (bUseRotation)
-	{
-		//Slow Path
-		r = XMMatrixRotationX(m_rotation.x);
-		r *= XMMatrixRotationY(m_rotation.y);
-		r *= XMMatrixRotationZ(m_rotation.z);
-	}
-	else
-		return XMMatrixIdentity();
-
-	if (bUsePosition)
-	{
-		p = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
-	}
-	else
-		return XMMatrixIdentity();
-
-	if (bUseScale)
-	{
-		s = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale));
-	}
-	else
-		return XMMatrixIdentity();
-
-	return r * p * s;
-}

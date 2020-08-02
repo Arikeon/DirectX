@@ -11,5 +11,6 @@ public:
 	void Update(float delta);
 	float m_pitch, m_yaw;
 	float4x4 m_cameramatrix;
-	float translationspeed = 1.f;
+	//move speed
+	float m_ms = 3.0f;
 };

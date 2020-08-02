@@ -95,7 +95,7 @@ struct TD3DBuffer
 		bufferdesc.Usage = (D3D11_USAGE)m_info.m_bufferusage;
 		bufferdesc.BindFlags = (D3D11_BIND_FLAG)m_info.m_buffertype;
 		bufferdesc.ByteWidth = m_info.m_stride * m_info.m_elementcount;
-		bufferdesc.CPUAccessFlags = m_info.m_bufferusage;
+		bufferdesc.CPUAccessFlags = (m_info.m_bufferusage == D3D11_USAGE_DYNAMIC) ? D3D11_CPU_ACCESS_WRITE : 0;
 		bufferdesc.MiscFlags = 0;
 		bufferdesc.StructureByteStride = m_info.m_structurebystide;
 
