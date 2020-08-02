@@ -6,7 +6,7 @@ CCamera::CCamera() :
 	m_yaw(0.f),
 	m_cameramatrix(float4x4{})
 {
-	matrix view = XMMatrixLookToLH(XMVectorSet(0, 0, -5, 0), XMVectorSet(0, 0, 1, 0), XMVectorSet(0, 1, 0, 0));
+	matrix view = XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 0), XMVectorSet(0, 0, -5, 0), XMVectorSet(0, 1, 0, 0));
 	XMStoreFloat4x4(&m_cameramatrix, view);
 }
 
@@ -14,8 +14,17 @@ void CCamera::Update(float delta)
 {
 	//Camera rotation
 	float2 mousedelta = InputInstance()->GetMouseDelta();
-	m_pitch += cos(mousedelta.y) * delta;
-	m_yaw	+= sin(mousedelta.x) * delta;
+	m_pitch -= mousedelta.y * delta;
+	m_yaw	-= mousedelta.x * delta;
+
+	if (m_pitch > 90)
+		m_pitch = 90;
+	if (m_pitch < -90)
+		m_pitch = -90;
+	if (m_yaw > 360)
+		m_yaw = 0;
+	if (m_yaw < 0)
+		m_yaw = 360;
 
 	float XPos = m_cameramatrix._41;
 	float YPos = m_cameramatrix._42;
@@ -39,11 +48,26 @@ void CCamera::Update(float delta)
 	if (InputIsKeyDown(VK_CONTROL))
 		YPos += deltaTS;
 
-	CONSOLE_LOG(std::to_wstring(m_pitch) + L", " + std::to_wstring(m_yaw));
+	matrix currmatrix = XMLoadFloat4x4(&m_cameramatrix);
 
-	vector EyePos = { XPos, YPos, ZPos, 0.f };
-	vector Dir = { m_pitch, m_yaw, 0.f, 0.f };
-	const vector up = { 0.f, 1.f, 0.f, 0.f };
+	const vector defaultRight = { 1, 0, 0, 0 };
+	const vector defaultUp = { 0, 1, 0, 0 };
+	const vector defaultForward = { 0, 0, 1, 0 };
+	vector position, target, camRight, camForward;
 
-	XMStoreFloat4x4(&m_cameramatrix, XMMatrixLookToLH(EyePos, Dir, up));
+
+	matrix rotation = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0.f);
+	target = XMVector3Normalize(XMVector3TransformCoord(defaultForward, rotation));
+
+	matrix rotateyaw = XMMatrixRotationY(m_yaw);
+
+	camRight = XMVector3TransformCoord(defaultRight, rotateyaw);
+	camForward = XMVector3TransformCoord(defaultForward, rotateyaw);
+
+	position = { XPos, YPos, ZPos, 0 };
+
+	target = position + target;
+
+	currmatrix = XMMatrixLookAtLH(position, target, defaultUp);
+	XMStoreFloat4x4(&m_cameramatrix, currmatrix);
 }

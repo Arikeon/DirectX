@@ -19,6 +19,7 @@ namespace EShaderList
 	{
 		//Base Pass
 		BasePass = 0,
+		DebugBasePass,
 
 		eCount,
 	};
@@ -132,7 +133,7 @@ struct TCPUConstant
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
-	void Initialize(std::string shadername)
+	void Initialize(std::string shadername, std::vector<D3D10_SHADER_MACRO>* macros = nullptr)
 	{
 		m_info.m_name = shadername;
 
@@ -148,6 +149,14 @@ struct TShader
 		m_usedshaderstages[EShaderStage::eCS] = CS;
 
 		m_shadermacros.push_back({"SHADER", "1"});
+
+		if (macros)
+		{
+			for (int i = 0; i < macros->size(); ++i)
+			{
+				m_shadermacros.push_back((*macros)[i]);
+			}
+		}
 	}
 
 	void Reset()

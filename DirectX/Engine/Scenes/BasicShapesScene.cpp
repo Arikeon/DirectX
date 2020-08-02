@@ -15,9 +15,30 @@ CBasicShapesScene::~CBasicShapesScene()
 
 }
 
+void CBasicShapesScene::UpdateScene(CRenderer* renderer)
+{
+	m_debuglines.ClearLines();
+
+	//Create Grid
+	{
+		const float gridY = -3.f;
+		const float gridscale = 20.f;
+
+		for (float i = -gridscale; i <= gridscale; ++i)
+			m_debuglines.AddDebugLines(float3(i, gridY, gridscale), float3(i, gridY, -gridscale), TColors::White);
+
+		for (float i = -gridscale; i <= gridscale; ++i)
+			m_debuglines.AddDebugLines(float3(-gridscale, gridY, i), float3(gridscale, gridY, i), TColors::White);
+	}
+}
+
 void CBasicShapesScene::LoadScene(CRenderer* renderer)
 {
 	check(renderer);
+
+	m_debuglines.m_transform.m_position = { 0,0,0 };
+	std::vector<unsigned int> emptyindexbuffer;
+	m_debuglines.m_mesh.CreateMesh<DebugLinesInVS>(renderer, m_debuglines.m_debuglines, emptyindexbuffer, EBufferUsage::eGPU_READ_CPU_WRITE);
 
 	std::vector<BasePassInVS> verticies;
 	verticies.resize(8);
@@ -73,6 +94,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	TModel BasicCube;
 	BasicCube.m_name = "BasicCube";
 	BasicCube.m_mesh.CreateMesh<BasePassInVS>(renderer, verticies, indicies);
+	BasicCube.m_transform.m_position = float3(0, 0, 5);
 	m_models.push_back(BasicCube);
 }
 
