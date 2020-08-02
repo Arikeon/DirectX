@@ -24,6 +24,8 @@ void CEngine::Initialize()
 	m_window.ConstructWindow();
 	m_isRunning = true;
 
+	InputInstance()->SetMouseRawInput(m_window.m_hWND);
+
 	m_renderer = new CRenderer;
 	m_renderer->Initialize(m_window);
 
@@ -97,9 +99,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, uint32 msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
+	case WM_INPUT:
+	{
+		InputInstance()->SetMouse(lParam);
+	}
+	break;
+	case WM_SIZE:
+		//RECT wSize;
+		//GetClientRect(hWnd, &wSize);
+	break;
 	case WM_MOUSEMOVE:
 	{
-		InputInstance()->ReadMouseDelta(lParam);
+		//InputInstance()->ReadMouseDelta(lParam);
 	}
 	break;
 	case WM_SYSKEYDOWN:

@@ -49,18 +49,40 @@ void TInput::Reset()
 	m_deltaX = m_deltaY = 0.f;
 }
 
-void TInput::ReadMouseDelta(LPARAM lparam)
+void TInput::ReadMouseDelta(POINT P)
 {
-	POINT P;
-	GetCursorPos(&P);
-
-	//CONSOLE_LOG(std::to_wstring(m_currX) + L" - " + std::to_wstring((float)P.x));
-
 	m_deltaX = m_currX - (float)P.x;
 	m_deltaY = m_currY - (float)P.y;
 
-	m_currX = (float)P.x;
-	m_currY = (float)P.y;
+	m_currX += m_deltaX;
+	m_currY += m_deltaY;
+}
+
+void TInput::SetMouseRawInput(HWND& window)
+{
+	m_rawinput.usUsagePage = HID_USAGE_PAGE_GENERIC;
+	m_rawinput.usUsage = HID_USAGE_GENERIC_MOUSE;
+	m_rawinput.dwFlags = 0;
+	m_rawinput.hwndTarget = window;
+	RegisterRawInputDevices(&m_rawinput, 1, sizeof(m_rawinput));
+}
+
+void TInput::SetMouse(LPARAM lParam)
+{
+	UINT dwSize = 48;
+	static BYTE lpb[48];
+
+	GetRawInputData((HRAWINPUT)lParam, RID_INPUT,
+		lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+	RAWINPUT* raw = (RAWINPUT*)lpb;
+
+	if (raw->header.dwType == RIM_TYPEMOUSE)
+	{
+		POINT P;
+		m_deltaX = raw->data.mouse.lLastX;
+		m_deltaY = raw->data.mouse.lLastY;
+	}
 }
 
 float2 TInput::GetMouseDelta()

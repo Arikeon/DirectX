@@ -12,5 +12,5 @@ public:
 	float m_pitch, m_yaw;
 	float4x4 m_cameramatrix;
 	//move speed
-	float m_ms = 3.0f;
+	float m_ms = 6.f;
 };

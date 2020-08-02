@@ -6,7 +6,6 @@ extern LRESULT CALLBACK WndProc(HWND _hWnd, uint32 _msg, WPARAM _wParam, LPARAM 
 
 bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 {
-	
 	LPCWSTR dir = Stream::GetDefaultDir();
 	LPCWSTR sectionname = L"Startup";
 	std::wstring AppName = L"NULL";
@@ -80,6 +79,8 @@ bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 		Stream::ReadIniBool(dir, sectionname, L"FullScreen", m_isFullScreen);
 	SetFullScreen(m_isFullScreen);
 
+	HideCursor();
+
 	m_isInitialized = true;
 	return true;
 }
@@ -105,4 +106,49 @@ void TWindow::SetFullScreen(bool isFullScreen)
 		SetWindowPos(m_hWND, NULL, m_posX, m_posY, m_width, m_height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 	}
+	HideCursor();
+}
+
+void TWindow::ResizeWindow(int inposX, int inposY, int inwidth, int inheight)
+{
+	//TODO finish
+	const LPCWSTR dir = Stream::GetDefaultDir();
+	const LPCWSTR sectionname = L"Startup";
+
+	if (inposX == -1 || inposY == -1 || inwidth == -1 || inheight == -1)
+	{
+		//Read from Default.ini
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosX", m_posX);
+		Stream::ReadIniInt(dir, sectionname, L"WindowPosY", m_posY);
+		Stream::ReadIniInt(dir, sectionname, L"WindowWidth", m_width);
+		Stream::ReadIniInt(dir, sectionname, L"WindowHeight", m_height);
+	}
+	else
+	{
+		m_posX = inposX;
+		m_posY = inposY;
+		m_width = inwidth;
+		m_height = inheight;
+	}
+	HideCursor();
+}
+
+RECT TWindow::GetRECT()
+{
+	RECT size;
+
+	size.left = m_posX;
+	size.top = m_posY;
+	size.right = m_width;
+	size.bottom = m_height;
+
+	return size;
+}
+
+void TWindow::HideCursor()
+{
+	ShowCursor(false);
+	RECT r;
+	GetWindowRect(m_hWND, &r);
+	ClipCursor(&r);
 }

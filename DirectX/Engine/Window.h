@@ -16,4 +16,7 @@ struct TWindow
 	//Grabs defaults from DirectX/Defaults.ini
 	bool ConstructWindow(int inposX = -1, int inposY = -1, int inwidth = -1, int inheight = -1);
 	void SetFullScreen(bool isFullScreen);
+	void ResizeWindow(int inposX = -1, int inposY = -1, int inwidth = -1, int inheight = -1);
+	RECT GetRECT();
+	void HideCursor();
 };
