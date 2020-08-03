@@ -27,21 +27,21 @@ struct TTransform
 			r *= XMMatrixRotationZ(m_rotation.z);
 		}
 		else
-			return XMMatrixIdentity();
+			r = XMMatrixIdentity();
 
 		if (bUsePosition)
 		{
 			p = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 		}
 		else
-			return XMMatrixIdentity();
+			p = XMMatrixIdentity();
 
 		if (bUseScale)
 		{
 			s = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale));
 		}
 		else
-			return XMMatrixIdentity();
+			s = XMMatrixIdentity();
 
 		return r * p * s;
 	}

@@ -19,7 +19,7 @@ namespace EScene
 	enum Type
 	{
 		eBasicShapesScene = 0,
-
+		eCornellScene,
 		eCount,
 	};
 }

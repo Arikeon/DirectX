@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{c933395e-827b-49a4-9921-8806632e5bf8}</ProjectGuid>
     <RootNamespace>Engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -97,6 +97,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +131,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,9 +157,11 @@
   <ItemGroup>
     <ClCompile Include="DirectX\Engine\Camera.cpp" />
     <ClCompile Include="DirectX\Engine\Engine.cpp" />
+    <ClCompile Include="DirectX\Engine\FileIO.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
+    <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
     <ClCompile Include="DirectX\Engine\ThreadPool.cpp" />
     <ClCompile Include="DirectX\Engine\Time.cpp" />
@@ -167,12 +171,14 @@
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Camera.h" />
     <ClInclude Include="DirectX\Engine\Engine.h" />
+    <ClInclude Include="DirectX\Engine\FileIO.h" />
     <ClInclude Include="DirectX\Engine\Input.h" />
     <ClInclude Include="DirectX\Engine\Mesh.h" />
     <ClInclude Include="DirectX\Engine\Model.h" />
     <ClInclude Include="DirectX\Engine\Passes\BasePass.h" />
     <ClInclude Include="DirectX\Engine\Passes\Pass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\BasicShapesScene.h" />
+    <ClInclude Include="DirectX\Engine\Scenes\CornellScene.h" />
     <ClInclude Include="DirectX\Engine\Scenes\Scene.h" />
     <ClInclude Include="DirectX\Engine\ThreadPool.h" />
     <ClInclude Include="DirectX\Engine\Time.h" />

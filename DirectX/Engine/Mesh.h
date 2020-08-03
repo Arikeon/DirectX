@@ -86,6 +86,24 @@ public:
 			usage);
 	}
 
+	template <class TVertexType>
+	void CreateMesh(CRenderer* renderer,
+		int vertcount,
+		TVertexType* verticiespdata,
+		int indiciecount,
+		unsigned int* intindiciespdata,
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+	{
+		CreateMesh<TVertexType>(renderer,
+			verticiespdata,
+			sizeof(TVertexType),
+			vertcount,
+			intindiciespdata,
+			sizeof(unsigned int),
+			indiciecount,
+			usage);
+	}
+
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
 };
