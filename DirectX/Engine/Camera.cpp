@@ -35,10 +35,12 @@ void CCamera::Update(float delta)
 	if (InputIsKeyDown(VK_CONTROL))
 		YPos -= deltaTS;
 
-	if (m_pitch > 90)
-		m_pitch = 90;
-	if (m_pitch < -90)
-		m_pitch = -90;
+	const float RAD90 = 89 * DEG2RAD;
+
+	if (m_pitch > RAD90)
+		m_pitch = RAD90;
+	if (m_pitch < -RAD90)
+		m_pitch = -RAD90;
 
 	const vector defaultRight = { 1, 0, 0, 0 };
 	const vector defaultUp = { 0, 1, 0, 0 };

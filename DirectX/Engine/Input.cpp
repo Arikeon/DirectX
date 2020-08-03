@@ -79,9 +79,8 @@ void TInput::SetMouse(LPARAM lParam)
 
 	if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
-		POINT P;
-		m_deltaX = raw->data.mouse.lLastX;
-		m_deltaY = raw->data.mouse.lLastY;
+		m_deltaX = (float)raw->data.mouse.lLastX;
+		m_deltaY = (float)raw->data.mouse.lLastY;
 	}
 }
 

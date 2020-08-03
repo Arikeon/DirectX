@@ -25,10 +25,10 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer)
 		const float gridscale = 20.f;
 
 		for (float i = -gridscale; i <= gridscale; ++i)
-			m_debuglines.AddDebugLines(float3(i, gridY, gridscale), float3(i, gridY, -gridscale), TColors::White);
+			m_debuglines.AddDebugLines(float3(i, gridY, gridscale), float3(i, gridY, -gridscale), TColors::Yellow);
 
 		for (float i = -gridscale; i <= gridscale; ++i)
-			m_debuglines.AddDebugLines(float3(-gridscale, gridY, i), float3(gridscale, gridY, i), TColors::White);
+			m_debuglines.AddDebugLines(float3(-gridscale, gridY, i), float3(gridscale, gridY, i), TColors::Yellow);
 	}
 }
 
@@ -94,7 +94,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	TModel BasicCube;
 	BasicCube.m_name = "BasicCube";
 	BasicCube.m_mesh.CreateMesh<BasePassInVS>(renderer, verticies, indicies);
-	BasicCube.m_transform.m_position = float3(0, 0, 5);
+	BasicCube.m_transform.m_position = float3(0, 0, 10);
 	m_models.push_back(BasicCube);
 }
 
