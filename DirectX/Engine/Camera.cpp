@@ -12,8 +12,8 @@ void CCamera::Update(float delta)
 {
 	//Camera rotation
 	float2 mousedelta = InputInstance()->GetMouseDelta();
-	m_pitch += mousedelta.y * delta;
-	m_yaw	+= mousedelta.x * delta;
+	m_pitch += mousedelta.y * delta * 3.f;
+	m_yaw	+= mousedelta.x * delta * 3.f;
 
 	float XPos = 0.f;
 	float YPos = 0.f;
