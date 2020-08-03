@@ -17,7 +17,9 @@ struct TTransform
 		//Must use one
 		check(bUsePosition || bUseRotation || bUseScale);
 
-		XMMATRIX r, p, s;
+		matrix r, p, s;
+		r = p = s = XMMatrixIdentity();
+
 
 		if (bUseRotation)
 		{
@@ -26,22 +28,16 @@ struct TTransform
 			r *= XMMatrixRotationY(m_rotation.y);
 			r *= XMMatrixRotationZ(m_rotation.z);
 		}
-		else
-			r = XMMatrixIdentity();
 
 		if (bUsePosition)
 		{
 			p = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 		}
-		else
-			p = XMMatrixIdentity();
 
 		if (bUseScale)
 		{
 			s = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale));
 		}
-		else
-			s = XMMatrixIdentity();
 
 		return r * p * s;
 	}

@@ -34,6 +34,8 @@ public:
 	virtual void UpdateScene(CRenderer* renderer) = 0;
 	virtual void UnloadScene() = 0;
 	virtual void RenderScene(CRenderer* renderer, TWindow window, float delta);
+	virtual void DrawTransform(TModel& model);
+	virtual void DrawModelTransforms();
 	virtual std::vector<TModel>& GetModels() { return m_models; }
 
 protected:
@@ -42,4 +44,5 @@ protected:
 	std::vector<TModel> m_models;
 	TDebugLines m_debuglines;
 	TBasePass m_basepass;
+	bool m_bDrawTransforms = true;
 };

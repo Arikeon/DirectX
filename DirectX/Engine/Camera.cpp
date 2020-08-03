@@ -12,8 +12,8 @@ void CCamera::Update(float delta)
 {
 	//Camera rotation
 	float2 mousedelta = InputInstance()->GetMouseDelta();
-	m_pitch += mousedelta.y * delta * 3.0f;
-	m_yaw	+= mousedelta.x * delta * 3.0f;
+	m_pitch += mousedelta.y * delta * 3.f;
+	m_yaw	+= mousedelta.x * delta * 3.f;
 
 	float XPos = 0.f;
 	float YPos = 0.f;
@@ -35,12 +35,12 @@ void CCamera::Update(float delta)
 	if (InputIsKeyDown(VK_CONTROL))
 		YPos -= deltaTS;
 
-	CONSOLE_LOG(std::to_wstring(m_pitch));
+	const float RAD90 = 89 * DEG2RAD;
 
-	if (m_pitch > 1.5)
-		m_pitch = 1.5;
-	if (m_pitch < -1.5)
-		m_pitch = -1.5;
+	if (m_pitch > RAD90)
+		m_pitch = RAD90;
+	if (m_pitch < -RAD90)
+		m_pitch = -RAD90;
 
 	const vector defaultRight = { 1, 0, 0, 0 };
 	const vector defaultUp = { 0, 1, 0, 0 };
