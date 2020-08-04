@@ -25,10 +25,10 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer)
 		const float gridscale = 20.f;
 
 		for (float i = -gridscale; i <= gridscale; ++i)
-			m_debuglines.AddDebugLines(float3(i, gridY, gridscale), float3(i, gridY, -gridscale), TColors::Yellow);
+			m_debuglines.AddDebugLines(float3(i, gridY, gridscale), float3(i, gridY, -gridscale), TColors::White);
 
 		for (float i = -gridscale; i <= gridscale; ++i)
-			m_debuglines.AddDebugLines(float3(-gridscale, gridY, i), float3(gridscale, gridY, i), TColors::Yellow);
+			m_debuglines.AddDebugLines(float3(-gridscale, gridY, i), float3(gridscale, gridY, i), TColors::White);
 	}
 }
 

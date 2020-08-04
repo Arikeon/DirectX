@@ -49,6 +49,8 @@ private:
 			m_indexkey = (int)renderer->m_indexbuffers.size();
 			renderer->m_indexbuffers.push_back(ibuffer);
 		}
+		if (m_vertexkey)
+			m_bInitialized = true;
 	}
 
 public:

@@ -44,6 +44,7 @@ private:
 	std::vector<TD3DTexture> m_textures;
 	std::vector<TD3DSampler> m_samplers;
 	std::vector<TD3DDepthTarget> m_depthtargets;
+	std::vector<TMaterial> m_materials;
 	std::array<ID3D11RasterizerState*, ERasterizerStates::eCount> m_rasterizerstates;
 	std::array<D3D11_VIEWPORT, EViews::eCount> m_views;
 

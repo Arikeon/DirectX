@@ -89,7 +89,8 @@ struct TBasePass : public TPass
 		for (int i = 0; i < nummodels; ++i)
 		{
 			TModel& model = models[i];
-			DrawModel(renderer, renderer->GetShader(EShaderList::BasePass), camera, window, delta, model);
+			if (model.IsInitialized())
+				DrawModel(renderer, renderer->GetShader(EShaderList::BasePass), camera, window, delta, model);
 		}
 
 		//Draw debug lines

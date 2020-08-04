@@ -9,6 +9,27 @@ struct TBufferInfo;
 struct TD3DTexture;
 struct TD3DSampler;
 struct TD3DRenderTarget;
+struct TMaterial;
+
+struct TMaterial
+{
+	void Release()
+	{
+
+	}
+
+#if 0 //not currently using //TODO
+	float3 m_ambientColor;		//'Ka'
+	float3 m_diffuseColor;		//'Kd'
+	float3 m_specularColor;		//'Ks'
+	float m_specularHighlight;	//'Ns'
+	float m_opticalDensity;		//'Ni'
+#endif
+	TextureID m_textureDiffuse;
+	TextureID m_textureNormal;
+	TextureID m_textureMask;
+	TextureID m_textureSpecular;
+};
 
 struct TD3DSampler
 {
