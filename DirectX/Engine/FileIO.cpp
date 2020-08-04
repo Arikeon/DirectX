@@ -78,6 +78,15 @@ namespace IO
 			std::vector<std::string> CurrLineSplit;
 			std::string FL; //First Line
 
+			struct TVertexCollection
+			{
+				std::vector<float3> m_position;
+				std::vector<float3> m_normal;
+				std::vector<float2> m_uv;
+			};
+
+			TVertexCollection VCollection;
+
 			while (true)
 			{
 				if (stream.eof())
@@ -97,6 +106,15 @@ namespace IO
 				if (FL == "#")
 					continue;
 
+				if (strcmp(FL.c_str(), "v") == 0)
+				{
+					VCollection.m_position.push_back({
+						std::stof(CurrLineSplit[1]),
+						std::stof(CurrLineSplit[2]),
+						std::stof(CurrLineSplit[3])
+						});
+				}
+				else if(strcmp(FL.c_str))
 
 
 			}
