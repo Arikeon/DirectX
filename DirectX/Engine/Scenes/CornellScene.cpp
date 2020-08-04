@@ -32,7 +32,7 @@ void CCornellScene::UpdateScene(CRenderer* renderer)
 void CCornellScene::LoadScene(CRenderer* renderer)
 {
 	std::vector<TModel> models;
-	IO::TFileIO::LoadModelFromOBJ(models, "CornellBox");
+	IO::TFileIO::LoadMesh(models, "CornellBox");
 }
 
 void CCornellScene::UnloadScene()

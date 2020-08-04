@@ -2,7 +2,7 @@
 #include <iostream>
 #include "Typedef.h"
 
-#define ENABLE_LEAK_DETECTION 1
+#define ENABLE_LEAK_DETECTION 0 //does not work with third party libraries
 #define ENABLE_CONSOLE_DEBUGGING 1
 #define ENABLE_INLINE 1
 #define ENABLE_CHECK 1
