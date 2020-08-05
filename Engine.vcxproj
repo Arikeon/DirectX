@@ -136,6 +136,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>Disabled</Optimization>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -164,6 +166,7 @@
     <ClCompile Include="DirectX\Engine\FileIO.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
+    <ClCompile Include="DirectX\Engine\Model.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
@@ -179,6 +182,7 @@
     <ClInclude Include="DirectX\Engine\Input.h" />
     <ClInclude Include="DirectX\Engine\Mesh.h" />
     <ClInclude Include="DirectX\Engine\Model.h" />
+    <ClInclude Include="DirectX\Engine\Object.h" />
     <ClInclude Include="DirectX\Engine\Passes\BasePass.h" />
     <ClInclude Include="DirectX\Engine\Passes\Pass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\BasicShapesScene.h" />

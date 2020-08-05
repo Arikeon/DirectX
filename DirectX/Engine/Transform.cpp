@@ -1,6 +1,13 @@
 #include "Transform.h"
 #include "DirectXMath.h"
 
+TTransform::TTransform(float4x4 inTransform)
+{
+	//This assumes there is no scale
+	m_position = float3(inTransform._41, inTransform._42, inTransform._43);
+	m_rotation = float3(inTransform._11, inTransform._22, inTransform._33);
+}
+
 TTransform::TTransform()
 {
 	m_position = {};

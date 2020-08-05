@@ -31,11 +31,11 @@ void CCornellScene::UpdateScene(CRenderer* renderer)
 
 void CCornellScene::LoadScene(CRenderer* renderer)
 {
-	std::vector<TModel> models;
-	IO::TFileIO::LoadMesh(models, "CornellBox");
+	std::vector<TObject> objects;
+	IO::TFileIO::LoadAsset(renderer, objects, "CornellBox\\CornellBox-Sphere.obj");
 }
 
 void CCornellScene::UnloadScene()
 {
-	m_models.clear();
+	m_objects.clear();
 }
