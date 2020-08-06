@@ -4,7 +4,23 @@
 #include "Renderer.h"
 #include "BufferStruct.h"
 #include "D3D11Interface.h"
+
 #include <vector>
+#include <array>
+
+namespace EVertexLayout
+{
+	enum Type
+	{
+		ePosition = 0,
+		eNormal,
+		eTangentsAndBiTangents,
+		eUV,
+		eCount,
+	};
+}
+
+using TVertexLayout = std::array<bool, EVertexLayout::eCount>;
 
 struct TMesh
 {
@@ -109,5 +125,6 @@ public:
 	MaterialID m_materialKey = -1;
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
+	std::array<bool, EVertexLayout::eCount> m_vertexLayout;
 	D3D11_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };

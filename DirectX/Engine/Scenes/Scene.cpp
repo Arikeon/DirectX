@@ -43,7 +43,7 @@ void CScene::DrawModelTransforms()
 		for (int i = 0; i < m_objects.size(); ++i)
 		{
 			TObject& object = m_objects[i];
-			for (int j = 0; j < object.m_models.size(); ++i)
+			for (int j = 0; j < object.m_models.size(); ++j)
 			{
 				TModel& model = object.m_models[j];
 				DrawTransform(model);

@@ -12,7 +12,7 @@ struct TModel
 {
 	void CopyFromNode(aiNode* node);
 
-	std::vector<TMesh> m_mesh;
+	std::vector<TMesh> m_meshes;
 	std::string m_name;
 	TTransform m_transform;
 

@@ -26,9 +26,9 @@ struct TBasePass : public TPass
 		ID3D11RenderTargetView* rtv = renderer->GetRenderTarget(0).m_rtv;
 		ID3D11DepthStencilView* dsv = renderer->GetDepthTarget(0).m_dsv;
 
-		for (int i = 0; i < (int)model.m_mesh.size(); ++i)
+		for (int i = 0; i < (int)model.m_meshes.size(); ++i)
 		{
-			TMesh& currMesh = model.m_mesh[i];
+			TMesh& currMesh = model.m_meshes[i];
 
 			if (!currMesh.m_bInitialized)
 				continue;
@@ -106,8 +106,9 @@ struct TBasePass : public TPass
 			}
 
 			//Draw debug lines
+			if (debuglines.m_meshes.size() > 0)
 			{
-				TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_mesh[0].m_vertexkey);
+				TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
 				D3D11_MAPPED_SUBRESOURCE subresourcemap;
 				ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 				context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);

@@ -167,6 +167,7 @@
     <ClCompile Include="DirectX\Engine\Input.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
     <ClCompile Include="DirectX\Engine\Model.cpp" />
+    <ClCompile Include="DirectX\Engine\Object.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />

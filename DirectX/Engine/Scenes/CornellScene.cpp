@@ -31,8 +31,8 @@ void CCornellScene::UpdateScene(CRenderer* renderer)
 
 void CCornellScene::LoadScene(CRenderer* renderer)
 {
-	std::vector<TObject> objects;
-	IO::TFileIO::LoadAsset(renderer, objects, "CornellBox\\CornellBox-Sphere.obj");
+	IO::TFileIO::LoadAsset(renderer, m_objects, "Windmill\\windmill.obj");
+	//IO::TFileIO::LoadAsset(renderer, m_objects, "CornellBox\\CornellBox-Sphere.obj");
 }
 
 void CCornellScene::UnloadScene()

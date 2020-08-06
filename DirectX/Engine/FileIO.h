@@ -17,10 +17,16 @@ namespace IO
 	public:
 		static void LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string Dir);
 	private:
-		static void LoadScene(CRenderer* rendere, std::vector<TObject>& objectArray, const aiScene* scene);
-
-		static void LoadNode(CRenderer* renderer, std::vector<TObject>& objectArray, aiNode* node, const aiScene* scene);
+		static void LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, const aiScene* scene);
 		//recursion
-		static void LoadMesh(CRenderer* renderer, TModel& model, aiNode* node);
+		static void LoadMesh(
+			CRenderer* renderer,
+			TObject& object,
+			aiNode** nodeChildRoot,
+			aiMesh** meshRoot,
+			const unsigned int meshCount,
+			const unsigned int childCount,
+			unsigned int& meshIndex,
+			unsigned int& childIndex);
 	};
 }
