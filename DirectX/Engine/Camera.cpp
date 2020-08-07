@@ -36,11 +36,9 @@ void CCamera::Update(float delta)
 		YPos -= deltaTS;
 
 	const float RAD90 = 89 * DEG2RAD;
-
-	if (m_pitch > RAD90)
-		m_pitch = RAD90;
-	if (m_pitch < -RAD90)
-		m_pitch = -RAD90;
+	//TODO convert to degrees
+	m_pitch = std::fmin(m_pitch, RAD90);
+	m_pitch = std::fmax(m_pitch, -RAD90);
 
 	const vector defaultRight = { 1, 0, 0, 0 };
 	const vector defaultUp = { 0, 1, 0, 0 };

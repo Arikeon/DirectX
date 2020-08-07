@@ -2,7 +2,7 @@
 #include <iostream>
 #include "Typedef.h"
 
-#define ENABLE_LEAK_DETECTION 1
+#define ENABLE_LEAK_DETECTION 0 //does not work with third party libraries
 #define ENABLE_CONSOLE_DEBUGGING 1
 #define ENABLE_INLINE 1
 #define ENABLE_CHECK 1
@@ -55,3 +55,4 @@
 #define D3DRelease(d3d) d3d.Release();
 #define DXArrayRelease(arr) for(int arr ## i(0); arr ## i < (int)arr.size(); ++arr ## i) { if (arr[arr ## i]) { arr[arr ## i]->Release(); }; }
 #define D3DArrayRelease(arr) for(int arr ## i(0); arr ## i < (int)arr.size(); ++arr ## i) { arr[arr ## i].Release();}
+

@@ -1,6 +1,7 @@
 #pragma once
 #include "RenderEnums.h"
 #include "Build.h"
+#include "D3DDefines.h"
 
 #include <d3d11.h>
 
@@ -9,6 +10,34 @@ struct TBufferInfo;
 struct TD3DTexture;
 struct TD3DSampler;
 struct TD3DRenderTarget;
+struct TMaterial;
+
+struct TMaterial
+{
+	void Release()
+	{
+
+	}
+
+	float3 m_diffuseColor;
+	float3 m_specularColor;
+	float m_opacity;
+	float m_reflectivity;
+
+	static int GetConstantSize()
+	{
+		return
+			sizeof(m_diffuseColor) +
+			sizeof(m_specularColor) +
+			sizeof(m_reflectivity) +
+			sizeof(m_opacity);
+	}
+
+	TextureID m_textureDiffuse = -1;
+	TextureID m_textureNormal = -1;
+	TextureID m_textureMask = -1;
+	TextureID m_textureSpecular = -1;
+};
 
 struct TD3DSampler
 {

@@ -40,10 +40,14 @@ void CScene::DrawModelTransforms()
 {
 	if (m_bDrawTransforms)
 	{
-		for (int i = 0; i < m_models.size(); ++i)
+		for (int i = 0; i < m_objects.size(); ++i)
 		{
-			TModel& model = m_models[i];
-			DrawTransform(model);
+			TObject& object = m_objects[i];
+			for (int j = 0; j < object.m_models.size(); ++j)
+			{
+				TModel& model = object.m_models[j];
+				DrawTransform(model);
+			}
 		}
 	}
 }
@@ -51,14 +55,7 @@ void CScene::DrawModelTransforms()
 void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 {
 	renderer->ResetPipeline();
-
-	m_models[0].m_transform.m_rotation.x += delta;
-	m_models[0].m_transform.m_rotation.y += delta;
-	m_models[0].m_transform.m_rotation.z += delta;
-
 	m_camera.Update(delta);
-
 	DrawModelTransforms();
-
-	m_basepass.Render(renderer, GetModels(), m_debuglines, m_camera, window,delta);
+	m_basepass.Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
 }

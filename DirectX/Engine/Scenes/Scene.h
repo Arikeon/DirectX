@@ -4,6 +4,7 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Colors.h"
+#include "Object.h"
 
 //Passes
 #include "Pass.h"
@@ -19,7 +20,7 @@ namespace EScene
 	enum Type
 	{
 		eBasicShapesScene = 0,
-
+		eCornellScene,
 		eCount,
 	};
 }
@@ -34,14 +35,14 @@ public:
 	virtual void UpdateScene(CRenderer* renderer) = 0;
 	virtual void UnloadScene() = 0;
 	virtual void RenderScene(CRenderer* renderer, TWindow window, float delta);
-	virtual void DrawTransform(TModel& model);
+	virtual void DrawTransform(TModel& object);
 	virtual void DrawModelTransforms();
-	virtual std::vector<TModel>& GetModels() { return m_models; }
+	virtual std::vector<TObject>& GetObjects() { return m_objects; }
 
 protected:
 	EScene::Type m_selectedscene;
 	CCamera m_camera;
-	std::vector<TModel> m_models;
+	std::vector<TObject> m_objects;
 	TDebugLines m_debuglines;
 	TBasePass m_basepass;
 	bool m_bDrawTransforms = true;

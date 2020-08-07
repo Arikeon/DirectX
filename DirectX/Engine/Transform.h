@@ -5,6 +5,7 @@
 struct TTransform
 {
 	TTransform();
+	TTransform(float4x4 InTransform);
 	TTransform(float2 InVector);
 	TTransform(float3 InVector);
 	TTransform(float x);

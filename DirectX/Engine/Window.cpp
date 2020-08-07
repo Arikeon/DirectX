@@ -22,7 +22,7 @@ bool TWindow::ConstructWindow(int inposX, int inposY, int inwidth, int inheight)
 	m_wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 	m_wc.hIconSm = m_wc.hIcon;
 	m_wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	m_wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	//m_wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	m_wc.lpszMenuName = NULL;
 	m_wc.lpszClassName = AppName.c_str();
 	m_wc.cbSize = sizeof(WNDCLASSEX);

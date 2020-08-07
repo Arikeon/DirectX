@@ -10,6 +10,7 @@
 //Scenes
 #include "Scenes/Scene.h"
 #include "Scenes/BasicShapesScene.h"
+#include "Scenes/CornellScene.h"
 
 CEngine::~CEngine()
 {
@@ -35,6 +36,9 @@ void CEngine::Initialize()
 	{
 	case EScene::eBasicShapesScene:
 		m_scene = new CBasicShapesScene;
+		break;
+	case EScene::eCornellScene:
+		m_scene = new CCornellScene;
 		break;
 	default:
 		check(0);

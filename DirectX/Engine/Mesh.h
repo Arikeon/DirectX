@@ -4,7 +4,23 @@
 #include "Renderer.h"
 #include "BufferStruct.h"
 #include "D3D11Interface.h"
+
 #include <vector>
+#include <array>
+
+namespace EVertexLayout
+{
+	enum Type
+	{
+		ePosition = 0,
+		eNormal,
+		eTangentsAndBiTangents,
+		eUV,
+		eCount,
+	};
+}
+
+using TVertexLayout = std::array<bool, EVertexLayout::eCount>;
 
 struct TMesh
 {
@@ -49,6 +65,10 @@ private:
 			m_indexkey = (int)renderer->m_indexbuffers.size();
 			renderer->m_indexbuffers.push_back(ibuffer);
 		}
+		if (m_vertexkey != -1)
+			m_bInitialized = true;
+		else
+			CONSOLE_LOG(L"Failed to create mesh...");
 	}
 
 public:
@@ -58,8 +78,10 @@ public:
 		std::array<TVertexType,
 		arraycount>& verticies,
 		std::vector<unsigned int>& indicies,
-		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
 	{
+		m_topology = topology;
 		CreateMesh<TVertexType>(renderer,
 			verticies.data(),
 			sizeof(TVertexType),
@@ -74,8 +96,10 @@ public:
 	void CreateMesh(CRenderer* renderer,
 		std::vector<TVertexType>& verticies,
 		std::vector<unsigned int>& indicies,
-		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
 	{
+		m_topology = topology;
 		CreateMesh<TVertexType>(renderer,
 			verticies.data(),
 			sizeof(TVertexType),
@@ -86,6 +110,29 @@ public:
 			usage);
 	}
 
+	template <class TVertexType>
+	void CreateMesh(CRenderer* renderer,
+		int vertcount,
+		TVertexType* verticiespdata,
+		int indiciecount,
+		unsigned int* intindiciespdata,
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
+	{
+		m_topology = topology;
+		CreateMesh<TVertexType>(renderer,
+			verticiespdata,
+			sizeof(TVertexType),
+			vertcount,
+			intindiciespdata,
+			sizeof(unsigned int),
+			indiciecount,
+			usage);
+	}
+
+	MaterialID m_materialKey = -1;
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
+	std::array<bool, EVertexLayout::eCount> m_vertexLayout;
+	ETopologyType::Type m_topology = ETopologyType::eTriangleList;
 };
