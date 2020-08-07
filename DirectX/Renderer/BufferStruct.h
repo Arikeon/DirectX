@@ -1,6 +1,7 @@
 #pragma once
 #include "RenderEnums.h"
 #include "Build.h"
+#include "D3DDefines.h"
 
 #include <d3d11.h>
 
@@ -18,17 +19,24 @@ struct TMaterial
 
 	}
 
-#if 0 //not currently using //TODO
-	float3 m_ambientColor;		//'Ka'
-	float3 m_diffuseColor;		//'Kd'
-	float3 m_specularColor;		//'Ks'
-	float m_specularHighlight;	//'Ns'
-	float m_opticalDensity;		//'Ni'
-#endif
-	TextureID m_textureDiffuse;
-	TextureID m_textureNormal;
-	TextureID m_textureMask;
-	TextureID m_textureSpecular;
+	float3 m_diffuseColor;
+	float3 m_specularColor;
+	float m_opacity;
+	float m_reflectivity;
+
+	static int GetConstantSize()
+	{
+		return
+			sizeof(m_diffuseColor) +
+			sizeof(m_specularColor) +
+			sizeof(m_reflectivity) +
+			sizeof(m_opacity);
+	}
+
+	TextureID m_textureDiffuse = -1;
+	TextureID m_textureNormal = -1;
+	TextureID m_textureMask = -1;
+	TextureID m_textureSpecular = -1;
 };
 
 struct TD3DSampler

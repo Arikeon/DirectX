@@ -60,7 +60,7 @@ struct TBasePass : public TPass
 			context->OMSetRenderTargets(1, &rtv, dsv);
 			context->RSSetViewports(1, &d3dview);
 			context->IASetInputLayout(shader.m_inputlayout);
-			context->IASetPrimitiveTopology(currMesh.m_topology);
+			context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
 
 			UINT stride = vbuffer.m_info.m_stride;
 			UINT offset = 0;

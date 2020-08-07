@@ -67,9 +67,9 @@ namespace IO
 
 	void TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, const aiScene* scene)
 	{
+		aiNode* nodeRoot = scene->mRootNode;
 		aiMesh** meshRoot = scene->mMeshes;
 		aiMaterial** materialRoot = scene->mMaterials;
-		aiNode* nodeRoot = scene->mRootNode;
 		aiTexture** textureRoot = scene->mTextures;
 
 		float4x4 objectTransform;
@@ -78,19 +78,17 @@ namespace IO
 		TObject object;
 		object.CopyFromNode(nodeRoot);
 
-		//TODO this does NOT count the total number of meshes
-		const unsigned int numMesh = nodeRoot->mNumMeshes;
 		const unsigned int numChildren = nodeRoot->mNumChildren;
 		unsigned int meshIndex = 0;
 		unsigned int childIndex = 0;
 
 		aiNode** rootNodeChild = nodeRoot->mChildren;
 
-		LoadMesh(renderer,
+		LoadNode(renderer,
 			object,
 			rootNodeChild,
 			meshRoot,
-			numMesh,
+			materialRoot,
 			numChildren,
 			meshIndex,
 			childIndex);
@@ -98,12 +96,12 @@ namespace IO
 		objectArray.push_back(object);
 	}
 
-	void TFileIO::LoadMesh(
+	void TFileIO::LoadNode(
 		CRenderer* renderer,
 		TObject& object,
 		aiNode** nodeChildRoot,
 		aiMesh** meshRoot,
-		const unsigned int meshCount,
+		aiMaterial** materialRoot,
 		const unsigned int childCount,
 		unsigned int& meshIndex,
 		unsigned int& childIndex)
@@ -114,19 +112,21 @@ namespace IO
 			return;
 
 		//Where we started in the mesh array for this node
-		aiNode* currChild = nodeChildRoot[childIndex++];
+		aiNode* currAINode = nodeChildRoot[childIndex++];
 
-		if (currChild->mNumMeshes > 0)
+		if (currAINode->mNumMeshes > 0)
 		{
 			TModel model;
-			model.CopyFromNode(currChild);
-			model.m_meshes.resize(currChild->mNumMeshes);
+			model.CopyFromNode(currAINode);
+			model.m_meshes.resize(currAINode->mNumMeshes);
 
 			unsigned int tMeshIndex = 0;
 			const unsigned int meshStart = meshIndex;
-			for (; meshIndex < meshStart + currChild->mNumMeshes;)
+			for (; meshIndex < meshStart + currAINode->mNumMeshes;)
 			{
 				aiMesh* currAIMesh = meshRoot[meshIndex++];
+
+				model.m_materialID = LoadMaterial(renderer, currAINode, currAIMesh, materialRoot);
 
 				TMesh& currMesh = model.m_meshes[tMeshIndex];
 				currMesh.m_vertexLayout = TVertexLayout{
@@ -192,13 +192,74 @@ namespace IO
 			}
 		}
 
-		LoadMesh(renderer,
+		LoadNode(renderer,
 			object,
 			nodeChildRoot,
 			meshRoot,
-			meshCount,
+			materialRoot,
 			childCount,
 			meshIndex,
 			childIndex);
+	}
+
+	MaterialID TFileIO::LoadMaterial(
+		CRenderer* renderer,
+		aiNode* nodeChild,
+		aiMesh* meshChild,
+		aiMaterial** materialRoot)
+	{
+		if (meshChild->mMaterialIndex == 0)
+			return TextureID(-1);
+
+		renderer->m_materials.push_back({});
+		MaterialID ID = MaterialID(renderer->m_materials.size() - 1);
+		TMaterial& currMaterial = renderer->GetMaterial(ID);
+
+		aiMaterial* currAIMaterial = materialRoot[meshChild->mMaterialIndex];
+
+#if ENABLE_CHECK
+		check(
+			TMaterial::GetConstantSize() ==
+			sizeof(aiColor3D) +	//Diffuse
+			sizeof(aiColor3D) +	//Specular
+			sizeof(float) +		//Opacity
+			sizeof(float)		//Reflectivity
+		);
+#endif
+
+		aiColor3D color;
+		if (currAIMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_diffuseColor, &color, sizeof(aiColor3D));
+		}
+
+		if (currAIMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_specularColor, &color, sizeof(aiColor3D));
+		}
+
+		float scalar;
+		if (currAIMaterial->Get(AI_MATKEY_OPACITY, scalar) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_opacity, &scalar, sizeof(float));
+		}
+
+		if (currAIMaterial->Get(AI_MATKEY_REFLECTIVITY, scalar) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_reflectivity, &scalar, sizeof(float));
+		}
+
+		unsigned int textureCount = currAIMaterial->GetTextureCount(aiTextureType_DIFFUSE);
+		aiString path;
+		for (unsigned int i = 0; i < textureCount; ++i)
+		{
+			if (currAIMaterial->GetTexture(aiTextureType_DIFFUSE, i, &path) == aiReturn_SUCCESS)
+			{
+				//start here
+			}
+			int lol = 123;
+		}
+
+		return ID;
 	}
 }

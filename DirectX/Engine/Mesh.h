@@ -65,8 +65,10 @@ private:
 			m_indexkey = (int)renderer->m_indexbuffers.size();
 			renderer->m_indexbuffers.push_back(ibuffer);
 		}
-		if (m_vertexkey)
+		if (m_vertexkey != -1)
 			m_bInitialized = true;
+		else
+			CONSOLE_LOG(L"Failed to create mesh...");
 	}
 
 public:
@@ -76,8 +78,10 @@ public:
 		std::array<TVertexType,
 		arraycount>& verticies,
 		std::vector<unsigned int>& indicies,
-		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
 	{
+		m_topology = topology;
 		CreateMesh<TVertexType>(renderer,
 			verticies.data(),
 			sizeof(TVertexType),
@@ -92,8 +96,10 @@ public:
 	void CreateMesh(CRenderer* renderer,
 		std::vector<TVertexType>& verticies,
 		std::vector<unsigned int>& indicies,
-		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
 	{
+		m_topology = topology;
 		CreateMesh<TVertexType>(renderer,
 			verticies.data(),
 			sizeof(TVertexType),
@@ -110,8 +116,10 @@ public:
 		TVertexType* verticiespdata,
 		int indiciecount,
 		unsigned int* intindiciespdata,
-		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE)
+		EBufferUsage::Type usage = EBufferUsage::eGPU_READ_WRITE,
+		ETopologyType::Type topology = ETopologyType::eTriangleList)
 	{
+		m_topology = topology;
 		CreateMesh<TVertexType>(renderer,
 			verticiespdata,
 			sizeof(TVertexType),
@@ -126,5 +134,5 @@ public:
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
 	std::array<bool, EVertexLayout::eCount> m_vertexLayout;
-	D3D11_PRIMITIVE_TOPOLOGY m_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	ETopologyType::Type m_topology = ETopologyType::eTriangleList;
 };

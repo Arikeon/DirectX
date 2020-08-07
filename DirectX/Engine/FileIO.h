@@ -19,14 +19,21 @@ namespace IO
 	private:
 		static void LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, const aiScene* scene);
 		//recursion
-		static void LoadMesh(
+		static void LoadNode(
 			CRenderer* renderer,
 			TObject& object,
 			aiNode** nodeChildRoot,
 			aiMesh** meshRoot,
-			const unsigned int meshCount,
+			aiMaterial** materialRoot,
 			const unsigned int childCount,
 			unsigned int& meshIndex,
 			unsigned int& childIndex);
+
+		static MaterialID LoadMaterial(
+			CRenderer* renderer,
+			aiNode* nodeChild,
+			aiMesh* meshChild,
+			aiMaterial** materialRoot
+		);
 	};
 }

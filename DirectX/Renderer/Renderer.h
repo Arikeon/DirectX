@@ -11,12 +11,18 @@
 
 class CD3D11Interface;
 struct TMesh;
+namespace IO
+{
+	struct TFileIO;
+}
+
 
 class CRenderer
 {
 	friend class CEngine;
 	friend class CD3D11Interface;
 	friend struct TMesh;
+	friend struct IO::TFileIO;
 
 public:
 	void ResetPipeline();
@@ -27,6 +33,7 @@ public:
 	TD3DDepthTarget& GetDepthTarget(int index) { return m_depthtargets[index]; }
 	TD3DBuffer& GetVertexBuffer(BufferID index) { return m_vertexbuffers[index]; }
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
+	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 
 private:
 	CRenderer();

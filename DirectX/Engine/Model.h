@@ -7,6 +7,7 @@
 #include "Renderer.h"
 
 struct aiNode;
+class CRenderer;
 
 struct TModel
 {
@@ -28,4 +29,10 @@ struct TDebugLines : public TModel
 	void AddDebugLines(float3 a, float3 b, float3 color);
 	std::array<DebugLinesInVS, 4096> m_debuglines;
 	int m_vertcount;
+
+	void Initialize(CRenderer* renderer);
+	bool Initialized()
+	{
+		return m_meshes.size() > 0;
+	}
 };

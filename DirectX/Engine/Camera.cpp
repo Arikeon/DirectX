@@ -36,7 +36,7 @@ void CCamera::Update(float delta)
 		YPos -= deltaTS;
 
 	const float RAD90 = 89 * DEG2RAD;
-
+	//TODO convert to degrees
 	m_pitch = std::fmin(m_pitch, RAD90);
 	m_pitch = std::fmax(m_pitch, -RAD90);
 

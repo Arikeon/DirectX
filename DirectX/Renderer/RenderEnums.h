@@ -44,6 +44,16 @@ namespace EBufferUsage
 	};
 }
 
+namespace ETopologyType
+{
+	enum Type
+	{
+		eLineList = D3D_PRIMITIVE_TOPOLOGY_LINELIST,
+		eTriangleList = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		eCount
+	};
+}
+
 namespace EFormat
 {
 	enum Type
