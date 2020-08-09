@@ -9,19 +9,21 @@ struct aiScene;
 struct aiNode;
 struct aiMaterial;
 struct aiMesh;
+struct aiString;
 
 namespace IO
 {
 	struct TFileIO
 	{
 	public:
-		static void LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string Dir);
+		static void LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir);
 	private:
-		static void LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, const aiScene* scene);
+		static void LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene);
 		//recursion
 		static void LoadNode(
 			CRenderer* renderer,
 			TObject& object,
+			std::string assetDir,
 			aiNode** nodeChildRoot,
 			aiMesh** meshRoot,
 			aiMaterial** materialRoot,
@@ -31,9 +33,12 @@ namespace IO
 
 		static MaterialID LoadMaterial(
 			CRenderer* renderer,
+			std::string assetDir,
 			aiNode* nodeChild,
 			aiMesh* meshChild,
 			aiMaterial** materialRoot
 		);
+
+		static TextureID LoadTextureFromFile(CRenderer* renderer, std::string assetDir,aiString dir);
 	};
 }

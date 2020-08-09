@@ -16,9 +16,6 @@ struct TModel
 	std::vector<TMesh> m_meshes;
 	std::string m_name;
 	TTransform m_transform;
-
-	//-1 if no material - default textures
-	MaterialID m_materialID = -1;
 };
 
 struct TDebugLines : public TModel

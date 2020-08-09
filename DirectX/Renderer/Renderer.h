@@ -27,14 +27,22 @@ class CRenderer
 
 public:
 	void ResetPipeline();
-	TShader& GetShader(ShaderID id);
-	D3D11_VIEWPORT& GetView(EViews::Type id);
+	TShader& GetShader(ShaderID id) { return m_shaders[id]; }
+	D3D11_VIEWPORT& GetView(EViews::Type id) { return m_views[id]; }
 	CD3D11Interface*& GetD3DInterface() { return m_D3DInterface; }
 	TD3DRenderTarget& GetRenderTarget(int index) { return m_rtvs[index]; }
 	TD3DDepthTarget& GetDepthTarget(int index) { return m_depthtargets[index]; }
 	TD3DBuffer& GetVertexBuffer(BufferID index) { return m_vertexbuffers[index]; }
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
+
+	TextureID CreateTexture(
+		unsigned int width,
+		unsigned int height,
+		unsigned int depth,
+		unsigned int arraySize,
+		unsigned int mipLevels,
+		DXGI_FORMAT format);
 
 private:
 	CRenderer();

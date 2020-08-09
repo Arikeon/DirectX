@@ -10,16 +10,24 @@ void CRenderer::ResetPipeline()
 	m_D3DInterface->UnbindTargets();
 }
 
-TShader& CRenderer::GetShader(ShaderID id)
+TextureID CRenderer::CreateTexture(
+	unsigned int width,
+	unsigned int height,
+	unsigned int depth,
+	unsigned int arraySize,
+	unsigned int mipLevels,
+	DXGI_FORMAT format)
 {
-	return m_shaders[id];
-}
+	m_textures.push_back(m_D3DInterface->CreateTexture(
+		width,
+		height,
+		depth,
+		arraySize,
+		mipLevels,
+		format));
 
-D3D11_VIEWPORT& CRenderer::GetView(EViews::Type id)
-{
-	return m_views[id];
+	return TextureID(m_textures.size() - 1);
 }
-
 
 CRenderer::CRenderer() :
 	m_D3DInterface(nullptr)

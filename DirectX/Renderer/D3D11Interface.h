@@ -1,5 +1,6 @@
 #pragma once
 #include "Window.h"
+#include "BufferStruct.h"
 #include "BufferKeys.h"
 #include "Shader.h"
 #include "RenderEnums.h"
@@ -26,6 +27,15 @@ public:
 	void CompileShader(TShader& shader);
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
 	ID3D11DeviceContext* GetContext() { return m_context; }
+
+	//Helpers
+	TD3DTexture CreateTexture(
+		unsigned int width,
+		unsigned int height,
+		unsigned int depth,
+		unsigned int arraySize,
+		unsigned int mipLevels,
+		DXGI_FORMAT format);
 
 	//Render Commands
 	void UnbindTargets();

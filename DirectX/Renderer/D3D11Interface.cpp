@@ -496,6 +496,64 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	}
 }
 
+TD3DTexture CD3D11Interface::CreateTexture(
+	unsigned int width,
+	unsigned int height,
+	unsigned int depth,
+	unsigned int arraySize,
+	unsigned int mipLevels,
+	DXGI_FORMAT format)
+{
+	//TODO add support for RW and UAV
+	HRESULT r = {};
+
+	TD3DTexture texture = {};
+	texture.m_width = width;
+	texture.m_height = height;
+	texture.m_depth = depth;
+	texture.m_arrSize = arraySize;
+	texture.m_mipLevel = mipLevels;
+
+	D3D11_TEXTURE2D_DESC TextureDesc = {};
+	TextureDesc.Height = width;
+	TextureDesc.Width = height;
+	TextureDesc.MipLevels = mipLevels;
+	TextureDesc.ArraySize = arraySize;
+	TextureDesc.Format = format;
+	TextureDesc.SampleDesc.Count = 1;
+	TextureDesc.SampleDesc.Quality = 0;
+	TextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+	TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	TextureDesc.CPUAccessFlags = false;
+	
+	r = m_device->CreateTexture2D(&TextureDesc, 0, &texture.m_tex2D);
+	checkhr(r);
+
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+
+
+	const bool bIsCubed = depth > 1;
+	const bool bIsArray = arraySize > 1; //TODO add support for this
+
+	if (bIsCubed)
+	{
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.TextureCube.MipLevels = mipLevels;
+		r = m_device->CreateShaderResourceView(texture.m_tex2D, &srvDesc, &texture.m_srv);
+	}
+	else
+	{
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = mipLevels;
+		r = m_device->CreateShaderResourceView(texture.m_tex2D, &srvDesc, &texture.m_srv);
+	}
+	checkhr(r);
+
+	return texture;
+}
+
 void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)
 {
 	check(shader.m_usedshaderstages[stage] == true);

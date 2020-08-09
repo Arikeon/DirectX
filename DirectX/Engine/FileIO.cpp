@@ -29,6 +29,9 @@
 #include <assimp\scene.h>
 #include <assimp\mesh.h>
 
+//DirectXTex
+#include <DirectXTex.h>
+
 //Vertex type
 #include "DebugLinesStructs.h"
 #include "BasePassStructs.h"
@@ -37,7 +40,7 @@ using namespace Assimp;
 
 namespace IO
 {
-	void TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string Dir)
+	void TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir)
 	{
 		const unsigned assimpFlags =
 			aiProcess_CalcTangentSpace |
@@ -49,8 +52,8 @@ namespace IO
 			aiProcess_FlipUVs |
 			aiProcess_FlipWindingOrder;
 
-		std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
-		std::string FullDir = Algorithm::wstring_to_string(wAssetDir) + Dir;
+		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
+		std::string FullDir = Algorithm::wstring_to_string(wAssetDir) + assetDir + "\\" + assetDir + ".obj";
 
 		Importer importer;
 		const aiScene* scene = importer.ReadFile(FullDir, assimpFlags);
@@ -61,11 +64,11 @@ namespace IO
 			check(0);
 		}
 
-		LoadRootNode(renderer, objectArray, scene);
+		LoadRootNode(renderer, objectArray, assetDir, scene);
 	}
 
 
-	void TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, const aiScene* scene)
+	void TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene)
 	{
 		aiNode* nodeRoot = scene->mRootNode;
 		aiMesh** meshRoot = scene->mMeshes;
@@ -86,6 +89,7 @@ namespace IO
 
 		LoadNode(renderer,
 			object,
+			assetDir,
 			rootNodeChild,
 			meshRoot,
 			materialRoot,
@@ -99,6 +103,7 @@ namespace IO
 	void TFileIO::LoadNode(
 		CRenderer* renderer,
 		TObject& object,
+		std::string assetDir,
 		aiNode** nodeChildRoot,
 		aiMesh** meshRoot,
 		aiMaterial** materialRoot,
@@ -126,9 +131,9 @@ namespace IO
 			{
 				aiMesh* currAIMesh = meshRoot[meshIndex++];
 
-				model.m_materialID = LoadMaterial(renderer, currAINode, currAIMesh, materialRoot);
 
 				TMesh& currMesh = model.m_meshes[tMeshIndex];
+				currMesh.m_materialKey = LoadMaterial(renderer, assetDir, currAINode, currAIMesh, materialRoot);
 				currMesh.m_vertexLayout = TVertexLayout{
 					currAIMesh->HasPositions(),
 					currAIMesh->HasNormals(),
@@ -194,6 +199,7 @@ namespace IO
 
 		LoadNode(renderer,
 			object,
+			assetDir,
 			nodeChildRoot,
 			meshRoot,
 			materialRoot,
@@ -204,6 +210,7 @@ namespace IO
 
 	MaterialID TFileIO::LoadMaterial(
 		CRenderer* renderer,
+		std::string assetDir,
 		aiNode* nodeChild,
 		aiMesh* meshChild,
 		aiMaterial** materialRoot)
@@ -249,17 +256,48 @@ namespace IO
 			memcpy(&currMaterial.m_reflectivity, &scalar, sizeof(float));
 		}
 
-		unsigned int textureCount = currAIMaterial->GetTextureCount(aiTextureType_DIFFUSE);
 		aiString path;
-		for (unsigned int i = 0; i < textureCount; ++i)
+		if (currAIMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == aiReturn_SUCCESS)
 		{
-			if (currAIMaterial->GetTexture(aiTextureType_DIFFUSE, i, &path) == aiReturn_SUCCESS)
-			{
-				//start here
-			}
-			int lol = 123;
+			currMaterial.m_textureDiffuse = LoadTextureFromFile(renderer, assetDir, path);
+		}
+
+		if (currAIMaterial->GetTexture(aiTextureType_NORMALS, 0, &path) == aiReturn_SUCCESS)
+		{
+			currMaterial.m_textureNormal = LoadTextureFromFile(renderer, assetDir, path);
+		}
+
+		if (currAIMaterial->GetTexture(aiTextureType_OPACITY, 0, &path) == aiReturn_SUCCESS)
+		{
+			currMaterial.m_textureMask = LoadTextureFromFile(renderer, assetDir, path);
+		}
+
+		if (currAIMaterial->GetTexture(aiTextureType_SPECULAR, 0, &path) == aiReturn_SUCCESS)
+		{
+			currMaterial.m_textureSpecular = LoadTextureFromFile(renderer, assetDir, path);
 		}
 
 		return ID;
+	}
+
+	TextureID TFileIO::LoadTextureFromFile(CRenderer* renderer, std::string assetDir, aiString dir)
+	{
+		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
+		std::wstring wassetDir = Algorithm::string_to_wstring(assetDir);
+		std::wstring wdir = wAssetDir + wassetDir + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
+
+
+		auto scratch = DirectX::ScratchImage{};
+		DirectX::LoadFromWICFile(wdir.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratch);
+
+		auto image = scratch.GetMetadata();
+
+		return renderer->CreateTexture(
+			image.width,
+			image.height,
+			image.depth,
+			image.arraySize,
+			image.mipLevels,
+			image.format);
 	}
 }

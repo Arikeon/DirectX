@@ -153,7 +153,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;D3DCompiler.lib;assimp-vc140-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;D3DCompiler.lib;assimp-vc140-mt.lib;DirectXTex.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)DirectX\ThirdParty\assimp\lib\x64\Debug;$(SolutionDir)DirectX\ThirdParty\DirectXTex\lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

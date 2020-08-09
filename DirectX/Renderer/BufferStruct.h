@@ -2,6 +2,7 @@
 #include "RenderEnums.h"
 #include "Build.h"
 #include "D3DDefines.h"
+#include "BufferKeys.h"
 
 #include <d3d11.h>
 
@@ -48,7 +49,6 @@ struct TD3DSampler
 
 	ID3D11SamplerState* m_samplerstate;
 	std::string m_name;
-	SamplerID m_id;
 };
 
 struct TD3DTexture
@@ -64,8 +64,7 @@ struct TD3DTexture
 		DXRelease(m_tex2D);
 	}
 
-	int m_with, m_height, m_depth;
-	TextureID m_id;
+	unsigned int m_width, m_height, m_depth, m_arrSize, m_mipLevel;
 	std::string m_name;
 
 	ID3D11ShaderResourceView* m_srv = nullptr;

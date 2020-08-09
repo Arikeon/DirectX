@@ -15,6 +15,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utilities", "Utilities.vcxproj", "{B4506C87-5FD0-4130-BBDA-B4C4C72037DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{7880E34F-B58A-4474-9BF8-8CC14C3C25B2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assimp", "assimp", "{94B94235-AD4C-409E-AC95-6417584E4A4D}"
 	ProjectSection(SolutionItems) = preProject
 		DirectX\ThirdParty\assimp\include\assimp\ai_assert.h = DirectX\ThirdParty\assimp\include\assimp\ai_assert.h
 		DirectX\ThirdParty\assimp\include\assimp\anim.h = DirectX\ThirdParty\assimp\include\assimp\anim.h
@@ -98,6 +100,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", 
 		DirectX\ThirdParty\assimp\include\assimp\XMLTools.h = DirectX\ThirdParty\assimp\include\assimp\XMLTools.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DirectXTex", "DirectXTex", "{DF3DF4F3-41E8-4284-9EFB-EAAF4ED3F11E}"
+	ProjectSection(SolutionItems) = preProject
+		DirectX\ThirdParty\DirectXTex\Include\BC.cpp = DirectX\ThirdParty\DirectXTex\Include\BC.cpp
+		DirectX\ThirdParty\DirectXTex\Include\BC.h = DirectX\ThirdParty\DirectXTex\Include\BC.h
+		DirectX\ThirdParty\DirectXTex\Include\BC4BC5.cpp = DirectX\ThirdParty\DirectXTex\Include\BC4BC5.cpp
+		DirectX\ThirdParty\DirectXTex\Include\BC6HBC7.cpp = DirectX\ThirdParty\DirectXTex\Include\BC6HBC7.cpp
+		DirectX\ThirdParty\DirectXTex\Include\BCDirectCompute.cpp = DirectX\ThirdParty\DirectXTex\Include\BCDirectCompute.cpp
+		DirectX\ThirdParty\DirectXTex\Include\BCDirectCompute.h = DirectX\ThirdParty\DirectXTex\Include\BCDirectCompute.h
+		DirectX\ThirdParty\DirectXTex\Include\d3dx12.h = DirectX\ThirdParty\DirectXTex\Include\d3dx12.h
+		DirectX\ThirdParty\DirectXTex\Include\DDS.h = DirectX\ThirdParty\DirectXTex\Include\DDS.h
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTex.h = DirectX\ThirdParty\DirectXTex\Include\DirectXTex.h
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTex.inl = DirectX\ThirdParty\DirectXTex\Include\DirectXTex.inl
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexCompress.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexCompress.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexCompressGPU.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexCompressGPU.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexConvert.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexConvert.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexD3D11.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexD3D11.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexD3D12.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexD3D12.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexDDS.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexDDS.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexFlipRotate.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexFlipRotate.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexHDR.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexHDR.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexImage.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexImage.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexMipmaps.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexMipmaps.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexMisc.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexMisc.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexNormalMaps.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexNormalMaps.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexP.h = DirectX\ThirdParty\DirectXTex\Include\DirectXTexP.h
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexPMAlpha.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexPMAlpha.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexResize.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexResize.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexTGA.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexTGA.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexUtil.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexUtil.cpp
+		DirectX\ThirdParty\DirectXTex\Include\DirectXTexWIC.cpp = DirectX\ThirdParty\DirectXTex\Include\DirectXTexWIC.cpp
+		DirectX\ThirdParty\DirectXTex\Include\filters.h = DirectX\ThirdParty\DirectXTex\Include\filters.h
+		DirectX\ThirdParty\DirectXTex\Include\scoped.h = DirectX\ThirdParty\DirectXTex\Include\scoped.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -141,6 +177,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{94B94235-AD4C-409E-AC95-6417584E4A4D} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
+		{DF3DF4F3-41E8-4284-9EFB-EAAF4ED3F11E} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4769D6D6-2EE5-48DF-9CDC-9A60F53631E2}
