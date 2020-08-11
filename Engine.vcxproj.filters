@@ -55,6 +55,9 @@
     <ClCompile Include="DirectX\Engine\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX\ThirdParty\DirectXTex\Include\ScreenGrab11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Engine.h">
@@ -103,6 +106,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Object.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\ThirdParty\DirectXTex\Include\ScreenGrab11.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,6 +16,8 @@ namespace IO
 	struct TFileIO
 	{
 	public:
+		static void DebugOutTexture(CRenderer* renderer, ID3D11Texture2D* texture, std::wstring name);
+
 		static void LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir);
 	private:
 		static void LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene);

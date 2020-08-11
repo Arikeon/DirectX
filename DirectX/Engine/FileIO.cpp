@@ -31,6 +31,7 @@
 
 //DirectXTex
 #include <DirectXTex.h>
+#include <ScreenGrab11.h>
 
 //Vertex type
 #include "DebugLinesStructs.h"
@@ -40,6 +41,14 @@ using namespace Assimp;
 
 namespace IO
 {
+	void TFileIO::DebugOutTexture(CRenderer* renderer, ID3D11Texture2D* texture, std::wstring name)
+	{
+		ID3D11DeviceContext* context = renderer->m_D3DInterface->m_context;
+		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DebugTextures\\" + name.c_str() + L".dds";
+		DirectX::SaveDDSTextureToFile(context, texture, wAssetDir.c_str());
+
+	}
+
 	void TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir)
 	{
 		const unsigned assimpFlags =
@@ -164,6 +173,8 @@ namespace IO
 					check(currAIMesh->HasPositions());
 					memcpy(&currVertex.position, &currAIMesh->mVertices[vertexIndex], sizeof(aiVector3D));
 
+					//Vertex colors
+
 					if (currAIMesh->HasNormals())
 					{
 						memcpy(&currVertex.normal, &currAIMesh->mNormals[vertexIndex], sizeof(aiVector3D));
@@ -262,6 +273,7 @@ namespace IO
 			currMaterial.m_textureDiffuse = LoadTextureFromFile(renderer, assetDir, path);
 		}
 
+#if 0
 		if (currAIMaterial->GetTexture(aiTextureType_NORMALS, 0, &path) == aiReturn_SUCCESS)
 		{
 			currMaterial.m_textureNormal = LoadTextureFromFile(renderer, assetDir, path);
@@ -276,6 +288,7 @@ namespace IO
 		{
 			currMaterial.m_textureSpecular = LoadTextureFromFile(renderer, assetDir, path);
 		}
+#endif
 
 		return ID;
 	}
@@ -293,11 +306,11 @@ namespace IO
 		auto image = scratch.GetMetadata();
 
 		return renderer->CreateTexture(
-			image.width,
-			image.height,
-			image.depth,
-			image.arraySize,
-			image.mipLevels,
+			static_cast<unsigned int>(image.width),
+			static_cast<unsigned int>(image.height),
+			static_cast<unsigned int>(image.depth),
+			static_cast<unsigned int>(image.arraySize),
+			static_cast<unsigned int>(image.mipLevels),
 			image.format);
 	}
 }

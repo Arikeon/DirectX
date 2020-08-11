@@ -72,6 +72,7 @@ private:
 	}
 
 public:
+	bool HasMaterial() { return m_materialKey > -1; }
 
 	template <class TVertexType, int arraycount>
 	void CreateMesh(CRenderer* renderer,

@@ -11,6 +11,7 @@
 *.idb
 *.obj
 *.ipch
+*.dds
 Build/
 Debug/
 x64/

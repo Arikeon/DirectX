@@ -5,7 +5,8 @@
 BasePassInPS MainVS(BasePassInVS input)
 {
 	BasePassInPS output;
-	output.texcoord = input.texcoord;
+	output.normal = input.normal;
+	output.uv = input.texcoord;
 
 	output.position = input.position;
 	output.svposition = float4(output.position, 1.0f);

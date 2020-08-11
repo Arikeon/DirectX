@@ -35,9 +35,9 @@ struct TMaterial
 	}
 
 	TextureID m_textureDiffuse = -1;
-	TextureID m_textureNormal = -1;
-	TextureID m_textureMask = -1;
-	TextureID m_textureSpecular = -1;
+	//TextureID m_textureNormal = -1;
+	//TextureID m_textureMask = -1;
+	//TextureID m_textureSpecular = -1;
 };
 
 struct TD3DSampler

@@ -10,6 +10,11 @@ float4x4 View;
 float4x4 Proj;
 END_CBUFFER(BasePassWVP);
 
+START_CBUFFER(BasePassMaterial, b1)
+
+END_CBUFFER(BasePassMaterial);
+
+
 struct BasePassInVS
 {
 	float3 position SEMANTIC(POSITION)
@@ -24,5 +29,5 @@ struct BasePassInPS
 	float4 svposition SEMANTIC(SV_POSITION)
 	float3 position SEMANTIC(POSITION)
 	float3 normal SEMANTIC(NORMAL)
-	float2 texcoord SEMANTIC(TEXCOORD0)
+	float2 uv SEMANTIC(TEXCOORD0)
 };
