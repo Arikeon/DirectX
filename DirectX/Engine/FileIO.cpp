@@ -31,7 +31,6 @@
 
 //DirectXTex
 #include <DirectXTex.h>
-#include <ScreenGrab11.h>
 
 //Vertex type
 #include "DebugLinesStructs.h"
@@ -43,9 +42,10 @@ namespace IO
 {
 	void TFileIO::DebugOutTexture(CRenderer* renderer, ID3D11Texture2D* texture, std::wstring name)
 	{
-		ID3D11DeviceContext* context = renderer->m_D3DInterface->m_context;
-		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DebugTextures\\" + name.c_str() + L".dds";
-		DirectX::SaveDDSTextureToFile(context, texture, wAssetDir.c_str());
+		//Link ScreenGrab11.h
+		//ID3D11DeviceContext* context = renderer->m_D3DInterface->m_context;
+		//const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DebugTextures\\" + name.c_str() + L".dds";
+		//DirectX::SaveDDSTextureToFile(context, texture, wAssetDir.c_str());
 
 	}
 
@@ -189,9 +189,11 @@ namespace IO
 					if (currAIMesh->HasTextureCoords(meshIndex - 1))
 					{
 						//mTextureCoords is saved as aiVector3D - convert to float2
+						aiVector3D* TexCoorArr = currAIMesh->mTextureCoords[meshIndex - 1];
+
 						currVertex.texcoord =
-							currAIMesh->mTextureCoords[meshIndex - 1] ?
-							float2(currAIMesh->mTextureCoords[meshIndex - 1]->x, currAIMesh->mTextureCoords[meshIndex - 1]->y) :
+							TexCoorArr ?
+							float2(TexCoorArr[vertexIndex].x, TexCoorArr[vertexIndex].y) :
 							float2(0, 0);
 					}
 				}

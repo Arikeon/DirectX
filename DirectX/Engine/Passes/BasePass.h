@@ -1,9 +1,11 @@
 #pragma once
 #include "Pass.h"
-#include "BasePassStructs.h"
 #include "Camera.h"
 #include "Window.h"
 #include "D3D11Interface.h"
+#include "BasePassStructs.h"
+#include "BasePassPS.hlsl"
+#include "BasePassVS.hlsl"
 
 struct TBasePass : public TPass
 {
@@ -53,6 +55,16 @@ struct TBasePass : public TPass
 			shader.WriteConstants("View", (void*)&WVP.View);
 			shader.WriteConstants("Proj", (void*)&WVP.Proj);
 
+			if (currMesh.HasMaterial())
+			{
+				TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
+
+				BasePassMaterial ConstantMaterial = {};
+				ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
+				ConstantMaterial.DiffuseColor = float4(1.f, 1.f, 1.f, 1.f);
+				shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor);
+			}
+
 			shader.BindData(context);
 
 			//start binding pipeline
@@ -61,7 +73,6 @@ struct TBasePass : public TPass
 			context->RSSetViewports(1, &d3dview);
 			context->IASetInputLayout(shader.m_inputlayout);
 			context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
-
 			UINT stride = vbuffer.m_info.m_stride;
 			UINT offset = 0;
 
@@ -94,10 +105,6 @@ struct TBasePass : public TPass
 				CONSOLE_LOG(L"Nothing to render..");
 				return;
 			}
-
-			const auto UpdateWVP = [&](TModel model, TShader shader)
-			{
-			};
 
 			for (int i = 0; i < nummodels; ++i)
 			{

@@ -1,19 +1,8 @@
-#if __cplusplus
-#pragma once
-#endif
-
 #include "HLSLGlue.h"
 
-START_CBUFFER(BasePassWVP, b0)
-float4x4 World;
-float4x4 View;
-float4x4 Proj;
-END_CBUFFER(BasePassWVP);
-
-START_CBUFFER(BasePassMaterial, b1)
-
-END_CBUFFER(BasePassMaterial);
-
+#if CPP
+#pragma once
+#endif
 
 struct BasePassInVS
 {

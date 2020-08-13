@@ -1,6 +1,13 @@
 //structs and buffers intended to be readable by hlsl and c++
 
-#if __cplusplus
+#ifndef SHADER
+	#define SHADER 0
+#endif
+
+#define CPU_SHADER_READABLE __cplusplus || SHADER
+#define CPP __cplusplus
+
+#if CPP
 	//Buffer & Structs
 	#include "D3DDefines.h"
 	#define START_CBUFFER(CB, reg) struct CB {

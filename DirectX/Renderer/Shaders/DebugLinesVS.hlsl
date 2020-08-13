@@ -1,6 +1,14 @@
-#pragma pack_matrix(row_major)
 #include "HLSLGlue.h"
 #include "DebugLinesStructs.h"
+
+START_CBUFFER(DebugLinesWVP, b0)
+float4x4 World;
+float4x4 View;
+float4x4 Proj;
+END_CBUFFER(DebugLinesWVP);
+
+#if SHADER
+#pragma pack_matrix(row_major)
 
 DebugLinesInPS MainVS(DebugLinesInVS input)
 {
@@ -15,3 +23,4 @@ DebugLinesInPS MainVS(DebugLinesInVS input)
 
 	return output;
 }
+#endif

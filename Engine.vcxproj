@@ -175,7 +175,6 @@
     <ClCompile Include="DirectX\Engine\Time.cpp" />
     <ClCompile Include="DirectX\Engine\Transform.cpp" />
     <ClCompile Include="DirectX\Engine\Window.cpp" />
-    <ClCompile Include="DirectX\ThirdParty\DirectXTex\Include\ScreenGrab11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Camera.h" />
@@ -194,7 +193,6 @@
     <ClInclude Include="DirectX\Engine\Time.h" />
     <ClInclude Include="DirectX\Engine\Transform.h" />
     <ClInclude Include="DirectX\Engine\Window.h" />
-    <ClInclude Include="DirectX\ThirdParty\DirectXTex\Include\ScreenGrab11.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectX\Defaults.ini" />
