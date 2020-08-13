@@ -1,5 +1,8 @@
 #include "HLSLGlue.h"
 #include "BasePassStructs.h"
+#if SHADER
+#pragma pack_matrix(row_major)
+#endif
 
 START_CBUFFER(BasePassWVP, b0)
 float4x4 World;
@@ -9,7 +12,6 @@ END_CBUFFER(BasePassWVP);
 
 #if SHADER
 
-#pragma pack_matrix(row_major)
 BasePassInPS MainVS(BasePassInVS input)
 {
 	BasePassInPS output;
