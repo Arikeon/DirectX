@@ -19,7 +19,7 @@
     <ClCompile Include="DirectX\Engine\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DirectX\Engine\Time.cpp">
+    <ClCompile Include="DirectX\Engine\DeltaTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DirectX\Engine\Input.cpp">
@@ -66,7 +66,7 @@
     <ClInclude Include="DirectX\Engine\ThreadPool.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Engine\Time.h">
+    <ClInclude Include="DirectX\Engine\DeltaTime.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Input.h">

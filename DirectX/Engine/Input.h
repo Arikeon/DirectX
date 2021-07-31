@@ -1,7 +1,9 @@
 #pragma once
-#include <Window.h>
+#include <Windows.h>
 #include <vector>
 #include "D3DDefines.h"
+#include "Build.h"
+#include "Typedef.h"
 
 #ifndef HID_USAGE_PAGE_GENERIC
 #define HID_USAGE_PAGE_GENERIC         ((USHORT) 0x01)

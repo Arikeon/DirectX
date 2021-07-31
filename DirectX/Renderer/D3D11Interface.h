@@ -9,7 +9,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgidebug.h>
-#include <Window.h>
+#include <Windows.h>
 
 class CRenderer;
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <Window.h>
+#include <Windows.h>
 
 typedef LARGE_INTEGER Lint;
 struct TTime

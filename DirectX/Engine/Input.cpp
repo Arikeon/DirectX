@@ -1,5 +1,5 @@
 #include "Input.h"
-#include <Window.h>
+#include <Windows.h>
 #include <string>
 
 TInput* TInput::Instance = nullptr;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Build.h"
-#include <Window.h>
+#include <Windows.h>
 
 struct TWindow
 {
