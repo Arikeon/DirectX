@@ -149,6 +149,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

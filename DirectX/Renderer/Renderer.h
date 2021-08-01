@@ -43,6 +43,8 @@ public:
 		unsigned int arraySize,
 		unsigned int mipLevels,
 		DXGI_FORMAT format);
+	TD3DTexture& GetTexture(TextureID index) { return m_textures[index]; }
+	void DebugCaptureTexture(TD3DTexture texture, bool isFatal = false);
 
 private:
 	CRenderer();

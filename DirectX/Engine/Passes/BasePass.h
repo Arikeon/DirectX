@@ -35,7 +35,6 @@ struct TBasePass : public TPass
 			if (!currMesh.m_bInitialized)
 				continue;
 
-			bool bUsesIndexBuffer = currMesh.m_indexkey != -1;
 			TD3DBuffer vbuffer;
 			vbuffer = renderer->GetVertexBuffer(currMesh.m_vertexkey);
 
@@ -59,6 +58,15 @@ struct TBasePass : public TPass
 			{
 				TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
 
+				if (Material.m_textureDiffuse != -1)
+				{
+					TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
+
+					renderer->DebugCaptureTexture(Diffuse);
+
+					shader.SetShaderResource<EShaderStage::ePS>(context, Diffuse.m_srv);
+				}
+
 				BasePassMaterial ConstantMaterial = {};
 				ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
 				ConstantMaterial.DiffuseColor = float4(1.f, 1.f, 1.f, 1.f);
@@ -78,6 +86,7 @@ struct TBasePass : public TPass
 
 			context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
 
+			bool bUsesIndexBuffer = currMesh.m_indexkey != -1;
 			if (bUsesIndexBuffer)
 			{
 				TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);

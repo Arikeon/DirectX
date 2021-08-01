@@ -9,6 +9,13 @@
 #define ENABLE_DEBUG (1 && _DEBUG)
 #define ENABLE_DXGI_DEBUG (1 && ENABLE_DEBUG && _DEBUG)
 
+#if ENABLE_INLINE
+	#define INLINE inline
+	#define NOINLINE __declspec(noinline)
+#else
+	#define INLINE
+	#define NOINLINE
+#endif
 
 #if ENABLE_CHECK
 	#include <assert.h>
@@ -18,14 +25,6 @@
 #else
 	#define check(exp)
 	#define checkhr(hr)
-#endif
-
-#if ENABLE_INLINE
-	#define INLINE inline
-	#define NOINLINE __declspec(noinline)
-#else
-	#define INLINE
-	#define NOINLINE
 #endif
 
 #if ENABLE_LEAK_DETECTION

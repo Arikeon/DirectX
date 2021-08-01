@@ -513,6 +513,7 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	texture.m_depth = depth;
 	texture.m_arrSize = arraySize;
 	texture.m_mipLevel = mipLevels;
+	texture.m_format = format;
 
 	D3D11_TEXTURE2D_DESC TextureDesc = {};
 	TextureDesc.Height = width;

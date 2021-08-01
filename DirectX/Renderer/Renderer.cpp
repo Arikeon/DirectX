@@ -4,6 +4,10 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "Model.h"
+#if ENABLE_DEBUG
+//#include <ScreenGrab.h>
+#include <DirectXTex.h>
+#endif //ENABLE_DEBUG
 
 void CRenderer::ResetPipeline()
 {
@@ -27,6 +31,40 @@ TextureID CRenderer::CreateTexture(
 		format));
 
 	return TextureID(m_textures.size() - 1);
+}
+
+void CRenderer::DebugCaptureTexture(TD3DTexture texture, bool isFatal)
+{
+#if ENABLE_DEBUG
+	ID3D11ShaderResourceView* srv = texture.m_srv;
+	check(srv);
+
+	ID3D11Resource* resource = nullptr;
+	srv->GetResource(&resource);
+
+	HRESULT r = {};
+	ScratchImage  image = {};
+
+	r = DirectX::CaptureTexture(m_D3DInterface->m_device, m_D3DInterface->m_context, resource, image);
+
+	if (r == S_OK)
+	{
+		std::wstring dir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DebugTex.dds";
+
+		r = DirectX::SaveToDDSFile(
+			image.GetImages(),
+			1,
+			image.GetMetadata(),
+			DDS_FLAGS_NONE,
+			dir.c_str());
+
+		if (r == S_OK)
+			CONSOLE_LOG(L"saved dbug texture...");
+	}
+
+	if (isFatal) // will leak
+		exit(0);
+#endif
 }
 
 CRenderer::CRenderer() :

@@ -303,7 +303,12 @@ namespace IO
 
 
 		auto scratch = DirectX::ScratchImage{};
-		DirectX::LoadFromWICFile(wdir.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratch);
+
+		HRESULT r = {};
+		r = DirectX::LoadFromWICFile(wdir.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratch);
+
+		checkhr(r);
+
 
 		auto image = scratch.GetMetadata();
 

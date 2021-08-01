@@ -65,6 +65,7 @@ struct TD3DTexture
 	}
 
 	unsigned int m_width, m_height, m_depth, m_arrSize, m_mipLevel;
+	DXGI_FORMAT m_format;
 	std::string m_name;
 
 	ID3D11ShaderResourceView* m_srv = nullptr;

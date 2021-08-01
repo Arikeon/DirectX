@@ -134,6 +134,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DirectXTex", "DirectXTex", 
 		DirectX\ThirdParty\DirectXTex\Include\scoped.h = DirectX\ThirdParty\DirectXTex\Include\scoped.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft", "Microsoft", "{3B221B71-1172-495C-90EC-4E0EAEB22D3F}"
+	ProjectSection(SolutionItems) = preProject
+		DirectX\ThirdParty\Microsoft\Include\ScreenGrab.cpp = DirectX\ThirdParty\Microsoft\Include\ScreenGrab.cpp
+		DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h = DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -181,6 +187,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{94B94235-AD4C-409E-AC95-6417584E4A4D} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
 		{DF3DF4F3-41E8-4284-9EFB-EAAF4ED3F11E} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
+		{3B221B71-1172-495C-90EC-4E0EAEB22D3F} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4769D6D6-2EE5-48DF-9CDC-9A60F53631E2}

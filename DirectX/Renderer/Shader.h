@@ -197,6 +197,21 @@ struct TShader
 		}
 	}
 
+	template<EShaderStage::Type stage>
+	void SetShaderResource(ID3D11DeviceContext* context, ID3D11ShaderResourceView* srv)
+	{
+		check(srv != nullptr);
+
+		if (stage == EShaderStage::eVS)
+		{
+			//TODO
+		}
+		if (stage == EShaderStage::ePS)
+		{
+			context->PSSetShaderResources(0, 1, &srv);
+		}
+	}
+
 	void WriteConstants(std::string name, void* data)
 	{
 		for (int i = 0; i < (int)m_constantbuffermap.size(); i++)
