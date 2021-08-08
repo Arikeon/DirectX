@@ -35,17 +35,20 @@ TextureID CRenderer::CreateTexture(
 
 void CRenderer::DebugCaptureTexture(TD3DTexture texture, bool isFatal)
 {
+	//Causes memory leak, only use during Debug
 #if ENABLE_DEBUG
 	ID3D11ShaderResourceView* srv = texture.m_srv;
 	check(srv);
 
 	ID3D11Resource* resource = nullptr;
 	srv->GetResource(&resource);
+	srv = nullptr;
 
 	HRESULT r = {};
 	ScratchImage  image = {};
 
 	r = DirectX::CaptureTexture(m_D3DInterface->m_device, m_D3DInterface->m_context, resource, image);
+	DXRelease(resource);
 
 	if (r == S_OK)
 	{

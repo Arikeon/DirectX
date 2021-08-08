@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include <Windows.h>
 #include "Colors.h"
+#include <DirectXTex.h>
 
 const float3 TColors::Black		= float3(0, 0, 0);
 const float3 TColors::Red		= float3(1, 0, 0);
@@ -22,6 +23,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 	//Add line# where the memory leak originated
 	MEMORY_LEAK_START(0);
+
+#if 1
+	HRESULT r;
+	r = CoInitialize(NULL);
+	checkhr(r);
+	//r = CoInitializeEx(NULL, NULL);
+	//checkhr(r);
+#endif
+
 	{
 		CEngine Engine;
 		Engine.Initialize();

@@ -41,6 +41,10 @@ namespace IO
 			aiMaterial** materialRoot
 		);
 
-		static TextureID LoadTextureFromFile(CRenderer* renderer, std::string assetDir,aiString dir);
+		static TextureID LoadTextureFromFile(
+			CRenderer* renderer,
+			struct currAIMaterial* material,
+			std::string assetDir,
+			aiString dir);
 	};
 }

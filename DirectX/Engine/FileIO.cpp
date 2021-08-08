@@ -31,6 +31,8 @@
 
 //DirectXTex
 #include <DirectXTex.h>
+#include <WICTextureLoader.h>
+#include <ScreenGrab.h>
 
 //Vertex type
 #include "DebugLinesStructs.h"
@@ -272,7 +274,7 @@ namespace IO
 		aiString path;
 		if (currAIMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == aiReturn_SUCCESS)
 		{
-			currMaterial.m_textureDiffuse = LoadTextureFromFile(renderer, assetDir, path);
+			currMaterial.m_textureDiffuse = LoadTextureFromFile(renderer, nullptr, assetDir, path);
 		}
 
 #if 0
@@ -295,13 +297,35 @@ namespace IO
 		return ID;
 	}
 
-	TextureID TFileIO::LoadTextureFromFile(CRenderer* renderer, std::string assetDir, aiString dir)
+	TextureID TFileIO::LoadTextureFromFile(
+		CRenderer* renderer,
+		currAIMaterial* material,
+		std::string assetDir,
+		aiString dir)
 	{
+		ID3D11Device* device = renderer->GetD3DInterface()->GetDevice();
+		ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
+
 		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
 		std::wstring wassetDir = Algorithm::string_to_wstring(assetDir);
 		std::wstring wdir = wAssetDir + wassetDir + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
 
+		ID3D11Resource* resource = nullptr;
+		ID3D11ShaderResourceView* srv = nullptr;
 
+		HRESULT r = {};
+		r = DirectX::CreateWICTextureFromFile(device, wdir.c_str(), &resource, &srv);
+		checkhr(r);
+		check(resource != nullptr);
+
+		ID3D11Texture2D* tx = (ID3D11Texture2D*)resource;
+
+		D3D11_TEXTURE2D_DESC desc;
+		tx->GetDesc(&desc);
+
+		int test = 123;
+
+#if 0 //broken
 		auto scratch = DirectX::ScratchImage{};
 
 		HRESULT r = {};
@@ -319,5 +343,7 @@ namespace IO
 			static_cast<unsigned int>(image.arraySize),
 			static_cast<unsigned int>(image.mipLevels),
 			image.format);
+#endif
+		return -1;
 	}
 }

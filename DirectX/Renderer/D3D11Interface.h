@@ -27,6 +27,7 @@ public:
 	void CompileShader(TShader& shader);
 	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
 	ID3D11DeviceContext* GetContext() { return m_context; }
+	ID3D11Device* GetDevice() { return m_device; }
 
 	//Helpers
 	TD3DTexture CreateTexture(
@@ -44,7 +45,6 @@ public:
 	float m_nearplane = 0.00001f, m_farplane = 1.0f;
 
 private:
-	ID3D11Device* GetDevice() { return m_device; }
 	IDXGISwapChain* m_swapchain;
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;

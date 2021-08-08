@@ -61,10 +61,10 @@ struct TBasePass : public TPass
 				if (Material.m_textureDiffuse != -1)
 				{
 					TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
-
+					
 					renderer->DebugCaptureTexture(Diffuse);
-
-					shader.SetShaderResource<EShaderStage::ePS>(context, Diffuse.m_srv);
+					
+					//shader.SetShaderResource<EShaderStage::ePS>(context, Diffuse.m_srv);
 				}
 
 				BasePassMaterial ConstantMaterial = {};

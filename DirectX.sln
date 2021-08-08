@@ -136,8 +136,54 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DirectXTex", "DirectXTex", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft", "Microsoft", "{3B221B71-1172-495C-90EC-4E0EAEB22D3F}"
 	ProjectSection(SolutionItems) = preProject
-		DirectX\ThirdParty\Microsoft\Include\ScreenGrab.cpp = DirectX\ThirdParty\Microsoft\Include\ScreenGrab.cpp
+		DirectX\ThirdParty\Microsoft\Include\Audio.h = DirectX\ThirdParty\Microsoft\Include\Audio.h
+		DirectX\ThirdParty\Microsoft\Include\BufferHelpers.h = DirectX\ThirdParty\Microsoft\Include\BufferHelpers.h
+		DirectX\ThirdParty\Microsoft\Include\CommonStates.h = DirectX\ThirdParty\Microsoft\Include\CommonStates.h
+		DirectX\ThirdParty\Microsoft\Include\DDSTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\DDSTextureLoader.h
+		DirectX\ThirdParty\Microsoft\Include\DirectXHelpers.h = DirectX\ThirdParty\Microsoft\Include\DirectXHelpers.h
+		DirectX\ThirdParty\Microsoft\Include\Effects.h = DirectX\ThirdParty\Microsoft\Include\Effects.h
+		DirectX\ThirdParty\Microsoft\Include\GamePad.h = DirectX\ThirdParty\Microsoft\Include\GamePad.h
+		DirectX\ThirdParty\Microsoft\Include\GeometricPrimitive.h = DirectX\ThirdParty\Microsoft\Include\GeometricPrimitive.h
+		DirectX\ThirdParty\Microsoft\Include\GraphicsMemory.h = DirectX\ThirdParty\Microsoft\Include\GraphicsMemory.h
+		DirectX\ThirdParty\Microsoft\Include\Keyboard.h = DirectX\ThirdParty\Microsoft\Include\Keyboard.h
+		DirectX\ThirdParty\Microsoft\Include\Model.h = DirectX\ThirdParty\Microsoft\Include\Model.h
+		DirectX\ThirdParty\Microsoft\Include\Mouse.h = DirectX\ThirdParty\Microsoft\Include\Mouse.h
+		DirectX\ThirdParty\Microsoft\Include\PostProcess.h = DirectX\ThirdParty\Microsoft\Include\PostProcess.h
+		DirectX\ThirdParty\Microsoft\Include\PrimitiveBatch.h = DirectX\ThirdParty\Microsoft\Include\PrimitiveBatch.h
 		DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h = DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h
+		DirectX\ThirdParty\Microsoft\Include\SimpleMath.h = DirectX\ThirdParty\Microsoft\Include\SimpleMath.h
+		DirectX\ThirdParty\Microsoft\Include\SimpleMath.inl = DirectX\ThirdParty\Microsoft\Include\SimpleMath.inl
+		DirectX\ThirdParty\Microsoft\Include\SpriteBatch.h = DirectX\ThirdParty\Microsoft\Include\SpriteBatch.h
+		DirectX\ThirdParty\Microsoft\Include\SpriteFont.h = DirectX\ThirdParty\Microsoft\Include\SpriteFont.h
+		DirectX\ThirdParty\Microsoft\Include\VertexTypes.h = DirectX\ThirdParty\Microsoft\Include\VertexTypes.h
+		DirectX\ThirdParty\Microsoft\Include\WICTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\WICTextureLoader.h
+		DirectX\ThirdParty\Microsoft\Include\XboxDDSTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\XboxDDSTextureLoader.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ScreenGrab", "ScreenGrab", "{4CB94DB0-206B-43B3-BE23-CC3CB47D2BD2}"
+	ProjectSection(SolutionItems) = preProject
+		DirectX\ThirdParty\Microsoft\Include\Audio.h = DirectX\ThirdParty\Microsoft\Include\Audio.h
+		DirectX\ThirdParty\Microsoft\Include\BufferHelpers.h = DirectX\ThirdParty\Microsoft\Include\BufferHelpers.h
+		DirectX\ThirdParty\Microsoft\Include\CommonStates.h = DirectX\ThirdParty\Microsoft\Include\CommonStates.h
+		DirectX\ThirdParty\Microsoft\Include\DDSTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\DDSTextureLoader.h
+		DirectX\ThirdParty\Microsoft\Include\DirectXHelpers.h = DirectX\ThirdParty\Microsoft\Include\DirectXHelpers.h
+		DirectX\ThirdParty\Microsoft\Include\Effects.h = DirectX\ThirdParty\Microsoft\Include\Effects.h
+		DirectX\ThirdParty\Microsoft\Include\GamePad.h = DirectX\ThirdParty\Microsoft\Include\GamePad.h
+		DirectX\ThirdParty\Microsoft\Include\GeometricPrimitive.h = DirectX\ThirdParty\Microsoft\Include\GeometricPrimitive.h
+		DirectX\ThirdParty\Microsoft\Include\GraphicsMemory.h = DirectX\ThirdParty\Microsoft\Include\GraphicsMemory.h
+		DirectX\ThirdParty\Microsoft\Include\Keyboard.h = DirectX\ThirdParty\Microsoft\Include\Keyboard.h
+		DirectX\ThirdParty\Microsoft\Include\Model.h = DirectX\ThirdParty\Microsoft\Include\Model.h
+		DirectX\ThirdParty\Microsoft\Include\Mouse.h = DirectX\ThirdParty\Microsoft\Include\Mouse.h
+		DirectX\ThirdParty\Microsoft\Include\PostProcess.h = DirectX\ThirdParty\Microsoft\Include\PostProcess.h
+		DirectX\ThirdParty\Microsoft\Include\PrimitiveBatch.h = DirectX\ThirdParty\Microsoft\Include\PrimitiveBatch.h
+		DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h = DirectX\ThirdParty\Microsoft\Include\ScreenGrab.h
+		DirectX\ThirdParty\Microsoft\Include\SimpleMath.h = DirectX\ThirdParty\Microsoft\Include\SimpleMath.h
+		DirectX\ThirdParty\Microsoft\Include\SimpleMath.inl = DirectX\ThirdParty\Microsoft\Include\SimpleMath.inl
+		DirectX\ThirdParty\Microsoft\Include\SpriteBatch.h = DirectX\ThirdParty\Microsoft\Include\SpriteBatch.h
+		DirectX\ThirdParty\Microsoft\Include\SpriteFont.h = DirectX\ThirdParty\Microsoft\Include\SpriteFont.h
+		DirectX\ThirdParty\Microsoft\Include\VertexTypes.h = DirectX\ThirdParty\Microsoft\Include\VertexTypes.h
+		DirectX\ThirdParty\Microsoft\Include\WICTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\WICTextureLoader.h
+		DirectX\ThirdParty\Microsoft\Include\XboxDDSTextureLoader.h = DirectX\ThirdParty\Microsoft\Include\XboxDDSTextureLoader.h
 	EndProjectSection
 EndProject
 Global
@@ -188,6 +234,7 @@ Global
 		{94B94235-AD4C-409E-AC95-6417584E4A4D} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
 		{DF3DF4F3-41E8-4284-9EFB-EAAF4ED3F11E} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
 		{3B221B71-1172-495C-90EC-4E0EAEB22D3F} = {7880E34F-B58A-4474-9BF8-8CC14C3C25B2}
+		{4CB94DB0-206B-43B3-BE23-CC3CB47D2BD2} = {3B221B71-1172-495C-90EC-4E0EAEB22D3F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4769D6D6-2EE5-48DF-9CDC-9A60F53631E2}
