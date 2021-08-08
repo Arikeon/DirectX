@@ -51,7 +51,7 @@ namespace IO
 
 	}
 
-	void TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir)
+	TObject& TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir)
 	{
 		const unsigned assimpFlags =
 			aiProcess_CalcTangentSpace |
@@ -75,21 +75,22 @@ namespace IO
 			check(0);
 		}
 
-		LoadRootNode(renderer, objectArray, assetDir, scene);
+		return LoadRootNode(renderer, objectArray, assetDir, scene);
 	}
 
 
-	void TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene)
+	TObject& TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene)
 	{
 		aiNode* nodeRoot = scene->mRootNode;
 		aiMesh** meshRoot = scene->mMeshes;
 		aiMaterial** materialRoot = scene->mMaterials;
 		aiTexture** textureRoot = scene->mTextures;
 
-		float4x4 objectTransform;
+		//TODO
+		float4x4 objectTransform = {};
 		memcpy(&objectTransform, &nodeRoot->mTransformation, sizeof(float4x4));
 
-		TObject object;
+		TObject object = {};
 		object.CopyFromNode(nodeRoot);
 
 		const unsigned int numChildren = nodeRoot->mNumChildren;
@@ -109,6 +110,8 @@ namespace IO
 			childIndex);
 
 		objectArray.push_back(object);
+
+		return object;
 	}
 
 	void TFileIO::LoadNode(
@@ -316,14 +319,8 @@ namespace IO
 		HRESULT r = {};
 		r = DirectX::CreateWICTextureFromFile(device, wdir.c_str(), &resource, &srv);
 		checkhr(r);
-		check(resource != nullptr);
 
-		ID3D11Texture2D* tx = (ID3D11Texture2D*)resource;
-
-		D3D11_TEXTURE2D_DESC desc;
-		tx->GetDesc(&desc);
-
-		int test = 123;
+		return renderer->CreateTexture(resource, srv);
 
 #if 0 //broken
 		auto scratch = DirectX::ScratchImage{};

@@ -31,6 +31,8 @@ void CCornellScene::UpdateScene(CRenderer* renderer)
 
 void CCornellScene::LoadScene(CRenderer* renderer)
 {
+	m_camera.SetStartingPosition(0, 0, -25);
+
 	//Initialize debug lines
 	m_debuglines.Initialize(renderer);
 

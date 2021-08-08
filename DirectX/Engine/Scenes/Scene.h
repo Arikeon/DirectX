@@ -8,7 +8,6 @@
 
 //Passes
 #include "Pass.h"
-#include "BasePass.h"
 
 //Shaders
 #include "BasePassStructs.h"
@@ -29,7 +28,7 @@ class CScene
 {
 	friend class CEngine;
 public:
-	virtual ~CScene() {};
+	virtual ~CScene();
 	virtual void InitializePasses(CRenderer* renderer);
 	virtual void LoadScene(CRenderer* renderer) = 0;
 	virtual void UpdateScene(CRenderer* renderer) = 0;
@@ -44,6 +43,6 @@ protected:
 	CCamera m_camera;
 	std::vector<TObject> m_objects;
 	TDebugLines m_debuglines;
-	TBasePass m_basepass;
+	struct TBasePass* m_basepass;
 	bool m_bDrawTransforms = true;
 };

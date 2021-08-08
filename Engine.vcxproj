@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)Build\Intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)DirectX\ThirdParty\DirectXTex\x64\Debug;E:\Programming\DirectX\DirectX\ThirdParty\Microsoft\lib\x64\Debug</LibraryPath>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)DirectX\ThirdParty\assimp\include;$(SolutionDir)DirectX\ThirdParty\DirectXTex\Include;$(SolutionDir)DirectX\ThirdParty\Microsoft\Include</IncludePath>
   </PropertyGroup>
@@ -132,7 +132,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)DirectX\DirectX;$(SolutionDir)DirectX\Engine;$(SolutionDir)DirectX\Engine\Scenes;$(SolutionDir)DirectX\Engine\Passes;$(SolutionDir)DirectX\Renderer;$(SolutionDir)DirectX\Renderer\Shaders;$(SolutionDir)DirectX\Utilities</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>$(SolutionDir)DirectX\Utilities\PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>Disabled</Optimization>
@@ -168,6 +168,7 @@
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
     <ClCompile Include="DirectX\Engine\Model.cpp" />
     <ClCompile Include="DirectX\Engine\Object.cpp" />
+    <ClCompile Include="DirectX\Engine\Passes\BasePass.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />

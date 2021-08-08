@@ -1,9 +1,19 @@
 #include "Scene.h"
 #include "Renderer.h"
 #include <array>
+#include "BasePass.h"
+
+CScene::~CScene()
+{
+	if (m_basepass)
+		delete m_basepass;
+}
 
 void CScene::InitializePasses(CRenderer* renderer)
 {
+	//TODO shouldnt be a pointer
+	if (!m_basepass)
+		m_basepass = new TBasePass;
 }
 
 void CScene::DrawTransform(TModel& model)
@@ -57,5 +67,6 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 	renderer->ResetPipeline();
 	m_camera.Update(delta);
 	DrawModelTransforms();
-	m_basepass.Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
+
+	m_basepass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
 }

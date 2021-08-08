@@ -50,7 +50,11 @@
 #endif
 
 //shortcuts
+#if 0 //Fast
 #define DXRelease(dx) if(dx) { dx->Release(); }
+#else
+#define DXRelease(dx) if(dx) { dx->Release(); dx = nullptr;}
+#endif
 #define D3DRelease(d3d) d3d.Release();
 #define DXArrayRelease(arr) for(int arr ## i(0); arr ## i < (int)arr.size(); ++arr ## i) { if (arr[arr ## i]) { arr[arr ## i]->Release(); }; }
 #define D3DArrayRelease(arr) for(int arr ## i(0); arr ## i < (int)arr.size(); ++arr ## i) { arr[arr ## i].Release();}

@@ -34,6 +34,12 @@ struct TMaterial
 			sizeof(m_opacity);
 	}
 
+	bool bHasSamplerOverride()
+	{
+		return m_samplerOverride != -1;
+	}
+
+	SamplerID m_samplerOverride = -1;
 	TextureID m_textureDiffuse = -1;
 	//TextureID m_textureNormal = -1;
 	//TextureID m_textureMask = -1;
@@ -62,6 +68,7 @@ struct TD3DTexture
 		DXArrayRelease(m_uavarr);
 
 		DXRelease(m_tex2D);
+		DXRelease(m_tex3D);
 	}
 
 	unsigned int m_width, m_height, m_depth, m_arrSize, m_mipLevel;

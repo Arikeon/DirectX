@@ -30,6 +30,14 @@ public:
 	ID3D11Device* GetDevice() { return m_device; }
 
 	//Helpers
+	TD3DSampler CreateSampler(
+		D3D11_TEXTURE_ADDRESS_MODE aU,
+		D3D11_TEXTURE_ADDRESS_MODE aV,
+		D3D11_TEXTURE_ADDRESS_MODE aW,
+		D3D11_COMPARISON_FUNC comparisonFunc,
+		std::string debugname = ""
+	);
+
 	TD3DTexture CreateTexture(
 		unsigned int width,
 		unsigned int height,

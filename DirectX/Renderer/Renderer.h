@@ -8,8 +8,14 @@
 
 #include <Windows.h>
 #include <vector>
-//#include <w>
 
+namespace EStaticSamplerKey
+{
+	enum ID
+	{
+		eDefault = 0,
+	};
+}
 
 class CD3D11Interface;
 struct TMesh;
@@ -36,6 +42,8 @@ public:
 	TD3DBuffer& GetVertexBuffer(BufferID index) { return m_vertexbuffers[index]; }
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
+	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
+	TD3DSampler& GetSampler(EStaticSamplerKey::ID index) { return GetSampler((SamplerID)index); }
 
 	TextureID CreateTexture(
 		unsigned int width,
@@ -44,6 +52,9 @@ public:
 		unsigned int arraySize,
 		unsigned int mipLevels,
 		DXGI_FORMAT format);
+
+	TextureID CreateTexture(struct ID3D11Resource* resource, struct ID3D11ShaderResourceView* srv);
+
 	TD3DTexture& GetTexture(TextureID index) { return m_textures[index]; }
 	void DebugCaptureTexture(TD3DTexture texture, bool isFatal = false);
 
@@ -51,6 +62,7 @@ private:
 	CRenderer();
 	~CRenderer();
 	void Initialize(TWindow window);
+	void CreateStaticSamplers();
 	void CompileShaders();
 	void Restart();
 	void Clear();

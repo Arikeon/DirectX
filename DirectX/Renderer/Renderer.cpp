@@ -33,6 +33,70 @@ TextureID CRenderer::CreateTexture(
 	return TextureID(m_textures.size() - 1);
 }
 
+TextureID CRenderer::CreateTexture(ID3D11Resource* resource, ID3D11ShaderResourceView* srv)
+{
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvdesc;
+	srv->GetDesc(&srvdesc);
+	D3D11_SRV_DIMENSION Dimension = srvdesc.ViewDimension;
+
+	HRESULT r = {};
+
+	TD3DTexture texture = {};
+	texture.m_srv		= srv;
+	texture.m_format	= srvdesc.Format;
+
+	switch (Dimension)
+	{
+	case D3D_SRV_DIMENSION_TEXTURE1D:
+	{
+		// no support for this yet
+		return -1;
+	}
+	break;
+	case D3D_SRV_DIMENSION_TEXTURE2D:
+	{
+		r = resource->QueryInterface(IID_ID3D11Texture2D, (void**)&texture.m_tex2D);
+		checkhr(r);
+		
+		D3D11_TEXTURE2D_DESC txDesc;
+		texture.m_tex2D->GetDesc(&txDesc);
+		
+		texture.m_width		= txDesc.Width;
+		texture.m_height	= txDesc.Height;
+		texture.m_depth		= 1;
+		texture.m_arrSize	= txDesc.ArraySize;
+		texture.m_mipLevel	= txDesc.MipLevels;
+		texture.m_format	= txDesc.Format;
+	}
+		break;
+	case D3D_SRV_DIMENSION_TEXTURE3D:
+	{
+		r = resource->QueryInterface(IID_ID3D11Texture3D, (void**)&texture.m_tex3D);
+		checkhr(r);
+		
+		D3D11_TEXTURE3D_DESC txDesc;
+		texture.m_tex3D->GetDesc(&txDesc);
+		
+		texture.m_width		= txDesc.Width;
+		texture.m_height	= txDesc.Height;
+		texture.m_depth		= txDesc.Depth;
+		texture.m_arrSize	= 1;
+		texture.m_mipLevel	= txDesc.MipLevels;
+		texture.m_format	= txDesc.Format;
+	}
+		break;
+	default:
+		return -1;
+		break;
+	}
+
+	DXRelease(resource);
+
+	m_textures.push_back(texture);
+	return (TextureID)(m_textures.size() - 1);
+}
+
+
 void CRenderer::DebugCaptureTexture(TD3DTexture texture, bool isFatal)
 {
 	//Causes memory leak, only use during Debug
@@ -100,7 +164,26 @@ void CRenderer::Initialize(TWindow window)
 
 	m_D3DInterface->InitializeD3D(window);
 
+	CreateStaticSamplers();
+
+	//sampler override here
+
 	CompileShaders();
+}
+
+void CRenderer::CreateStaticSamplers()
+{
+	//make sure these are the first samplers
+	check(m_samplers.size() == 0);
+
+	//Default
+	m_samplers.push_back(GetD3DInterface()->CreateSampler(
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_COMPARISON_NEVER));
+	
+	check(m_samplers.size() == EStaticSamplerKey::eDefault + 1);
 }
 
 void CRenderer::CompileShaders()

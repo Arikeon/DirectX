@@ -18,8 +18,8 @@ namespace EShaderList
 	enum Type
 	{
 		//Base Pass
-		BasePass = 0,
-		DebugBasePass,
+		eBasePass = 0,
+		eDebugBasePass,
 
 		eCount,
 	};
@@ -210,6 +210,15 @@ struct TShader
 		{
 			context->PSSetShaderResources(0, 1, &srv);
 		}
+	}
+
+	template<EShaderStage::Type stage>
+	void SetSamplerState(ID3D11DeviceContext* context, ID3D11SamplerState* sampler)
+	{
+		check(sampler != nullptr);
+		//check(stage == EShaderStage::ePS);
+
+		context->PSSetSamplers(0, 1, &sampler);
 	}
 
 	void WriteConstants(std::string name, void* data)

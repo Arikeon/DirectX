@@ -496,6 +496,36 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	}
 }
 
+TD3DSampler CD3D11Interface::CreateSampler(
+	D3D11_TEXTURE_ADDRESS_MODE aU,
+	D3D11_TEXTURE_ADDRESS_MODE aV,
+	D3D11_TEXTURE_ADDRESS_MODE aW,
+	D3D11_COMPARISON_FUNC comparisonFunc,
+	std::string debugname
+)
+{
+	D3D11_SAMPLER_DESC desc = {};
+	desc.Filter				= D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	desc.AddressU			= aU;
+	desc.AddressV			= aV;
+	desc.AddressW			= aW;
+	desc.ComparisonFunc		= comparisonFunc;
+	desc.MinLOD				= 0;
+	desc.MaxLOD				= D3D11_FLOAT32_MAX;
+
+	ID3D11SamplerState* d3dsampler = nullptr;
+
+	HRESULT r = {};
+	this->m_device->CreateSamplerState(&desc, &d3dsampler);
+	checkhr(r);
+
+	TD3DSampler sampler = {};
+	sampler.m_name = debugname;
+	sampler.m_samplerstate = d3dsampler;
+
+	return sampler;
+}
+
 TD3DTexture CD3D11Interface::CreateTexture(
 	unsigned int width,
 	unsigned int height,

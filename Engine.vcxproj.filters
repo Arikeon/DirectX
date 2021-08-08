@@ -55,6 +55,9 @@
     <ClCompile Include="DirectX\Engine\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX\Engine\Passes\BasePass.cpp">
+      <Filter>Source Files\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Engine.h">

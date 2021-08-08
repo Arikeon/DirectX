@@ -43,7 +43,7 @@ struct TTransform
 		return r * p * s;
 	}
 
-	float3 m_position;
-	float3 m_rotation;
-	float3 m_scale;
+	float3 m_position = {};
+	float3 m_rotation = {};
+	float3 m_scale = {};
 };

@@ -8,6 +8,11 @@ CCamera::CCamera() :
 {
 }
 
+void CCamera::SetStartingPosition(float3 offset)
+{
+	m_pos = XMVectorSet(offset.x, offset.y, offset.z, 0.f);
+}
+
 void CCamera::Update(float delta)
 {
 	//Camera rotation
@@ -43,7 +48,6 @@ void CCamera::Update(float delta)
 	const vector defaultRight = { 1, 0, 0, 0 };
 	const vector defaultUp = { 0, 1, 0, 0 };
 	const vector defaultForward = { 0, 0, 1, 0 };
-	static vector vposition = {};
 	vector vtarget, camRight, camForward, camUp;
 	matrix mrollpitchyaw, mrotateyaw;
 
@@ -56,11 +60,11 @@ void CCamera::Update(float delta)
 	camForward = XMVector3TransformCoord(defaultForward, mrotateyaw);
 	camUp = XMVector3TransformCoord(defaultUp, mrotateyaw);
 
-	vposition += XMVectorScale(camRight, XPos);
-	vposition += XMVectorScale(camForward, ZPos);
-	vposition += XMVectorScale(camUp, YPos);
+	m_pos += XMVectorScale(camRight, XPos);
+	m_pos += XMVectorScale(camForward, ZPos);
+	m_pos += XMVectorScale(camUp, YPos);
 
-	vtarget = vposition + vtarget;
+	vtarget = m_pos + vtarget;
 
-	XMStoreFloat4x4(&m_cameramatrix, XMMatrixLookAtLH(vposition, vtarget, defaultUp));
+	XMStoreFloat4x4(&m_cameramatrix, XMMatrixLookAtLH(m_pos, vtarget, defaultUp));
 }
