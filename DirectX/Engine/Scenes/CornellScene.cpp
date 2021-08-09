@@ -31,13 +31,13 @@ void CCornellScene::UpdateScene(CRenderer* renderer)
 
 void CCornellScene::LoadScene(CRenderer* renderer)
 {
-	m_camera.SetStartingPosition(0, 0, -25);
+	m_camera.SetStartingPosition(0, 1, -2);
 
 	//Initialize debug lines
 	m_debuglines.Initialize(renderer);
 
-	IO::TFileIO::LoadAsset(renderer, m_objects, "windmill");
-	//IO::TFileIO::LoadAsset(renderer, m_objects, "CornellBox-Sphere");
+	//IO::TFileIO::LoadAsset(renderer, m_objects, "windmill");
+	IO::TFileIO::LoadAsset(renderer, m_objects, "CornellBox-Sphere");
 }
 
 void CCornellScene::UnloadScene()

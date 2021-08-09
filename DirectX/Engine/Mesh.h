@@ -48,6 +48,7 @@ private:
 		vbuffer.Initialize(device, pvdata);
 
 		m_vertexkey = (int)renderer->m_vertexbuffers.size();
+		vbuffer.bIsValid = true;
 		renderer->m_vertexbuffers.push_back(vbuffer);
 
 		if (indicount)
@@ -63,6 +64,7 @@ private:
 			ibuffer.Initialize(device, pidata);
 
 			m_indexkey = (int)renderer->m_indexbuffers.size();
+			ibuffer.bIsValid = true;
 			renderer->m_indexbuffers.push_back(ibuffer);
 		}
 		if (m_vertexkey != -1)

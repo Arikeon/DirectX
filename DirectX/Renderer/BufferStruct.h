@@ -51,10 +51,14 @@ struct TD3DSampler
 	void Release()
 	{
 		DXRelease(m_samplerstate);
+		bIsValid = false;
 	}
+	
+	bool IsValid() { return bIsValid; }
 
 	ID3D11SamplerState* m_samplerstate;
 	std::string m_name;
+	bool bIsValid = false;
 };
 
 struct TD3DTexture
@@ -69,7 +73,22 @@ struct TD3DTexture
 
 		DXRelease(m_tex2D);
 		DXRelease(m_tex3D);
+		bIsValid = false;
 	}
+
+	//only do when calling CreateTexture()
+	void SetDesc(D3D11_TEXTURE2D_DESC desc)
+	{
+		m_width = desc.Width;
+		m_height = desc.Height;
+		m_depth = 1;
+		m_arrSize = desc.ArraySize;
+		m_mipLevel = desc.ArraySize;
+		m_format = desc.Format;
+	}
+
+	bool IsCubed() { return m_depth > 1; }
+	bool IsValid() { return bIsValid; }
 
 	unsigned int m_width, m_height, m_depth, m_arrSize, m_mipLevel;
 	DXGI_FORMAT m_format;
@@ -87,6 +106,8 @@ struct TD3DTexture
 		ID3D11Texture2D* m_tex2D;
 		ID3D11Texture3D* m_tex3D;
 	};
+
+	bool bIsValid = false;
 };
 
 struct TD3DDepthTarget
@@ -94,11 +115,14 @@ struct TD3DDepthTarget
 	void Release()
 	{
 		DXRelease(m_dsv);
-		D3DRelease(m_texture);
+		bIsValid = false;
 	}
 
-	TD3DTexture m_texture;
+	bool IsValid() { return bIsValid; }
+
+	TextureID m_textureid = -1;
 	ID3D11DepthStencilView* m_dsv = nullptr;
+	bool bIsValid = false;
 };
 
 struct TD3DRenderTarget
@@ -106,11 +130,14 @@ struct TD3DRenderTarget
 	void Release()
 	{
 		DXRelease(m_rtv);
-		D3DRelease(m_texture);
+		bIsValid = false;
 	}
 
-	TD3DTexture m_texture;
+	bool IsValid() { return bIsValid; }
+
+	TextureID m_textureid = -1;
 	ID3D11RenderTargetView* m_rtv = nullptr;
+	bool bIsValid = false;
 };
 
 struct TBufferInfo
@@ -159,11 +186,14 @@ struct TD3DBuffer
 			m_pCPUdata = nullptr;
 		}
 		DXRelease(m_pGPUdata);
+		bIsValid = false;
 	}
+
+	bool IsValid() { return bIsValid; }
 
 	bool m_bdirty;
 	void* m_pCPUdata = nullptr;
 	ID3D11Buffer* m_pGPUdata = nullptr;
 	TBufferInfo m_info;
-
+	bool bIsValid = false;
 };

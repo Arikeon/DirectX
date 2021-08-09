@@ -11,5 +11,5 @@ using TextureID = int;
 using SamplerID = int;
 using BufferID = int;
 using ViewportID = int;
-using RenderTargetID = std::array<int, RTV_MAX>;
+using RenderTargetID = int;
 

@@ -6,6 +6,13 @@
 
 namespace Algorithm
 {
+	template <typename elementType, typename arrType>
+	static NOINLINE size_t ArrPush_Back(arrType& destination, elementType& element)
+	{
+		destination.push_back(element);
+		return destination.size() - 1;
+	}
+
 	//Used in c++ library for iterative deletes
 	template<typename Type>
 	static INLINE bool DeleteElements(Type* _Element) { DeletePtr(_Element); return true; }

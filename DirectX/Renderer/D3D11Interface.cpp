@@ -111,17 +111,26 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 	//Initialize backbuffer ref
 	{
 		TD3DRenderTarget MainRTV;
-		m_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&MainRTV.m_texture.m_tex2D);
-		r = m_device->CreateRenderTargetView(MainRTV.m_texture.m_tex2D, nullptr, &MainRTV.m_rtv);
+		TD3DTexture rtvTexture = {};
+
+		m_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&rtvTexture.m_tex2D);
+		r = m_device->CreateRenderTargetView(rtvTexture.m_tex2D, nullptr, &MainRTV.m_rtv);
 		checkhr(r);
 
-		check(MainRTV.m_rtv && MainRTV.m_texture.m_tex2D);
-		prenderer->m_rtvs.push_back(MainRTV);
+		check(MainRTV.m_rtv && rtvTexture.m_tex2D);
+
+		rtvTexture.bIsValid = true;
+		MainRTV.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, rtvTexture);
+
+		MainRTV.bIsValid = true;
+		check(Algorithm::ArrPush_Back(prenderer->m_rtvs, MainRTV) == ERenderTargetKey::eBackBufeer);
 	}
 
 	//Initialize zbuffer ref
 	{
 		TD3DDepthTarget MainDepth;
+		TD3DTexture dsvTexture = {};
+
 		//Depth Buffer
 		D3D11_TEXTURE2D_DESC DepthTextureDesc = {};
 		DepthTextureDesc.Height = window.m_height;
@@ -135,14 +144,14 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		DepthTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		DepthTextureDesc.CPUAccessFlags = false;
 
-		r = m_device->CreateTexture2D(&DepthTextureDesc, 0, &MainDepth.m_texture.m_tex2D);
+		r = m_device->CreateTexture2D(&DepthTextureDesc, 0, &dsvTexture.m_tex2D);
 		checkhr(r);
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 		DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 
-		r = m_device->CreateDepthStencilView(MainDepth.m_texture.m_tex2D, &DepthStencilViewDesc, &MainDepth.m_dsv);
+		r = m_device->CreateDepthStencilView(dsvTexture.m_tex2D, &DepthStencilViewDesc, &MainDepth.m_dsv);
 		checkhr(r);
 
 		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
@@ -150,8 +159,13 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-		check(MainDepth.m_dsv&& MainDepth.m_texture.m_tex2D);
-		prenderer->m_depthtargets.push_back(MainDepth);
+		check(MainDepth.m_dsv && dsvTexture.m_tex2D);
+
+		dsvTexture.bIsValid = true;
+		MainDepth.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, dsvTexture);
+
+		MainDepth.bIsValid = true;
+		check(Algorithm::ArrPush_Back(prenderer->m_depthtargets, MainDepth) == 0);
 	}
 
 	//Initialize rasterizerstate
@@ -523,6 +537,7 @@ TD3DSampler CD3D11Interface::CreateSampler(
 	sampler.m_name = debugname;
 	sampler.m_samplerstate = d3dsampler;
 
+	sampler.bIsValid = true;
 	return sampler;
 }
 
@@ -538,12 +553,6 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	HRESULT r = {};
 
 	TD3DTexture texture = {};
-	texture.m_width = width;
-	texture.m_height = height;
-	texture.m_depth = depth;
-	texture.m_arrSize = arraySize;
-	texture.m_mipLevel = mipLevels;
-	texture.m_format = format;
 
 	D3D11_TEXTURE2D_DESC TextureDesc = {};
 	TextureDesc.Height = width;
@@ -556,6 +565,8 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	TextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 	TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	TextureDesc.CPUAccessFlags = false;
+
+	texture.SetDesc(TextureDesc);
 	
 	r = m_device->CreateTexture2D(&TextureDesc, 0, &texture.m_tex2D);
 	checkhr(r);
@@ -582,6 +593,7 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	}
 	checkhr(r);
 
+	texture.bIsValid = true;
 	return texture;
 }
 

@@ -92,6 +92,7 @@ TextureID CRenderer::CreateTexture(ID3D11Resource* resource, ID3D11ShaderResourc
 
 	DXRelease(resource);
 
+	texture.bIsValid = true;
 	m_textures.push_back(texture);
 	return (TextureID)(m_textures.size() - 1);
 }
@@ -164,11 +165,164 @@ void CRenderer::Initialize(TWindow window)
 
 	m_D3DInterface->InitializeD3D(window);
 
+	//Start creating global resources ex: gbuffers, samplers
+	CreateGBufferRenderTargets(window);
 	CreateStaticSamplers();
 
 	//sampler override here
 
 	CompileShaders();
+}
+
+void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
+{
+	//Can be used to resize render targets
+
+	TextureID arrTextures[ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor];
+	int32 arrTIndex = 0;
+
+	if (bResize) // needs testing
+	{
+		for (RenderTargetID i = ERenderTargetKey::eBaseColor; i < ERenderTargetKey::eGBufferUpperLimit; ++i)
+		{
+			TD3DRenderTarget& rtv = GetRenderTarget(i);
+			check(rtv.IsValid());
+
+			arrTextures[arrTIndex++] = rtv.m_textureid;
+			D3DRelease(rtv);
+		}
+		//TODO this needs more
+	}
+	else
+	{
+		//Make sure back buffer rt is already initialized
+		check(m_rtvs.size() == 1);
+		m_rtvs.resize(m_rtvs.size() + (ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor));
+	}
+
+	ID3D11Device* device = m_D3DInterface->GetDevice();
+	HRESULT r = {};
+
+	//________________BaseColor________________
+	{
+		TD3DTexture tex = {};
+		tex.m_name = "GBuffer_BaseColorRenderTarget";
+
+		D3D11_TEXTURE2D_DESC desc	= {};
+		desc.Width					= window.m_width;
+		desc.Height					= window.m_height;
+		desc.ArraySize				= 1;
+		desc.MipLevels				= 1;
+		desc.Format					= DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.Usage					= D3D11_USAGE_DEFAULT;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.SampleDesc.Count		= 1;
+
+		tex.SetDesc(desc);
+
+		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+		
+		TD3DRenderTarget rtv = {};
+		device->CreateRenderTargetView(tex.m_tex2D, nullptr, &rtv.m_rtv);
+		checkhr(r);
+
+		rtv.bIsValid = true;
+		tex.bIsValid = true;
+
+		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
+		m_rtvs[ERenderTargetKey::eBaseColor] = rtv;
+	}
+	//________________WorldNormal________________
+	{
+		TD3DTexture tex = {};
+		tex.m_name = "GBuffer_WorldNormalRenderTarget";
+
+		D3D11_TEXTURE2D_DESC desc	= {};
+		desc.Width					= window.m_width;
+		desc.Height					= window.m_height;
+		desc.ArraySize				= 1;
+		desc.MipLevels				= 1;
+		desc.Format					= DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.Usage					= D3D11_USAGE_DEFAULT;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.SampleDesc.Count		= 1;
+
+		tex.SetDesc(desc);
+
+		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		TD3DRenderTarget rtv = {};
+		device->CreateRenderTargetView(tex.m_tex2D, nullptr, &rtv.m_rtv);
+		checkhr(r);
+
+		rtv.bIsValid = true;
+		tex.bIsValid = true;
+
+		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
+		m_rtvs[ERenderTargetKey::eWorldNormal] = rtv;
+	}
+	//________________Roughness________________
+	{
+		TD3DTexture tex = {};
+		tex.m_name = "GBuffer_RoughnessRenderTarget";
+
+		D3D11_TEXTURE2D_DESC desc	= {};
+		desc.Width					= window.m_width;
+		desc.Height					= window.m_height;
+		desc.ArraySize				= 1;
+		desc.MipLevels				= 1;
+		desc.Format					= DXGI_FORMAT_R32_FLOAT;
+		desc.Usage					= D3D11_USAGE_DEFAULT;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.SampleDesc.Count		= 1;
+
+		tex.SetDesc(desc);
+
+		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		TD3DRenderTarget rtv = {};
+		device->CreateRenderTargetView(tex.m_tex2D, nullptr, &rtv.m_rtv);
+		checkhr(r);
+
+		rtv.bIsValid = true;
+		tex.bIsValid = true;
+
+		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
+		m_rtvs[ERenderTargetKey::eRoughness] = rtv;
+	}
+	//________________Metallic________________
+	{
+		TD3DTexture tex = {};
+		tex.m_name = "GBuffer_MetallicRenderTarget";
+
+		D3D11_TEXTURE2D_DESC desc	= {};
+		desc.Width					= window.m_width;
+		desc.Height					= window.m_height;
+		desc.ArraySize				= 1;
+		desc.MipLevels				= 1;
+		desc.Format					= DXGI_FORMAT_R32_FLOAT;
+		desc.Usage					= D3D11_USAGE_DEFAULT;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.SampleDesc.Count		= 1;
+
+		tex.SetDesc(desc);
+
+		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		TD3DRenderTarget rtv = {};
+		device->CreateRenderTargetView(tex.m_tex2D, nullptr, &rtv.m_rtv);
+		checkhr(r);
+
+		rtv.bIsValid = true;
+		tex.bIsValid = true;
+
+		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
+		m_rtvs[ERenderTargetKey::eMetallic] = rtv;
+	}
 }
 
 void CRenderer::CreateStaticSamplers()

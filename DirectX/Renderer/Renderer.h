@@ -17,6 +17,20 @@ namespace EStaticSamplerKey
 	};
 }
 
+namespace ERenderTargetKey
+{
+	enum ID
+	{
+		eBackBufeer		= 0,
+		eBaseColor		= 1,
+		eWorldNormal	= 2,
+		eRoughness		= 3,
+		eMetallic		= 4,
+		eGBufferUpperLimit = eMetallic + 1,
+		eMax
+	};
+}
+
 class CD3D11Interface;
 struct TMesh;
 namespace IO
@@ -43,7 +57,6 @@ public:
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
-	TD3DSampler& GetSampler(EStaticSamplerKey::ID index) { return GetSampler((SamplerID)index); }
 
 	TextureID CreateTexture(
 		unsigned int width,
@@ -62,6 +75,7 @@ private:
 	CRenderer();
 	~CRenderer();
 	void Initialize(TWindow window);
+	void CreateGBufferRenderTargets(TWindow window, bool bResize = false);
 	void CreateStaticSamplers();
 	void CompileShaders();
 	void Restart();

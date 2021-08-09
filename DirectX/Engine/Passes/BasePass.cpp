@@ -59,7 +59,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 				TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
 				shader.SetShaderResource<EShaderStage::ePS>(context, Diffuse.m_srv);
 
-				TD3DSampler sampler = {};
+				TD3DSampler sampler;
 
 				if (Material.bHasSamplerOverride())
 				{
@@ -67,7 +67,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 				}
 				else
 				{
-					sampler = renderer->GetSampler(EStaticSamplerKey::eDefault);
+					sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
 				}
 
 				shader.SetSamplerState<EShaderStage::ePS>(context, sampler.m_samplerstate);
