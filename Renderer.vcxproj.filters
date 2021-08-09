@@ -49,6 +49,9 @@
     <ClInclude Include="DirectX\Renderer\Shaders\DebugLinesStructs.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="DirectX\Renderer\Shaders\ScreenQuadStructs.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DirectX\Renderer\Shaders\BasePassPS.hlsl">
@@ -61,6 +64,9 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DirectX\Renderer\Shaders\DebugLinesPS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\ScreenQuadVS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

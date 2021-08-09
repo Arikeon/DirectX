@@ -37,7 +37,10 @@ void CCornellScene::LoadScene(CRenderer* renderer)
 	m_debuglines.Initialize(renderer);
 
 	//IO::TFileIO::LoadAsset(renderer, m_objects, "windmill");
-	IO::TFileIO::LoadAsset(renderer, m_objects, "CornellBox-Sphere");
+	//IO::TFileIO::LoadAsset(renderer, m_objects, "CornellBox-Sphere");
+	IO::TFileIO::LoadAsset(renderer, m_objects, "CornellAssets", "CornellBox-Empty-CO.obj");
+	IO::TFileIO::LoadAsset(renderer, m_objects, "CornellAssets", "CornellBox-Glossy.obj");
+	//m_objects[]
 }
 
 void CCornellScene::UnloadScene()

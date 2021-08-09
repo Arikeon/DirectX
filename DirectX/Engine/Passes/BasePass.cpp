@@ -17,8 +17,18 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 {
 	ID3D11DeviceContext * context = renderer->GetD3DInterface()->GetContext();
 
-	//main rtv and scene depth always 0
-	ID3D11RenderTargetView* rtv = renderer->GetRenderTarget(0).m_rtv;
+	const int32 numRTVs = ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor;
+
+	ID3D11RenderTargetView* rtvs[numRTVs];
+	int32 tempIndex = 0;
+	for (RenderTargetID i = ERenderTargetKey::eBaseColor; i < ERenderTargetKey::eGBufferUpperLimit; ++i)
+	{
+		TD3DRenderTarget& rtv = renderer->GetRenderTarget((int32)i);
+		check(rtv.IsValid());
+
+		rtvs[tempIndex++] = rtv.m_rtv;
+	}
+
 	ID3D11DepthStencilView* dsv = renderer->GetDepthTarget(0).m_dsv;
 
 	for (int i = 0; i < (int)model.m_meshes.size(); ++i)
@@ -54,34 +64,46 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		{
 			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
 
-			if (Material.m_textureDiffuse != -1)
+			bool bHasDiffuseMap = Material.m_textureDiffuse != -1;
+			bool bHasNormalMap = Material.m_textureDiffuse != -1;
+
+			TD3DSampler sampler;
+
+			if (Material.bHasSamplerOverride())
+			{
+				sampler = renderer->GetSampler(Material.m_samplerOverride);
+			}
+			else
+			{
+				sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
+			}
+
+			shader.SetSamplerState<EShaderStage::ePS>(context, sampler.m_samplerstate);
+
+			if (bHasDiffuseMap)
 			{
 				TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
-				shader.SetShaderResource<EShaderStage::ePS>(context, Diffuse.m_srv);
+				shader.SetShaderResource<EShaderStage::ePS, 0>(context, Diffuse.m_srv);
+			}
 
-				TD3DSampler sampler;
-
-				if (Material.bHasSamplerOverride())
-				{
-					sampler = renderer->GetSampler(Material.m_samplerOverride);
-				}
-				else
-				{
-					sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
-				}
-
-				shader.SetSamplerState<EShaderStage::ePS>(context, sampler.m_samplerstate);
+			if (bHasNormalMap)
+			{
+				TD3DTexture Normal = renderer->GetTexture(Material.m_textureNormal);
+				shader.SetShaderResource<EShaderStage::ePS, 1>(context, Normal.m_srv);
 			}
 
 			BasePassMaterial ConstantMaterial = {};
 			ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
-			ConstantMaterial.DiffuseColor = float4(1.f, 1.f, 1.f, 1.f);
+			ConstantMaterial.Roughness = Material.m_roughness;
+			ConstantMaterial.Metallic = Material.m_metallic;
+			ConstantMaterial.bHasDiffuse = bHasDiffuseMap;
+			ConstantMaterial.bHasNormal = bHasNormalMap;
 			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor);
 		}
 
 		shader.BindData(context);
 
-		context->OMSetRenderTargets(1, &rtv, dsv);
+		context->OMSetRenderTargets(numRTVs, rtvs, dsv);
 		context->RSSetViewports(1, &d3dview);
 		context->IASetInputLayout(shader.m_inputlayout);
 		context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));

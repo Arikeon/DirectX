@@ -167,6 +167,7 @@ void CRenderer::Initialize(TWindow window)
 
 	//Start creating global resources ex: gbuffers, samplers
 	CreateGBufferRenderTargets(window);
+	CreateStaticTextures();
 	CreateStaticSamplers();
 
 	//sampler override here
@@ -325,6 +326,11 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 	}
 }
 
+void CRenderer::CreateStaticTextures()
+{
+	//TODO add default textures
+}
+
 void CRenderer::CreateStaticSamplers()
 {
 	//make sure these are the first samplers
@@ -345,8 +351,8 @@ void CRenderer::CompileShaders()
 	const int NumGlobalShaders = EShaderList::eCount;
 	m_shaders.resize(NumGlobalShaders);
 	m_shaders[0].Initialize<true, false, false, false, true, false>("BasePass");
-	//TODO permutate debugLines
 	m_shaders[1].Initialize<true, false, false, false, true, false>("DebugLines");
+	m_shaders[2].Initialize<true, false, false, false, false, false>("ScreenQuad");
 
 	for (int i = 0; i < NumGlobalShaders; ++i)
 	{

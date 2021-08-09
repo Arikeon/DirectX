@@ -18,7 +18,7 @@ namespace IO
 	public:
 		static void DebugOutTexture(CRenderer* renderer, ID3D11Texture2D* texture, std::wstring name);
 
-		static TObject& LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir);
+		static TObject& LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, std::string assetName);
 	private:
 		static TObject& LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene);
 		//recursion

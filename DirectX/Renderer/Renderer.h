@@ -21,14 +21,19 @@ namespace ERenderTargetKey
 {
 	enum ID
 	{
-		eBackBufeer		= 0,
-		eBaseColor		= 1,
+		eBackBufeer		= 0,		eBaseColor		= 1,
 		eWorldNormal	= 2,
 		eRoughness		= 3,
 		eMetallic		= 4,
 		eGBufferUpperLimit = eMetallic + 1,
 		eMax
 	};
+
+
+	static int32 GetNumGBufferRTV()
+	{
+		return int32(eGBufferUpperLimit - eBaseColor);
+	}
 }
 
 class CD3D11Interface;
@@ -71,11 +76,15 @@ public:
 	TD3DTexture& GetTexture(TextureID index) { return m_textures[index]; }
 	void DebugCaptureTexture(TD3DTexture texture, bool isFatal = false);
 
+	TextureID DefaultTexture2D = -1;
+	TextureID DefaultTexture3D = -1;
+
 private:
 	CRenderer();
 	~CRenderer();
 	void Initialize(TWindow window);
 	void CreateGBufferRenderTargets(TWindow window, bool bResize = false);
+	void CreateStaticTextures();
 	void CreateStaticSamplers();
 	void CompileShaders();
 	void Restart();

@@ -20,7 +20,8 @@ namespace EShaderList
 		//Base Pass
 		eBasePass = 0,
 		eDebugBasePass,
-
+		eScreenQuad,
+		//eDeferredLighting
 		eCount,
 	};
 }
@@ -197,7 +198,7 @@ struct TShader
 		}
 	}
 
-	template<EShaderStage::Type stage>
+	template<EShaderStage::Type stage, int32 StartSlot>
 	void SetShaderResource(ID3D11DeviceContext* context, ID3D11ShaderResourceView* srv)
 	{
 		check(srv != nullptr);
@@ -208,7 +209,7 @@ struct TShader
 		}
 		if (stage == EShaderStage::ePS)
 		{
-			context->PSSetShaderResources(0, 1, &srv);
+			context->PSSetShaderResources(StartSlot, 1, &srv);
 		}
 	}
 

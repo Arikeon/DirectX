@@ -22,15 +22,17 @@ struct TMaterial
 
 	float3 m_diffuseColor;
 	float3 m_specularColor;
+	float m_metallic;
+	float m_roughness;
 	float m_opacity;
-	float m_reflectivity;
 
 	static int GetConstantSize()
 	{
 		return
 			sizeof(m_diffuseColor) +
 			sizeof(m_specularColor) +
-			sizeof(m_reflectivity) +
+			sizeof(m_metallic) +
+			sizeof(m_roughness) +
 			sizeof(m_opacity);
 	}
 
@@ -41,9 +43,11 @@ struct TMaterial
 
 	SamplerID m_samplerOverride = -1;
 	TextureID m_textureDiffuse = -1;
-	//TextureID m_textureNormal = -1;
+	TextureID m_textureNormal = -1;
 	//TextureID m_textureMask = -1;
 	//TextureID m_textureSpecular = -1;
+
+	std::string m_name;
 };
 
 struct TD3DSampler

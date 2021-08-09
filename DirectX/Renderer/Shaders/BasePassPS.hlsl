@@ -3,21 +3,40 @@
 
 START_CBUFFER(BasePassMaterial, b0)
 float4 DiffuseColor;
+float Roughness;
+float Metallic;
+int bHasDiffuse; //hacky //TODO
+int bHasNormal; //hacky //TODO
 END_CBUFFER(BasePassMaterial);
 
 #if SHADER
 
-Texture2D t_Diffuse : register(t0);
-SamplerState Sampler : register(s0);
-
-float4 MainPS(BasePassInPS input) : SV_TARGET
+struct GBufferOut
 {
-	float4 OutColor = 0;
-	float4 diffuse = DiffuseColor;
-	diffuse = t_Diffuse.Sample(Sampler, input.uv);
+	float4 color		SEMANTIC(SV_TARGET0)
+	float4 worldnormal	SEMANTIC(SV_TARGET1)
+	float roughness		SEMANTIC(SV_TARGET2)
+	float metallic		SEMANTIC(SV_TARGET3)
+};
 
-	OutColor = diffuse;
-	//return float4(input.uv, 0, 0);
-	return OutColor;
+SamplerState Sampler;
+Texture2D t_Diffuse;
+Texture2D t_Normal;
+
+GBufferOut MainPS(BasePassInPS input)
+{
+	GBufferOut output;
+	if (bHasDiffuse)
+		output.color		= t_Diffuse.Sample(Sampler, input.uv);
+	else
+		output.color		= DiffuseColor;
+
+	if (bHasNormal)
+		output.worldnormal	= t_Normal.Sample(Sampler, input.uv);
+	else
+		output.worldnormal	= float4(input.normal, 0.f);
+	output.roughness	= Roughness;
+	output.metallic		= Metallic;
+	return output;
 }
 #endif

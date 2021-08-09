@@ -28,6 +28,7 @@
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\mesh.h>
+#include <assimp/pbrmaterial.h>
 
 //DirectXTex
 #include <DirectXTex.h>
@@ -51,7 +52,7 @@ namespace IO
 
 	}
 
-	TObject& TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir)
+	TObject& TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, std::string assetName)
 	{
 		const unsigned assimpFlags =
 			aiProcess_CalcTangentSpace |
@@ -64,7 +65,7 @@ namespace IO
 			aiProcess_FlipWindingOrder;
 
 		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
-		std::string FullDir = Algorithm::wstring_to_string(wAssetDir) + assetDir + "\\" + assetDir + ".obj";
+		std::string FullDir = Algorithm::wstring_to_string(wAssetDir) + assetDir + "\\" + assetName;
 
 		Importer importer;
 		const aiScene* scene = importer.ReadFile(FullDir, assimpFlags);
@@ -75,7 +76,7 @@ namespace IO
 			check(0);
 		}
 
-		return LoadRootNode(renderer, objectArray, assetDir, scene);
+		return LoadRootNode(renderer, objectArray, FullDir, scene);
 	}
 
 
@@ -247,10 +248,16 @@ namespace IO
 			TMaterial::GetConstantSize() ==
 			sizeof(aiColor3D) +	//Diffuse
 			sizeof(aiColor3D) +	//Specular
-			sizeof(float) +		//Opacity
-			sizeof(float)		//Reflectivity
+			sizeof(float) +		//Roughness
+			sizeof(float) +		//Metallic
+			sizeof(float)		//Opacity
 		);
 #endif
+		aiString name;
+		if (currAIMaterial->Get(AI_MATKEY_NAME, name) == aiReturn_SUCCESS)
+		{
+			currMaterial.m_name = std::string(name.C_Str());
+		}
 
 		aiColor3D color;
 		if (currAIMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS)
@@ -269,9 +276,33 @@ namespace IO
 			memcpy(&currMaterial.m_opacity, &scalar, sizeof(float));
 		}
 
-		if (currAIMaterial->Get(AI_MATKEY_REFLECTIVITY, scalar) == aiReturn_SUCCESS)
+#if 1
+		if (currAIMaterial->Get(AI_MATKEY_SHININESS, scalar) == aiReturn_SUCCESS)
 		{
-			memcpy(&currMaterial.m_reflectivity, &scalar, sizeof(float));
+			//rough converssion
+			// https://graphicscompendium.com/gamedev/15-pbr
+
+			scalar = sqrtf(2.0f / (2.0f + scalar));
+			memcpy(&currMaterial.m_roughness, &scalar, sizeof(float));
+		}
+#else //test this
+		if (currAIMaterial->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, scalar) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_roughness, &scalar, sizeof(float));
+		}
+#endif
+
+		if (currAIMaterial->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, scalar) == aiReturn_SUCCESS)
+		{
+			memcpy(&currMaterial.m_metallic, &scalar, sizeof(float));
+		}
+		else
+		{
+			//no metallic param in non pbr mat. hard code some metall-ness for sake of rendering
+			if (assetDir.find("Cornell") != std::string::npos && currMaterial.m_name.find("sphere") != std::string::npos)
+			{
+				currMaterial.m_metallic = 1.0f;
+			}
 		}
 
 		aiString path;
@@ -279,12 +310,12 @@ namespace IO
 		{
 			currMaterial.m_textureDiffuse = LoadTextureFromFile(renderer, nullptr, assetDir, path);
 		}
-
-#if 0
+		
 		if (currAIMaterial->GetTexture(aiTextureType_NORMALS, 0, &path) == aiReturn_SUCCESS)
 		{
-			currMaterial.m_textureNormal = LoadTextureFromFile(renderer, assetDir, path);
+			currMaterial.m_textureNormal = LoadTextureFromFile(renderer, nullptr, assetDir, path);
 		}
+#if 0
 
 		if (currAIMaterial->GetTexture(aiTextureType_OPACITY, 0, &path) == aiReturn_SUCCESS)
 		{
