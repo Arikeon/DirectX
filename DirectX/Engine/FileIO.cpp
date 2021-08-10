@@ -112,7 +112,7 @@ namespace IO
 
 		objectArray.push_back(object);
 
-		return object;
+		return objectArray[objectArray.size() - 1];
 	}
 
 	void TFileIO::LoadNode(

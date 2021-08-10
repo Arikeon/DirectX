@@ -2,18 +2,59 @@
 #include "Renderer.h"
 #include <array>
 #include "BasePass.h"
+#include "ScreenQuadStructs.h"
+
+//Passes
+#include "Pass.h"
+#include "BasePass.h"
+#include "DeferredLightingPass.h"
+
 
 CScene::~CScene()
 {
-	if (m_basepass)
-		delete m_basepass;
 }
 
-void CScene::InitializePasses(CRenderer* renderer)
+void CScene::Initialize(CRenderer* renderer)
 {
-	//TODO shouldnt be a pointer
-	if (!m_basepass)
-		m_basepass = new TBasePass;
+	InitializeScreenQuad(renderer);
+}
+
+void CScene::InitializeScreenQuad(CRenderer* renderer)
+{
+	const float size = 1.0f;
+
+	std::vector<uint32> indicies;
+	indicies.resize(6);
+	indicies[0] = 0;
+	indicies[1] = 1;
+	indicies[2] = 2;
+
+	indicies[3] = 0;
+	indicies[4] = 2;
+	indicies[5] = 3;
+
+
+	/**
+	1	2
+	0	3
+	**/
+
+	std::vector<ScreenQuadInVS> verticies;
+	verticies.resize(4);
+	verticies[0] = ScreenQuadInVS(float3(-size, -size, 0.f), float2(0.f, 1.0f));
+	verticies[1] = ScreenQuadInVS(float3(-size, size, 0.f), float2(0.f, 0.0f));
+	verticies[2] = ScreenQuadInVS(float3(size, size, 0.f), float2(1.f, 0.0f));
+	verticies[3] = ScreenQuadInVS(float3(size, -size, 0.f), float2(1.f, 1.0f));
+
+	TModel ScreenQuadModel = {};
+	ScreenQuadModel.m_name = "ScreenQuadModel";
+
+	TMesh newMesh = {};
+	newMesh.CreateMesh<ScreenQuadInVS>(renderer, verticies, indicies);
+	check(newMesh.m_vertexkey != -1 && newMesh.m_indexkey != -1);
+
+	ScreenQuadModel.m_meshes.push_back(newMesh);
+	m_ScreenQuad.m_models.push_back(ScreenQuadModel);
 }
 
 void CScene::DrawTransform(TModel& model)
@@ -64,9 +105,20 @@ void CScene::DrawModelTransforms()
 
 void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 {
-	renderer->ResetPipeline();
+	static TBasePass* basePass = nullptr;
+	static TDeferredLightingPass* deferredLightingPass = nullptr;
+
+	bool bSingletonInitialized = false;
+	if (!bSingletonInitialized)
+	{
+		bSingletonInitialized = true;
+		basePass = new TBasePass;
+		deferredLightingPass = new TDeferredLightingPass;
+	}
+
 	m_camera.Update(delta);
 	DrawModelTransforms();
 
-	m_basepass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
+	basePass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
+	deferredLightingPass->Render(renderer, m_ScreenQuad, delta);
 }

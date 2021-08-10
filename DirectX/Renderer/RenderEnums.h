@@ -79,3 +79,15 @@ namespace EFormat
 		eCount
 	};
 }
+
+namespace EGBufferKeys
+{
+	enum Key
+	{
+		eBaseColor = 0,
+		eWorldNormal,
+		eRoughness,
+		eMetallic,
+		eMax
+	};
+}

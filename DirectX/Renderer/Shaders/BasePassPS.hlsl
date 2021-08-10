@@ -15,8 +15,8 @@ struct GBufferOut
 {
 	float4 color		SEMANTIC(SV_TARGET0)
 	float4 worldnormal	SEMANTIC(SV_TARGET1)
-	float roughness		SEMANTIC(SV_TARGET2)
-	float metallic		SEMANTIC(SV_TARGET3)
+	float4 roughness	SEMANTIC(SV_TARGET2)
+	float4 metallic		SEMANTIC(SV_TARGET3)
 };
 
 SamplerState Sampler;

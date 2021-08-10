@@ -5,6 +5,9 @@
 #include "Mesh.h"
 #include "Scene.h"
 #include "Renderer.h"
+#include "Camera.h"
+#include "Window.h"
+#include "D3D11Interface.h"
 
 #include <vector>
 

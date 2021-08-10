@@ -45,7 +45,7 @@ void CEngine::Initialize()
 		break;
 	}
 
-	m_scene->InitializePasses(m_renderer);
+	m_scene->Initialize(m_renderer);
 	m_scene->LoadScene(m_renderer);
 }
 

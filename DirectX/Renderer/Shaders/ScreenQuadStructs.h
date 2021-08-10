@@ -6,8 +6,12 @@
 
 struct ScreenQuadInVS
 {
+#if CPP
+	ScreenQuadInVS() = default;
+	ScreenQuadInVS(float3 pos, float2 uv) : position(pos), uv(uv) {}
+#endif
 	float3 position SEMANTIC(POSITION)
-	float2 texcoord SEMANTIC(TEXCOORD0)
+	float2 uv SEMANTIC(TEXCOORD0)
 };
 
 struct ScreenQuadInPS

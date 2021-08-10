@@ -22,6 +22,7 @@ public:
 	CD3D11Interface();
 	~CD3D11Interface();
 	void ClearBackBuffer();
+	void ClearGBuffer(TGBuffer& gbuffer);
 	void Present();
 	void InitializeD3D(TWindow window);
 	void CompileShader(TShader& shader);
@@ -47,7 +48,8 @@ public:
 		DXGI_FORMAT format);
 
 	//Render Commands
-	void UnbindTargets();
+	void UnbindRTV();
+	void UnbindSRV(TShader shader);
 	void ResizeViewPorts(TWindow window);
 
 	float m_nearplane = 0.00001f, m_farplane = 1.0f;

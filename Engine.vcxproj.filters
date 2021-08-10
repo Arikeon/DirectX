@@ -58,6 +58,12 @@
     <ClCompile Include="DirectX\Engine\Passes\BasePass.cpp">
       <Filter>Source Files\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX\Engine\Passes\DeferredLightingPass.cpp">
+      <Filter>Source Files\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectX\Engine\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Engine.h">
@@ -106,6 +112,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Object.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Passes\DeferredLightingPass.h">
+      <Filter>Source Files\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Light.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

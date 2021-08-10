@@ -1,16 +1,8 @@
 #pragma once
 #include "Pass.h"
-#include "Camera.h"
-#include "Window.h"
-#include "D3D11Interface.h"
 
 struct TBasePass : public TPass
 {
-	TBasePass() {}
-	~TBasePass() {}
-
-	void Setup(CRenderer* renderer, float delta);
-	
 	void DrawMeshes(CRenderer* renderer,
 		TShader shader,
 		CCamera camera,

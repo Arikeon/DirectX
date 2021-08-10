@@ -4,6 +4,8 @@
 #include <string>
 #include <d3d11shader.h>
 #include <d3d11.h>
+#include <iostream>
+#include <algorithm>
 
 #define EShaderListToString(name) #name
 
@@ -21,7 +23,7 @@ namespace EShaderList
 		eBasePass = 0,
 		eDebugBasePass,
 		eScreenQuad,
-		//eDeferredLighting
+		eDeferredLighting,
 		eCount,
 	};
 }
@@ -131,10 +133,95 @@ struct TCPUConstant
 	inline bool operator!=(const TCPUConstant& c) const { return ((this->m_pdata != c.m_pdata) || this->m_size != c.m_size || this->m_name != c.m_name); }
 };
 
+//assumes possible values are always in order
+//assumes macros will apply to all shader stages available
+struct TShaderPermutationKey
+{
+	template<typename ... int32>
+	TShaderPermutationKey(std::string macro, int32&& ... values)
+	{
+		m_macro = macro;
+		m_possibleValues = { values ... };
+		m_numValues = m_possibleValues.size();
+	}
+
+	int32 m_numValues;
+	std::string m_macro;
+	std::vector<int32> m_possibleValues;
+};
+
+struct TShaderPerumation
+{
+public:
+	friend struct TShader;
+
+	using PermutationLookup = std::pair<std::string, int32>;
+
+	//MUST enter all macros & values
+	int32 GetShaderWithPermutation(std::vector<PermutationLookup> keys)
+	{
+		check(keys.size() == m_keys.size());
+
+		SortKeys(keys);
+
+		for (auto key : keys)
+		{
+			//key.first
+		}
+	}
+
+	bool bIsValid() { return m_bIsValid; }
+
+	bool KeyComp(std::string a, std::string b) { return a < b; }
+
+	void SortKeys()
+	{
+		SortKeys(m_keys);
+		m_bSorted = true;
+	}
+
+private:
+	void SortKeys(std::vector<TShaderPermutationKey>& keys)
+	{
+		check(keys.size() > 0);
+		std::sort(keys.begin(), keys.end(), KeyComp);
+	}
+
+	void SortKeys(std::vector<PermutationLookup>& keys)
+	{
+		check(keys.size() > 0);
+		std::sort(keys.begin(), keys.end(), KeyComp);
+	}
+
+	std::vector<std::vector<D3D10_SHADER_MACRO>> ComputePermutations()
+	{
+		check(m_bSorted);
+		std::vector<std::vector<D3D10_SHADER_MACRO>> outPermutations;
+
+		m_shaderIndexUpperLimit = 0;
+
+		for (auto key : m_keys)
+		{
+			m_shaderIndexUpperLimit += key.m_numValues;
+
+		}
+
+		m_bIsValid = true;
+
+		return outPermutations;
+	}
+
+	int32 m_shaderIndexUpperLimit;
+	std::vector<TShaderPermutationKey> m_keys;
+	std::vector<int32> m_shaderIndex;
+	bool m_bIsValid = false;
+	bool m_bSorted = false;
+};
+
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
-	void Initialize(std::string shadername, std::vector<D3D10_SHADER_MACRO>* macros = nullptr)
+	void Initialize(std::string shadername, std::vector<TShaderPermutationKey> permutations = {}, std::vector<D3D10_SHADER_MACRO>* macros = nullptr)
 	{
 		m_info.m_name = shadername;
 
@@ -148,6 +235,9 @@ struct TShader
 		m_usedshaderstages[EShaderStage::eGS] = GS;
 		m_usedshaderstages[EShaderStage::ePS] = PS;
 		m_usedshaderstages[EShaderStage::eCS] = CS;
+
+		m_permutations.m_keys = permutations;
+		m_permutations.SortKeys();
 
 		m_shadermacros.push_back({"SHADER", "1"});
 
@@ -198,7 +288,7 @@ struct TShader
 		}
 	}
 
-	template<EShaderStage::Type stage, int32 StartSlot>
+	template<EShaderStage::Type stage, int32 StartSlot = 0>
 	void SetShaderResource(ID3D11DeviceContext* context, ID3D11ShaderResourceView* srv)
 	{
 		check(srv != nullptr);
@@ -213,13 +303,13 @@ struct TShader
 		}
 	}
 
-	template<EShaderStage::Type stage>
+	template<EShaderStage::Type stage, int32 StartSlot = 0>
 	void SetSamplerState(ID3D11DeviceContext* context, ID3D11SamplerState* sampler)
 	{
 		check(sampler != nullptr);
 		//check(stage == EShaderStage::ePS);
 
-		context->PSSetSamplers(0, 1, &sampler);
+		context->PSSetSamplers(StartSlot, 1, &sampler);
 	}
 
 	void WriteConstants(std::string name, void* data)
@@ -428,7 +518,7 @@ struct TShader
 	std::vector<ConstantBufferMapping> m_constantbuffermap;
 
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
-	std::vector<D3D10_SHADER_MACRO> m_shadermacros;
+	std::vector<D3D10_SHADER_MACRO> m_shadermacros; //global macros
 	TD3DReflections m_shaderreflections;
 	TShaderStages m_shaderstages;
 	std::string m_shaderdir;
@@ -440,4 +530,5 @@ struct TShader
 
 	ID3D11InputLayout* m_inputlayout;
 	TShaderInfo m_info;
+	TShaderPerumation m_permutations;
 	};

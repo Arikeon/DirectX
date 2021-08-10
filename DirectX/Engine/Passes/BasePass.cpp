@@ -3,10 +3,48 @@
 #include "BasePassPS.hlsl"
 #include "BasePassVS.hlsl"
 
-void TBasePass::Setup(CRenderer* renderer, float delta)
-{
 
+void TBasePass::Render(CRenderer* renderer, std::vector<TObject>& objects, TDebugLines debuglines, CCamera camera, TWindow window, float delta)
+{
+	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
+
+	for (unsigned int i = 0; i < (int)objects.size(); ++i)
+	{
+		TObject& currObject = objects[i];
+		std::vector<TModel>& models = currObject.m_models;
+
+		int nummodels = (int)models.size();
+		if (nummodels == 0)
+		{
+			CONSOLE_LOG(L"Nothing to render..");
+			return;
+		}
+
+		TShader& BasePassShader = renderer->GetShader(EShaderList::eBasePass);
+
+		renderer->UnbindRTV();
+		renderer->UnbindSRV(BasePassShader);
+
+		for (int i = 0; i < nummodels; ++i)
+		{
+			TModel& model = models[i];
+			DrawMeshes(renderer, BasePassShader, camera, window, delta, model);
+		}
+
+		//Draw debug lines
+		if (debuglines.m_meshes.size() > 0)
+		{
+			TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
+			D3D11_MAPPED_SUBRESOURCE subresourcemap;
+			context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);
+			memcpy(subresourcemap.pData, &debuglines.m_debuglines[0], sizeof(DebugLinesInVS) * debuglines.GetLineCount());
+			context->Unmap(vbuffer.m_pGPUdata, (UINT)0);
+
+			DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
+		}
+	}
 }
+
 
 void TBasePass::DrawMeshes(CRenderer* renderer,
 	TShader shader,
@@ -15,21 +53,19 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 	float delta,
 	TModel model)
 {
-	ID3D11DeviceContext * context = renderer->GetD3DInterface()->GetContext();
-
-	const int32 numRTVs = ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor;
-
-	ID3D11RenderTargetView* rtvs[numRTVs];
-	int32 tempIndex = 0;
-	for (RenderTargetID i = ERenderTargetKey::eBaseColor; i < ERenderTargetKey::eGBufferUpperLimit; ++i)
-	{
-		TD3DRenderTarget& rtv = renderer->GetRenderTarget((int32)i);
-		check(rtv.IsValid());
-
-		rtvs[tempIndex++] = rtv.m_rtv;
-	}
+	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 
 	ID3D11DepthStencilView* dsv = renderer->GetDepthTarget(0).m_dsv;
+
+	const int32 numRTVs = EGBufferKeys::eMax;
+	ID3D11RenderTargetView* rtvs[numRTVs];
+
+	check(numRTVs <= RTVSLOTMAX);
+	for (int32 i = 0; i < numRTVs; ++i)
+	{
+		rtvs[i] = renderer->GetGBufferRTV(i).m_rtv;
+	}
+
 
 	for (int i = 0; i < (int)model.m_meshes.size(); ++i)
 	{
@@ -46,7 +82,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 
 		//World View Proj buffer
 		BasePassWVP WVP;
-		XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, false>());
+		XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, true>());
 		WVP.World._44 = 1.f;
 
 		WVP.View = camera.m_cameramatrix;
@@ -123,41 +159,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		else
 		{
 			context->Draw(vbuffer.m_info.m_elementcount, 0);
-		}
-	}
-}
-
-void TBasePass::Render(CRenderer* renderer, std::vector<TObject>& objects, TDebugLines debuglines, CCamera camera, TWindow window, float delta)
-{
-	for (unsigned int i = 0; i < (int)objects.size(); ++i)
-	{
-		TObject& currObject = objects[i];
-		std::vector<TModel>& models = currObject.m_models;
-
-		int nummodels = (int)models.size();
-		if (nummodels == 0)
-		{
-			CONSOLE_LOG(L"Nothing to render..");
-			return;
-		}
-
-		for (int i = 0; i < nummodels; ++i)
-		{
-			TModel& model = models[i];
-			DrawMeshes(renderer, renderer->GetShader(EShaderList::eBasePass), camera, window, delta, model);
-		}
-
-		//Draw debug lines
-		if (debuglines.m_meshes.size() > 0)
-		{
-			TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
-			D3D11_MAPPED_SUBRESOURCE subresourcemap;
-			ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
-			context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);
-			memcpy(subresourcemap.pData, &debuglines.m_debuglines[0], sizeof(DebugLinesInVS) * debuglines.GetLineCount());
-			context->Unmap(vbuffer.m_pGPUdata, (UINT)0);
-
-			DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
 		}
 	}
 }

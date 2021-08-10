@@ -165,10 +165,12 @@
     <ClCompile Include="DirectX\Engine\Engine.cpp" />
     <ClCompile Include="DirectX\Engine\FileIO.cpp" />
     <ClCompile Include="DirectX\Engine\Input.cpp" />
+    <ClCompile Include="DirectX\Engine\Light.cpp" />
     <ClCompile Include="DirectX\Engine\Mesh.cpp" />
     <ClCompile Include="DirectX\Engine\Model.cpp" />
     <ClCompile Include="DirectX\Engine\Object.cpp" />
     <ClCompile Include="DirectX\Engine\Passes\BasePass.cpp" />
+    <ClCompile Include="DirectX\Engine\Passes\DeferredLightingPass.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
@@ -182,10 +184,12 @@
     <ClInclude Include="DirectX\Engine\Engine.h" />
     <ClInclude Include="DirectX\Engine\FileIO.h" />
     <ClInclude Include="DirectX\Engine\Input.h" />
+    <ClInclude Include="DirectX\Engine\Light.h" />
     <ClInclude Include="DirectX\Engine\Mesh.h" />
     <ClInclude Include="DirectX\Engine\Model.h" />
     <ClInclude Include="DirectX\Engine\Object.h" />
     <ClInclude Include="DirectX\Engine\Passes\BasePass.h" />
+    <ClInclude Include="DirectX\Engine\Passes\DeferredLightingPass.h" />
     <ClInclude Include="DirectX\Engine\Passes\Pass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\BasicShapesScene.h" />
     <ClInclude Include="DirectX\Engine\Scenes\CornellScene.h" />

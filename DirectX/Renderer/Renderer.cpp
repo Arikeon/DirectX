@@ -9,9 +9,30 @@
 #include <DirectXTex.h>
 #endif //ENABLE_DEBUG
 
-void CRenderer::ResetPipeline()
+void CRenderer::UnbindRTV()
 {
-	m_D3DInterface->UnbindTargets();
+	m_D3DInterface->UnbindRTV();
+}
+
+void CRenderer::UnbindSRV(TShader shader)
+{
+	m_D3DInterface->UnbindSRV(shader);
+}
+
+std::vector<ID3D11RenderTargetView*> CRenderer::GetGBuffer()
+{
+	std::vector<ID3D11RenderTargetView*> arrRTV;
+
+	const int32 numRTVs = EGBufferKeys::eMax;
+	check(numRTVs <= RTVSLOTMAX);
+
+	arrRTV.resize(numRTVs);
+	for (int32 i = 0; i < numRTVs; ++i)
+	{
+		arrRTV[i] = GetGBufferRTV(i).m_rtv;
+	}
+	
+	return arrRTV;
 }
 
 TextureID CRenderer::CreateTexture(
@@ -144,6 +165,7 @@ CRenderer::~CRenderer()
 {
 	delete m_D3DInterface;
 
+	D3DRelease(m_GBuffer);
 	D3DArrayRelease(m_shaders);
 	D3DArrayRelease(m_vertexbuffers);
 	D3DArrayRelease(m_indexbuffers);
@@ -177,28 +199,9 @@ void CRenderer::Initialize(TWindow window)
 
 void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 {
-	//Can be used to resize render targets
-
-	TextureID arrTextures[ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor];
-	int32 arrTIndex = 0;
-
-	if (bResize) // needs testing
+	if (bResize)
 	{
-		for (RenderTargetID i = ERenderTargetKey::eBaseColor; i < ERenderTargetKey::eGBufferUpperLimit; ++i)
-		{
-			TD3DRenderTarget& rtv = GetRenderTarget(i);
-			check(rtv.IsValid());
-
-			arrTextures[arrTIndex++] = rtv.m_textureid;
-			D3DRelease(rtv);
-		}
-		//TODO this needs more
-	}
-	else
-	{
-		//Make sure back buffer rt is already initialized
-		check(m_rtvs.size() == 1);
-		m_rtvs.resize(m_rtvs.size() + (ERenderTargetKey::eGBufferUpperLimit - ERenderTargetKey::eBaseColor));
+		// release and re-create gbuffer with new width + height
 	}
 
 	ID3D11Device* device = m_D3DInterface->GetDevice();
@@ -216,12 +219,21 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		desc.MipLevels				= 1;
 		desc.Format					= DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage					= D3D11_USAGE_DEFAULT;
-		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		desc.SampleDesc.Count		= 1;
 
 		tex.SetDesc(desc);
 
 		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format							= desc.Format;
+		srvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip		= 0;
+		srvDesc.Texture2D.MipLevels				= -1;
+
+		r = device->CreateShaderResourceView(tex.m_tex2D, &srvDesc, &tex.m_srv);
 		checkhr(r);
 		
 		TD3DRenderTarget rtv = {};
@@ -232,7 +244,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_rtvs[ERenderTargetKey::eBaseColor] = rtv;
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eBaseColor);
 	}
 	//________________WorldNormal________________
 	{
@@ -246,12 +258,21 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		desc.MipLevels				= 1;
 		desc.Format					= DXGI_FORMAT_R16G16B16A16_FLOAT;
 		desc.Usage					= D3D11_USAGE_DEFAULT;
-		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		desc.SampleDesc.Count		= 1;
 
 		tex.SetDesc(desc);
 
 		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format							= desc.Format;
+		srvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip		= 0;
+		srvDesc.Texture2D.MipLevels				= -1;
+		
+		r = device->CreateShaderResourceView(tex.m_tex2D, &srvDesc, &tex.m_srv);
 		checkhr(r);
 
 		TD3DRenderTarget rtv = {};
@@ -262,7 +283,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_rtvs[ERenderTargetKey::eWorldNormal] = rtv;
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eWorldNormal);
 	}
 	//________________Roughness________________
 	{
@@ -276,12 +297,21 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		desc.MipLevels				= 1;
 		desc.Format					= DXGI_FORMAT_R32_FLOAT;
 		desc.Usage					= D3D11_USAGE_DEFAULT;
-		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		desc.SampleDesc.Count		= 1;
 
 		tex.SetDesc(desc);
 
 		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format							= desc.Format;
+		srvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip		= 0;
+		srvDesc.Texture2D.MipLevels				= -1;
+		
+		r = device->CreateShaderResourceView(tex.m_tex2D, &srvDesc, &tex.m_srv);
 		checkhr(r);
 
 		TD3DRenderTarget rtv = {};
@@ -292,7 +322,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_rtvs[ERenderTargetKey::eRoughness] = rtv;
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eRoughness);
 	}
 	//________________Metallic________________
 	{
@@ -306,12 +336,21 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		desc.MipLevels				= 1;
 		desc.Format					= DXGI_FORMAT_R32_FLOAT;
 		desc.Usage					= D3D11_USAGE_DEFAULT;
-		desc.BindFlags				= D3D11_BIND_RENDER_TARGET;
+		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		desc.SampleDesc.Count		= 1;
 
 		tex.SetDesc(desc);
 
 		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
+		checkhr(r);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format							= desc.Format;
+		srvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip		= 0;
+		srvDesc.Texture2D.MipLevels				= -1;
+		
+		r = device->CreateShaderResourceView(tex.m_tex2D, &srvDesc, &tex.m_srv);
 		checkhr(r);
 
 		TD3DRenderTarget rtv = {};
@@ -322,8 +361,11 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_rtvs[ERenderTargetKey::eMetallic] = rtv;
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eMetallic);
 	}
+
+	check(m_GBuffer.CountValid() == EGBufferKeys::eMax);
+	m_GBuffer.bIsValid = true;
 }
 
 void CRenderer::CreateStaticTextures()
@@ -350,9 +392,10 @@ void CRenderer::CompileShaders()
 {
 	const int NumGlobalShaders = EShaderList::eCount;
 	m_shaders.resize(NumGlobalShaders);
-	m_shaders[0].Initialize<true, false, false, false, true, false>("BasePass");
-	m_shaders[1].Initialize<true, false, false, false, true, false>("DebugLines");
-	m_shaders[2].Initialize<true, false, false, false, false, false>("ScreenQuad");
+	m_shaders[EShaderList::eBasePass].			Initialize<true, false, false, false, true, false>("BasePass");
+	m_shaders[EShaderList::eDebugBasePass].		Initialize<true, false, false, false, true, false>("DebugLines");
+	m_shaders[EShaderList::eScreenQuad].		Initialize<true, false, false, false, false, false>("ScreenQuad");
+	m_shaders[EShaderList::eDeferredLighting].	Initialize<false, false, false, false, true, false>("DeferredLighting");
 
 	for (int i = 0; i < NumGlobalShaders; ++i)
 	{
@@ -368,6 +411,7 @@ void CRenderer::Restart()
 void CRenderer::Clear()
 {
 	m_D3DInterface->ClearBackBuffer();
+	m_D3DInterface->ClearGBuffer(m_GBuffer);
 }
 
 void CRenderer::Present()

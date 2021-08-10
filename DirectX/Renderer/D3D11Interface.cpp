@@ -35,6 +35,24 @@ void CD3D11Interface::ClearBackBuffer()
 	m_context->ClearDepthStencilView(prenderer->GetDepthTarget(0).m_dsv, D3D11_CLEAR_DEPTH, 1, 1);
 }
 
+void CD3D11Interface::ClearGBuffer(TGBuffer& GBuffer)
+{
+	const FLOAT clearColor[4] = { 0.f, 0.f, 0.f, 0.f };
+
+	const int32 numRTVs = EGBufferKeys::eMax;
+	ID3D11RenderTargetView* rtvs[numRTVs];
+
+	for (int32 i = 0; i < numRTVs; ++i)
+	{
+		rtvs[i] = GBuffer.GetRTV(i).m_rtv;
+	}
+
+	for (int32 i = 0; i < numRTVs; ++i)
+	{
+		m_context->ClearRenderTargetView(rtvs[i], clearColor);
+	}
+}
+
 void CD3D11Interface::Present()
 {
 	m_swapchain->Present(1, 0);
@@ -214,7 +232,9 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 void CD3D11Interface::CompileShader(TShader& shader)
 {
 #if ENABLE_DEBUG
-	const UINT SHADER_COMPILE_FLAGS = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+	const UINT SHADER_COMPILE_FLAGS = D3DCOMPILE_ENABLE_STRICTNESS
+		| D3DCOMPILE_DEBUG
+		| D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
 	const UINT SHADER_COMPILE_FLAGS = D3DCOMPILE_ENABLE_STRICTNESS;
 #endif
@@ -644,12 +664,54 @@ void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stag
 	}
 }
 
-void CD3D11Interface::UnbindTargets()
+void CD3D11Interface::UnbindRTV()
 {
-	ID3D11RenderTargetView* NullRTVs[6] = {};
+	ID3D11RenderTargetView* NullRTVs[RTV_MAX] = {};
+	ID3D11DepthStencilView* NullDSV = {};
+	m_context->OMSetRenderTargets(RTV_MAX, NullRTVs, NullDSV);
 
-	//Is this necessary?
-	m_context->OMSetRenderTargets(0, NullRTVs, nullptr);
+	const FLOAT blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	m_context->OMSetBlendState(nullptr, blendFactor, UINT_MAX);
+}
+
+void CD3D11Interface::UnbindSRV(TShader shader)
+{
+	if (shader.m_texturebindings.size() == 0)
+		return;
+
+	ID3D11ShaderResourceView* NullSRVs[SRV_MAX] = {};
+
+	for (int32 i = 0; i < shader.m_texturebindings.size(); ++i)
+	{
+		TTextureBinding texbinding = shader.m_texturebindings[i];
+
+		switch (texbinding.m_shaderStage)
+		{
+		case EShaderStage::eVS:
+			m_context->VSSetShaderResources(0, SRV_MAX, NullSRVs);
+			break;
+		case EShaderStage::eGS:
+			m_context->GSSetShaderResources(0, SRV_MAX, NullSRVs);
+			break;
+		case EShaderStage::eHS:
+			m_context->HSSetShaderResources(0, SRV_MAX, NullSRVs);
+			break;
+		case EShaderStage::eDS:
+			m_context->DSSetShaderResources(0, SRV_MAX, NullSRVs);
+			break;
+		case EShaderStage::ePS:
+			m_context->PSSetShaderResources(0, SRV_MAX, NullSRVs);
+			break;
+		case EShaderStage::eCS:
+		{
+			ID3D11UnorderedAccessView* NullUAVs[SRV_MAX] = {};
+			m_context->CSSetShaderResources(texbinding.m_textureSlot, SRV_MAX, NullSRVs);
+			m_context->CSSetUnorderedAccessViews(texbinding.m_textureSlot, SRV_MAX, NullUAVs, nullptr);
+		}
+			break;
+		}
+
+	}
 }
 
 void CD3D11Interface::ResizeViewPorts(TWindow window)

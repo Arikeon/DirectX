@@ -3,7 +3,8 @@
 
 #include <array>
 
-#define RTV_MAX 7
+#define RTV_MAX 8
+#define SRV_MAX 12
 
 using ShaderID = EShaderList::Type;
 using MaterialID = int;

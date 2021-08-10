@@ -69,5 +69,8 @@
     <FxCompile Include="DirectX\Renderer\Shaders\ScreenQuadVS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\DeferredLightingPS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

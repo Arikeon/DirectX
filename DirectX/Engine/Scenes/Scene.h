@@ -6,9 +6,6 @@
 #include "Colors.h"
 #include "Object.h"
 
-//Passes
-#include "Pass.h"
-
 //Shaders
 #include "BasePassStructs.h"
 
@@ -29,7 +26,7 @@ class CScene
 	friend class CEngine;
 public:
 	virtual ~CScene();
-	virtual void InitializePasses(CRenderer* renderer);
+	virtual void Initialize(CRenderer* renderer);
 	virtual void LoadScene(CRenderer* renderer) = 0;
 	virtual void UpdateScene(CRenderer* renderer) = 0;
 	virtual void UnloadScene() = 0;
@@ -39,10 +36,12 @@ public:
 	virtual std::vector<TObject>& GetObjects() { return m_objects; }
 
 protected:
+	virtual void InitializeScreenQuad(CRenderer* renderer);
+
 	EScene::Type m_selectedscene;
 	CCamera m_camera;
 	std::vector<TObject> m_objects;
+	TObject m_ScreenQuad;
 	TDebugLines m_debuglines;
-	struct TBasePass* m_basepass;
 	bool m_bDrawTransforms = true;
 };

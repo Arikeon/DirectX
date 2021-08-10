@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <vector>
 
+#define RTVSLOTMAX 8
+
 namespace EStaticSamplerKey
 {
 	enum ID
@@ -21,19 +23,9 @@ namespace ERenderTargetKey
 {
 	enum ID
 	{
-		eBackBufeer		= 0,		eBaseColor		= 1,
-		eWorldNormal	= 2,
-		eRoughness		= 3,
-		eMetallic		= 4,
-		eGBufferUpperLimit = eMetallic + 1,
+		eBackBufeer		= 0,
 		eMax
 	};
-
-
-	static int32 GetNumGBufferRTV()
-	{
-		return int32(eGBufferUpperLimit - eBaseColor);
-	}
 }
 
 class CD3D11Interface;
@@ -43,7 +35,6 @@ namespace IO
 	struct TFileIO;
 }
 
-
 class CRenderer
 {
 	friend class CEngine;
@@ -52,7 +43,8 @@ class CRenderer
 	friend struct IO::TFileIO;
 
 public:
-	void ResetPipeline();
+	void UnbindRTV();
+	void UnbindSRV(TShader shader);
 	TShader& GetShader(ShaderID id) { return m_shaders[id]; }
 	D3D11_VIEWPORT& GetView(EViews::Type id) { return m_views[id]; }
 	CD3D11Interface*& GetD3DInterface() { return m_D3DInterface; }
@@ -62,6 +54,8 @@ public:
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
+	TD3DRenderTarget& GetGBufferRTV(int32 index) { return m_GBuffer.GetRTV(index); }
+	std::vector<struct ID3D11RenderTargetView*> GetGBuffer();
 
 	TextureID CreateTexture(
 		unsigned int width,
@@ -102,5 +96,6 @@ private:
 	std::array<ID3D11RasterizerState*, ERasterizerStates::eCount> m_rasterizerstates;
 	std::array<D3D11_VIEWPORT, EViews::eCount> m_views;
 
+	TGBuffer m_GBuffer = {};
 	CD3D11Interface* m_D3DInterface;
 };

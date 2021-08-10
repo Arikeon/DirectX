@@ -12,6 +12,7 @@ struct TD3DTexture;
 struct TD3DSampler;
 struct TD3DRenderTarget;
 struct TMaterial;
+struct TGBuffer;
 
 struct TMaterial
 {
@@ -199,5 +200,46 @@ struct TD3DBuffer
 	void* m_pCPUdata = nullptr;
 	ID3D11Buffer* m_pGPUdata = nullptr;
 	TBufferInfo m_info;
+	bool bIsValid = false;
+};
+
+
+struct TGBuffer
+{
+	void Release()
+	{
+		for (int32 i = 0; i < (int32)EGBufferKeys::eMax; ++i)
+		{
+			TD3DRenderTarget& rtv = m_arrRTV[i];
+			check(rtv.IsValid());
+			D3DRelease(rtv);
+		}
+
+		bIsValid = false;
+	}
+
+	void AddRTV(TD3DRenderTarget& rtv, int32 index)
+	{
+		check(!m_arrRTV[index].IsValid());
+		m_arrRTV[index] = rtv;
+	}
+
+	int32 CountValid()
+	{
+		int32 count = 0;
+		for (int32 i = 0; i < (int32)EGBufferKeys::eMax; ++i)
+		{
+			if (m_arrRTV[i].IsValid())
+				++count;
+		}
+
+		return count;
+	}
+
+	TD3DRenderTarget& GetRTV(int32 index) { return m_arrRTV[index]; }
+
+	bool IsValid() { return bIsValid; }
+
+	TD3DRenderTarget m_arrRTV[EGBufferKeys::eMax];
 	bool bIsValid = false;
 };
