@@ -256,7 +256,7 @@ void CD3D11Interface::CompileShader(TShader& shader)
 		std::wstring pathwstr = Algorithm::string_to_wstring(pathstr);
 
 		ID3DBlob* errmsg, *pblob;
-		std::vector<D3D10_SHADER_MACRO> NullTerminatedMacro = shader.m_shadermacros;
+		std::vector<D3D_SHADER_MACRO> NullTerminatedMacro = shader.m_shadermacros;
 		NullTerminatedMacro.push_back({ NULL, NULL });
 
 		r = D3DCompileFromFile(

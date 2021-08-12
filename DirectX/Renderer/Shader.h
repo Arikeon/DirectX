@@ -133,6 +133,9 @@ struct TCPUConstant
 	inline bool operator!=(const TCPUConstant& c) const { return ((this->m_pdata != c.m_pdata) || this->m_size != c.m_size || this->m_name != c.m_name); }
 };
 
+using PermutationValue = std::pair<std::string, std::string>;
+using PermutationArray = std::vector<std::vector<PermutationValue>>;
+
 //assumes possible values are always in order
 //assumes macros will apply to all shader stages available
 struct TShaderPermutationKey
@@ -142,23 +145,33 @@ struct TShaderPermutationKey
 	{
 		m_macro = macro;
 		m_possibleValues = { values ... };
-		m_numValues = m_possibleValues.size();
 	}
 
-	int32 m_numValues;
+	bool operator==(TShaderPermutationKey k) { return strcmp(m_macro.c_str(), k.m_macro.c_str()) == 0; }
+	bool operator==(PermutationValue k) { return strcmp(m_macro.c_str(), k.first.c_str()) == 0; }
+
 	std::string m_macro;
-	std::vector<int32> m_possibleValues;
+	std::vector<std::string> m_possibleValues;
 };
+
+static bool KeyComp(TShaderPermutationKey a, TShaderPermutationKey b) 
+{ 
+	check(strcmp(a.m_macro.c_str(), b.m_macro.c_str()) != 0);
+	return a.m_macro < b.m_macro;
+}
+static bool KeyCompLookup(PermutationValue a, PermutationValue b) 
+{ 
+	check(strcmp(a.first.c_str(), b.first.c_str()) != 0);
+	return a.first < b.first; 
+}
 
 struct TShaderPerumation
 {
 public:
 	friend struct TShader;
 
-	using PermutationLookup = std::pair<std::string, int32>;
-
 	//MUST enter all macros & values
-	int32 GetShaderWithPermutation(std::vector<PermutationLookup> keys)
+	int32 GetShaderWithPermutation(std::vector<PermutationValue> keys)
 	{
 		check(keys.size() == m_keys.size());
 
@@ -172,11 +185,10 @@ public:
 
 	bool bIsValid() { return m_bIsValid; }
 
-	bool KeyComp(std::string a, std::string b) { return a < b; }
-
 	void SortKeys()
 	{
-		SortKeys(m_keys);
+		if (m_keys.size())
+			SortKeys(m_keys);
 		m_bSorted = true;
 	}
 
@@ -184,27 +196,60 @@ private:
 	void SortKeys(std::vector<TShaderPermutationKey>& keys)
 	{
 		check(keys.size() > 0);
-		std::sort(keys.begin(), keys.end(), KeyComp);
+		std::sort(keys.begin(), keys.end(), &KeyComp);
 	}
 
-	void SortKeys(std::vector<PermutationLookup>& keys)
+	void SortKeys(std::vector<PermutationValue>& keys)
 	{
 		check(keys.size() > 0);
-		std::sort(keys.begin(), keys.end(), KeyComp);
+		std::sort(keys.begin(), keys.end(), &KeyCompLookup);
 	}
 
-	std::vector<std::vector<D3D10_SHADER_MACRO>> ComputePermutations()
+	PermutationArray ComputePermutations()
 	{
 		check(m_bSorted);
-		std::vector<std::vector<D3D10_SHADER_MACRO>> outPermutations;
+		PermutationArray outPermutations;
 
 		m_shaderIndexUpperLimit = 0;
+		int32 prevNumValues;
 
-		for (auto key : m_keys)
+		std::vector<PermutationValue> currPermutation;
+		currPermutation.resize(m_keys.size());
+
+		//im okay with double looping here. There should only be a handful of keys
+		for (int32 i = 0; i < m_keys.size(); ++i)
 		{
-			m_shaderIndexUpperLimit += key.m_numValues;
+			TShaderPermutationKey& key = m_keys[i];
+			int32 maxNumValues = (int32)key.m_possibleValues.size();
+
+
+			if (i == 0)
+			{
+				prevNumValues = maxNumValues;
+			}
+			else
+			{
+				m_shaderIndexUpperLimit += prevNumValues * maxNumValues;
+				prevNumValues = maxNumValues;
+			}
+
+			//just to initialize
+			currPermutation[i] = { key.m_macro, key.m_possibleValues[0] };
+		}
+
+		outPermutations.resize(m_shaderIndexUpperLimit);
+		int32 currPermutationIndex = 0;
+		outPermutations[currPermutationIndex++] = currPermutation;
+
+		//just in case nothing went horribly wrong
+		check(currPermutation.size() == m_keys.size());
+
+		for (int32 iterator = 0;;)
+		{
+
 
 		}
+
 
 		m_bIsValid = true;
 
@@ -221,7 +266,7 @@ private:
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
-	void Initialize(std::string shadername, std::vector<TShaderPermutationKey> permutations = {}, std::vector<D3D10_SHADER_MACRO>* macros = nullptr)
+	void Initialize(std::string shadername, std::vector<TShaderPermutationKey> permutations = {}, std::vector<D3D_SHADER_MACRO>* macros = nullptr)
 	{
 		m_info.m_name = shadername;
 
@@ -238,6 +283,7 @@ struct TShader
 
 		m_permutations.m_keys = permutations;
 		m_permutations.SortKeys();
+		PermutationArray testmacros = m_permutations.ComputePermutations();
 
 		m_shadermacros.push_back({"SHADER", "1"});
 
@@ -518,7 +564,7 @@ struct TShader
 	std::vector<ConstantBufferMapping> m_constantbuffermap;
 
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
-	std::vector<D3D10_SHADER_MACRO> m_shadermacros; //global macros
+	std::vector<D3D_SHADER_MACRO> m_shadermacros; //global macros
 	TD3DReflections m_shaderreflections;
 	TShaderStages m_shaderstages;
 	std::string m_shaderdir;
