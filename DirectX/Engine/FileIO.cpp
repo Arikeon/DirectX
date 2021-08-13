@@ -340,10 +340,10 @@ namespace IO
 		ID3D11Device* device = renderer->GetD3DInterface()->GetDevice();
 		ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 
-		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
 		std::wstring wassetDir = Algorithm::string_to_wstring(assetDir);
-		std::wstring wdir = wAssetDir + wassetDir + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
+		std::wstring wdir = Algorithm::ChopLast(wassetDir, L"\\") + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
 
+		
 		ID3D11Resource* resource = nullptr;
 		ID3D11ShaderResourceView* srv = nullptr;
 

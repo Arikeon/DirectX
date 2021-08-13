@@ -93,15 +93,20 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		shader.WriteConstants("View", (void*)&WVP.View);
 		shader.WriteConstants("Proj", (void*)&WVP.Proj);
 
-		//start binding pipeline
-		shader.SetShaderStages(context);
+		shader.SetShaderStages<EShaderStage::eVS>(context);
 
 		if (currMesh.HasMaterial())
 		{
 			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
 
 			bool bHasDiffuseMap = Material.m_textureDiffuse != -1;
-			bool bHasNormalMap = Material.m_textureDiffuse != -1;
+			bool bHasNormalMap = Material.m_textureNormal != -1;
+
+			int32 permutationIndex = shader.m_permutations.GetShaderWithPermutation({
+				{"USE_TEXTURE_DIFFUSE" , (int32)bHasDiffuseMap},
+				{"USE_TEXTURE_Normal" , (int32)bHasNormalMap} });
+
+			shader.SetShaderStages<EShaderStage::ePS>(context, permutationIndex);
 
 			TD3DSampler sampler;
 
@@ -132,8 +137,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
 			ConstantMaterial.Roughness = Material.m_roughness;
 			ConstantMaterial.Metallic = Material.m_metallic;
-			ConstantMaterial.bHasDiffuse = bHasDiffuseMap;
-			ConstantMaterial.bHasNormal = bHasNormalMap;
 			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor);
 		}
 

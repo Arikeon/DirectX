@@ -5,8 +5,6 @@ START_CBUFFER(BasePassMaterial, b0)
 float4 DiffuseColor;
 float Roughness;
 float Metallic;
-int bHasDiffuse; //hacky //TODO
-int bHasNormal; //hacky //TODO
 END_CBUFFER(BasePassMaterial);
 
 #if SHADER
@@ -26,17 +24,20 @@ Texture2D t_Normal;
 GBufferOut MainPS(BasePassInPS input)
 {
 	GBufferOut output;
-	if (bHasDiffuse)
+#if USE_TEXTURE_DIFFUSE
 		output.color		= t_Diffuse.Sample(Sampler, input.uv);
-	else
+#else
 		output.color		= DiffuseColor;
+#endif //USE_TEXTURE_DIFFUSE
 
-	if (bHasNormal)
+#if USE_TEXTURE_NORMAL
 		output.worldnormal	= t_Normal.Sample(Sampler, input.uv);
-	else
+#else
 		output.worldnormal	= float4(input.normal, 0.f);
+#endif //USE_TEXTURE_NORMAL
 	output.roughness	= Roughness;
 	output.metallic		= Metallic;
+
 	return output;
 }
 #endif

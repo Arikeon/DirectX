@@ -134,6 +134,7 @@ struct TCPUConstant
 	inline bool operator!=(const TCPUConstant& c) const { return ((this->m_pdata != c.m_pdata) || this->m_size != c.m_size || this->m_name != c.m_name); }
 };
 
+//like TShaderPermutationKey but with 1 value entry
 using PermutationValue = std::pair<std::string, int32>;
 using PermutationArray = std::vector<std::vector<PermutationValue>>;
 
@@ -180,6 +181,9 @@ public:
 	//MUST enter all macros & values
 	int32 GetShaderWithPermutation(std::vector<PermutationValue> keys)
 	{
+		const PermutationValue Globals = { "SHADER", 1 };
+		keys.push_back(Globals);
+
 		check(keys.size() == m_keys.size());
 
 		SortKeysInner(keys);
@@ -187,26 +191,48 @@ public:
 		int32 keyIndex = 0;
 		int32 iterator = 0;
 
+		std::vector <TShaderPermutationKey> uniqueKeys;
+		std::vector<PermutationValue>		uniquePermutations;
+
+		//Take out keys with 1 possible value
+		for (int32 i = 0; i < (int32)m_keys.size(); ++i)
+		{
+			check(keys.size() == m_keys.size());
+
+			if (m_keys[i].m_possibleValues.size() > 1)
+			{
+				uniqueKeys.push_back(m_keys[i]);
+				uniquePermutations.push_back(keys[i]);
+			}
+		}
+
+		int32 prevMax = 1;
+
 		while(true)
 		{
-			//TODO
-			if (iterator > keys.size())
+			if (iterator >= uniquePermutations.size())
 				break;
 
-			int32 valueIndex = 0;
-			std::vector<int32> values = m_keys[iterator].m_possibleValues;
+			std::vector<int32> values = uniqueKeys[iterator].m_possibleValues;
 
 			for (int32 i = 0; i < (int32)values.size(); ++i)
 			{
-				int32 value = values[i];
-				if (keys[iterator].second == value)
-					valueIndex = i;
+				if (uniquePermutations[iterator].second == values[i])
+				{
+					if (i != 0)
+					{
+						keyIndex += prevMax * i;
+					}
+
+					prevMax *= (int32)values.size();
+					break;
+				}
 			}
 
-			keyIndex += keyIndex * valueIndex;
+			++iterator;
 		}
 
-		return iterator;
+		return keyIndex;
 	}
 
 	bool bIsValid() { return m_bIsValid; }
@@ -331,6 +357,14 @@ struct TShader
 		//reset cbuffers
 	};
 
+	template <EShaderStage::Type E> void SetShaderStages(ID3D11DeviceContext* context, int32 permutationIndex = 0) {}
+	template <> void SetShaderStages<EShaderStage::Type::eVS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->VSSetShader(m_shaderstages[permutationIndex].m_vs, nullptr, 0); }
+	template <> void SetShaderStages<EShaderStage::Type::eHS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->HSSetShader(m_shaderstages[permutationIndex].m_hs, nullptr, 0); }
+	template <> void SetShaderStages<EShaderStage::Type::eDS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->DSSetShader(m_shaderstages[permutationIndex].m_ds, nullptr, 0); }
+	template <> void SetShaderStages<EShaderStage::Type::eGS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->GSSetShader(m_shaderstages[permutationIndex].m_gs, nullptr, 0); }
+	template <> void SetShaderStages<EShaderStage::Type::ePS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->PSSetShader(m_shaderstages[permutationIndex].m_ps, nullptr, 0); }
+	template <> void SetShaderStages<EShaderStage::Type::eCS>(ID3D11DeviceContext* context, int32 permutationIndex) { context->CSSetShader(m_shaderstages[permutationIndex].m_cs, nullptr, 0); }
+
 	void SetShaderStages(ID3D11DeviceContext* context, int32 permutationIndex = 0)
 	{
 		if (m_usedshaderstages[EShaderStage::eVS])
@@ -383,7 +417,7 @@ struct TShader
 	void SetSamplerState(ID3D11DeviceContext* context, ID3D11SamplerState* sampler)
 	{
 		check(sampler != nullptr);
-		//check(stage == EShaderStage::ePS);
+		//check(stage == EShaderStage::ePS || stage == EShaderStage::eCS);
 
 		context->PSSetSamplers(StartSlot, 1, &sampler);
 	}
