@@ -397,11 +397,16 @@ void CRenderer::CompileShaders()
 	std::vector<TShaderPermutationKey> BasePassPermutations = { 
 		{"USE_TEXTURE_DIFFUSE", 0, 1 },
 		{"USE_TEXTURE_NORMAL", 0, 1} };
+
+	std::vector<TShaderPermutationKey> DeferredLightingPermutations = {
+		{"LIGHT_TYPE_DIRECTIONAL", 0, 1 },
+		{"LIGHT_TYPE_POINT", 0, 1 },
+		{"LIGHT_TYPE_SPOT", 0, 1 }};
 	
 	m_shaders[EShaderList::eBasePass].			Initialize<true, false, false, false, true, false>("BasePass", BasePassPermutations);
 	m_shaders[EShaderList::eDebugBasePass].		Initialize<true, false, false, false, true, false>("DebugLines");
 	m_shaders[EShaderList::eScreenQuad].		Initialize<true, false, false, false, false, false>("ScreenQuad");
-	m_shaders[EShaderList::eDeferredLighting].	Initialize<false, false, false, false, true, false>("DeferredLighting");
+	m_shaders[EShaderList::eDeferredLighting].	Initialize<false, false, false, false, true, false>("DeferredLighting", DeferredLightingPermutations);
 
 	for (int i = 0; i < NumGlobalShaders; ++i)
 	{

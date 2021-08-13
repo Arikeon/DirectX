@@ -181,6 +181,9 @@ public:
 	//MUST enter all macros & values
 	int32 GetShaderWithPermutation(std::vector<PermutationValue> keys)
 	{
+		if (!this->bIsValid())
+			return 0;
+
 		const PermutationValue Globals = { "SHADER", 1 };
 		keys.push_back(Globals);
 

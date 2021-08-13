@@ -12,7 +12,10 @@ void TDeferredLightingPass::Render(CRenderer* renderer, TObject& ScreenQuadObjec
 	renderer->UnbindSRV(ScreenQuadVS);
 	renderer->UnbindSRV(DeferredLightingPS);
 
+	//TODO batch unshadowed lights
 	DrawScreenQuad(renderer, DeferredLightingPS, ScreenQuadVS, ScreenQuadObject.m_models[0], delta);
+
+	//TODO draw call per shadowed lights - could optimize with resource tables on DX12
 }
 
 void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
@@ -27,6 +30,12 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	ID3D11RenderTargetView* backbuffer = renderer->GetRenderTarget(0).m_rtv;
 
 	ScreenQuadVS.SetShaderStages(context);
+
+	int32 permutationIndex = DeferredLightingPS.m_permutations.GetShaderWithPermutation({
+		{"LIGHT_TYPE_DIRECTIONAL",	(int32)0},
+		{"LIGHT_TYPE_POINT",		(int32)0},
+		{"LIGHT_TYPE_SPOT",			(int32)0}});
+
 	DeferredLightingPS.SetShaderStages(context);
 
 	//set Gbuffer and samplers
