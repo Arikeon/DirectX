@@ -26,7 +26,14 @@ public:
 	void Present();
 	void InitializeD3D(TWindow window);
 	void CompileShader(TShader& shader);
-	void CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary);
+
+	void CreateShaderStage(
+		TShader& shader,
+		EShaderStage::Type stage,
+		void* pshadercode,
+		const size_t shaderbinary,
+		int32 permutationIndex);
+
 	ID3D11DeviceContext* GetContext() { return m_context; }
 	ID3D11Device* GetDevice() { return m_device; }
 

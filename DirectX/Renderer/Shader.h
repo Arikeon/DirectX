@@ -6,6 +6,7 @@
 #include <d3d11.h>
 #include <iostream>
 #include <algorithm>
+#include <forward_list>
 
 #define EShaderListToString(name) #name
 
@@ -90,7 +91,7 @@ union TD3DBlobs
 
 union TD3DReflections
 {
-	ID3D11ShaderReflection* m_stagereflection[EShaderStage::eCount] = {};
+	ID3D11ShaderReflection* m_stagerreflection[EShaderStage::eCount] = {};
 	struct
 	{
 		ID3D11ShaderReflection* m_vsreflection;
@@ -133,7 +134,7 @@ struct TCPUConstant
 	inline bool operator!=(const TCPUConstant& c) const { return ((this->m_pdata != c.m_pdata) || this->m_size != c.m_size || this->m_name != c.m_name); }
 };
 
-using PermutationValue = std::pair<std::string, std::string>;
+using PermutationValue = std::pair<std::string, int32>;
 using PermutationArray = std::vector<std::vector<PermutationValue>>;
 
 //assumes possible values are always in order
@@ -145,13 +146,14 @@ struct TShaderPermutationKey
 	{
 		m_macro = macro;
 		m_possibleValues = { values ... };
+		std::sort(m_possibleValues.begin(), m_possibleValues.end());
 	}
 
 	bool operator==(TShaderPermutationKey k) { return strcmp(m_macro.c_str(), k.m_macro.c_str()) == 0; }
 	bool operator==(PermutationValue k) { return strcmp(m_macro.c_str(), k.first.c_str()) == 0; }
 
 	std::string m_macro;
-	std::vector<std::string> m_possibleValues;
+	std::vector<int32> m_possibleValues;
 };
 
 static bool KeyComp(TShaderPermutationKey a, TShaderPermutationKey b) 
@@ -165,22 +167,46 @@ static bool KeyCompLookup(PermutationValue a, PermutationValue b)
 	return a.first < b.first; 
 }
 
+//Not permuting:
+//input layouts
+//cbuffer
+//resource bindings
 struct TShaderPerumation
 {
 public:
 	friend struct TShader;
+	friend class CD3D11Interface;
 
 	//MUST enter all macros & values
 	int32 GetShaderWithPermutation(std::vector<PermutationValue> keys)
 	{
 		check(keys.size() == m_keys.size());
 
-		SortKeys(keys);
+		SortKeysInner(keys);
 
-		for (auto key : keys)
+		int32 keyIndex = 0;
+		int32 iterator = 0;
+
+		while(true)
 		{
-			//key.first
+			//TODO
+			if (iterator > keys.size())
+				break;
+
+			int32 valueIndex = 0;
+			std::vector<int32> values = m_keys[iterator].m_possibleValues;
+
+			for (int32 i = 0; i < (int32)values.size(); ++i)
+			{
+				int32 value = values[i];
+				if (keys[iterator].second == value)
+					valueIndex = i;
+			}
+
+			keyIndex += keyIndex * valueIndex;
 		}
+
+		return iterator;
 	}
 
 	bool bIsValid() { return m_bIsValid; }
@@ -188,18 +214,21 @@ public:
 	void SortKeys()
 	{
 		if (m_keys.size())
-			SortKeys(m_keys);
-		m_bSorted = true;
+		{
+			SortKeysInner(m_keys);
+			m_bSorted = true;
+			m_pArray = ComputePermutations();
+		}
 	}
 
 private:
-	void SortKeys(std::vector<TShaderPermutationKey>& keys)
+	void SortKeysInner(std::vector<TShaderPermutationKey>& keys)
 	{
 		check(keys.size() > 0);
 		std::sort(keys.begin(), keys.end(), &KeyComp);
 	}
 
-	void SortKeys(std::vector<PermutationValue>& keys)
+	void SortKeysInner(std::vector<PermutationValue>& keys)
 	{
 		check(keys.size() > 0);
 		std::sort(keys.begin(), keys.end(), &KeyCompLookup);
@@ -210,55 +239,63 @@ private:
 		check(m_bSorted);
 		PermutationArray outPermutations;
 
-		m_shaderIndexUpperLimit = 0;
-		int32 prevNumValues;
-
 		std::vector<PermutationValue> currPermutation;
 		currPermutation.resize(m_keys.size());
+		int32 numPermutations = 0;
 
 		//im okay with double looping here. There should only be a handful of keys
 		for (int32 i = 0; i < m_keys.size(); ++i)
 		{
 			TShaderPermutationKey& key = m_keys[i];
-			int32 maxNumValues = (int32)key.m_possibleValues.size();
 
-
-			if (i == 0)
-			{
-				prevNumValues = maxNumValues;
-			}
-			else
-			{
-				m_shaderIndexUpperLimit += prevNumValues * maxNumValues;
-				prevNumValues = maxNumValues;
-			}
+			numPermutations += (int32)key.m_possibleValues.size();
 
 			//just to initialize
 			currPermutation[i] = { key.m_macro, key.m_possibleValues[0] };
 		}
 
-		outPermutations.resize(m_shaderIndexUpperLimit);
-		int32 currPermutationIndex = 0;
-		outPermutations[currPermutationIndex++] = currPermutation;
+		outPermutations.push_back(currPermutation);
 
 		//just in case nothing went horribly wrong
 		check(currPermutation.size() == m_keys.size());
 
-		for (int32 iterator = 0;;)
-		{
 
+		int32 iterator = 0;
+
+		while (true)
+		{
+			if (iterator > currPermutation.size() - 1)
+				break;
+
+			const std::vector<int32>& keyValues = m_keys[iterator].m_possibleValues;
+
+			++currPermutation[iterator].second;
+
+			if (currPermutation[iterator].second > keyValues[keyValues.size() - 1])
+			{
+				currPermutation[iterator].second = keyValues[0];
+				++iterator;
+				continue;
+			}
+
+			outPermutations.push_back(currPermutation);
+
+			if (iterator > 0)
+			{
+				iterator = 0;
+				continue;
+			}
 
 		}
-
 
 		m_bIsValid = true;
 
 		return outPermutations;
 	}
 
+	PermutationArray m_pArray;
 	int32 m_shaderIndexUpperLimit;
 	std::vector<TShaderPermutationKey> m_keys;
-	std::vector<int32> m_shaderIndex;
 	bool m_bIsValid = false;
 	bool m_bSorted = false;
 };
@@ -266,7 +303,7 @@ private:
 struct TShader
 {
 	template<bool VS, bool HS, bool DS, bool GS, bool PS, bool CS>
-	void Initialize(std::string shadername, std::vector<TShaderPermutationKey> permutations = {}, std::vector<D3D_SHADER_MACRO>* macros = nullptr)
+	void Initialize(std::string shadername, std::vector<TShaderPermutationKey> permutations = {})
 	{
 		m_info.m_name = shadername;
 
@@ -281,19 +318,12 @@ struct TShader
 		m_usedshaderstages[EShaderStage::ePS] = PS;
 		m_usedshaderstages[EShaderStage::eCS] = CS;
 
+		//Global Macros
+		{
+			permutations.push_back({ "SHADER", 1 });
+		}
 		m_permutations.m_keys = permutations;
 		m_permutations.SortKeys();
-		PermutationArray testmacros = m_permutations.ComputePermutations();
-
-		m_shadermacros.push_back({"SHADER", "1"});
-
-		if (macros)
-		{
-			for (int i = 0; i < macros->size(); ++i)
-			{
-				m_shadermacros.push_back((*macros)[i]);
-			}
-		}
 	}
 
 	void Reset()
@@ -301,36 +331,36 @@ struct TShader
 		//reset cbuffers
 	};
 
-	void SetShaderStages(ID3D11DeviceContext* context)
+	void SetShaderStages(ID3D11DeviceContext* context, int32 permutationIndex = 0)
 	{
 		if (m_usedshaderstages[EShaderStage::eVS])
 		{
-			context->VSSetShader(m_shaderstages.m_vs, nullptr, 0);
+			context->VSSetShader(m_shaderstages[permutationIndex].m_vs, nullptr, 0);
 		}
 
 		if (m_usedshaderstages[EShaderStage::eHS])
 		{
-			context->HSSetShader(m_shaderstages.m_hs, nullptr, 0);
+			context->HSSetShader(m_shaderstages[permutationIndex].m_hs, nullptr, 0);
 		}
 
 		if (m_usedshaderstages[EShaderStage::eDS])
 		{
-			context->DSSetShader(m_shaderstages.m_ds, nullptr, 0);
+			context->DSSetShader(m_shaderstages[permutationIndex].m_ds, nullptr, 0);
 		}
 
 		if (m_usedshaderstages[EShaderStage::eGS])
 		{
-			context->GSSetShader(m_shaderstages.m_gs, nullptr, 0);
+			context->GSSetShader(m_shaderstages[permutationIndex].m_gs, nullptr, 0);
 		}
 
 		if (m_usedshaderstages[EShaderStage::ePS])
 		{
-			context->PSSetShader(m_shaderstages.m_ps, nullptr, 0);
+			context->PSSetShader(m_shaderstages[permutationIndex].m_ps, nullptr, 0);
 		}
 
 		if (m_usedshaderstages[EShaderStage::eCS])
 		{
-			context->CSSetShader(m_shaderstages.m_cs, nullptr, 0);
+			context->CSSetShader(m_shaderstages[permutationIndex].m_cs, nullptr, 0);
 		}
 	}
 
@@ -527,17 +557,20 @@ struct TShader
 
 	void Release()
 	{
-		DXRelease(m_shaderstages.m_vs);
-		DXRelease(m_shaderstages.m_hs);
-		DXRelease(m_shaderstages.m_ds);
-		DXRelease(m_shaderstages.m_gs);
-		DXRelease(m_shaderstages.m_ps);
-		DXRelease(m_shaderstages.m_cs);
-		DXRelease(m_inputlayout);
-
-		for (int i = 0; i < EShaderStage::eCount; ++i)
+		for (int i = 0; i < m_permutations.m_pArray.size(); ++i)
 		{
-			DXRelease(m_shaderreflections.m_stagereflection[i]);
+			DXRelease(m_shaderstages[i].m_vs);
+			DXRelease(m_shaderstages[i].m_hs);
+			DXRelease(m_shaderstages[i].m_ds);
+			DXRelease(m_shaderstages[i].m_gs);
+			DXRelease(m_shaderstages[i].m_ps);
+			DXRelease(m_shaderstages[i].m_cs);
+			DXRelease(m_inputlayout);
+
+			for (int j = 0; j < EShaderStage::eCount; ++j)
+			{
+				DXRelease(m_shaderreflections[i].m_stagerreflection[j]);
+			}
 		}
 
 		for (int i = 0; i < m_constantbuffers.size(); ++i)
@@ -555,7 +588,6 @@ struct TShader
 
 		m_constantbufferlayouts.clear();
 		m_constantbuffermap.clear();
-		m_shadermacros.clear();
 	}
 
 	std::vector<TConstantBufferBinding>	m_constantbuffers;
@@ -564,9 +596,6 @@ struct TShader
 	std::vector<ConstantBufferMapping> m_constantbuffermap;
 
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
-	std::vector<D3D_SHADER_MACRO> m_shadermacros; //global macros
-	TD3DReflections m_shaderreflections;
-	TShaderStages m_shaderstages;
 	std::string m_shaderdir;
 
 	std::vector<TTextureBinding> m_texturebindings;
@@ -577,4 +606,10 @@ struct TShader
 	ID3D11InputLayout* m_inputlayout;
 	TShaderInfo m_info;
 	TShaderPerumation m_permutations;
+
+
+	std::vector<TD3DReflections> m_shaderreflections;
+	std::vector<TShaderStages> m_shaderstages;
+
+	bool m_firstShaderInitialized = false;
 	};

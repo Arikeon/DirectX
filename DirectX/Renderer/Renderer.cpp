@@ -393,12 +393,10 @@ void CRenderer::CompileShaders()
 	const int NumGlobalShaders = EShaderList::eCount;
 	m_shaders.resize(NumGlobalShaders);
 
-	std::vector<TShaderPermutationKey> BasePassPermutations = { 
-		{"USE_TEXTURE_DIFFUSE", "0", "1" },
-		{"USE_TEXTURE_NORMAL", "0", "1"},
-		{"USE_TEST", "0", "1", "2", "3"}
-	};
 
+	std::vector<TShaderPermutationKey> BasePassPermutations = { 
+		{"USE_TEXTURE_DIFFUSE", 0, 1 },
+		{"USE_TEXTURE_NORMAL", 0, 1} };
 	
 	m_shaders[EShaderList::eBasePass].			Initialize<true, false, false, false, true, false>("BasePass", BasePassPermutations);
 	m_shaders[EShaderList::eDebugBasePass].		Initialize<true, false, false, false, true, false>("DebugLines");

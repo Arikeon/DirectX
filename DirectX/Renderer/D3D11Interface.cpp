@@ -244,64 +244,112 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	HRESULT r;
 	TD3DBlobs Blobs;
 
-	for (int i = 0; i < EShaderStage::eCount; ++i)
+	PermutationArray shaderPermutations = shader.m_permutations.m_pArray;
+
+	check(shader.m_permutations.bIsValid());
+
+	shader.m_shaderstages.resize(shaderPermutations.size());
+	shader.m_shaderreflections.resize(shaderPermutations.size());
+
+	for (int pIndex = 0; pIndex < shaderPermutations.size(); ++pIndex)
 	{
-		EShaderStage::Type stage = (EShaderStage::Type)i;
+		std::vector<PermutationValue> permutationsValue = shaderPermutations[pIndex];
 
-		if (shader.m_usedshaderstages[(EShaderStage::Type)stage] == false)
-			continue;
-		NumberOfStages++;
-
-		std::string pathstr = shader.GetDirectoryFromStage((EShaderStage::Type)stage);
-		std::wstring pathwstr = Algorithm::string_to_wstring(pathstr);
-
-		ID3DBlob* errmsg, *pblob;
-		std::vector<D3D_SHADER_MACRO> NullTerminatedMacro = shader.m_shadermacros;
-		NullTerminatedMacro.push_back({ NULL, NULL });
-
-		r = D3DCompileFromFile(
-			pathwstr.c_str(),
-			NullTerminatedMacro.data(),
-			D3D_COMPILE_STANDARD_FILE_INCLUDE,
-			TShader::GetEntryPointName(stage).c_str(),
-			TShader::GetFeatureLevel(stage).c_str(),
-			SHADER_COMPILE_FLAGS,
-			NULL,
-			&pblob,
-			&errmsg);
-
-		if (r != S_OK || pblob == nullptr)
+		for (int i = 0; i < EShaderStage::eCount; ++i)
 		{
-			char* msg = (char*)errmsg->GetBufferPointer();
-			size_t msgsize = errmsg->GetBufferSize();
+			EShaderStage::Type stage = (EShaderStage::Type)i;
 
-			std::stringstream strs;
-			for (int i = 0; i < msgsize; ++i)
-				strs << msg;
+			if (shader.m_usedshaderstages[(EShaderStage::Type)stage] == false)
+				continue;
+			NumberOfStages++;
 
-			volatile std::string errmsgstr = strs.str();
+			std::string pathstr = shader.GetDirectoryFromStage((EShaderStage::Type)stage);
+			std::wstring pathwstr = Algorithm::string_to_wstring(pathstr);
 
-			if (pblob)
-				pblob->Release();
-			errmsg->Release();
+			ID3DBlob* errmsg, * pblob;
+			std::vector<D3D_SHADER_MACRO> NullTerminatedMacro = {};
 
-			check(0);
-		}
-
-		Blobs.m_stageblob[stage] = pblob;
-
-		CreateShaderStage(shader, stage, Blobs.m_stageblob[stage]->GetBufferPointer(), Blobs.m_stageblob[stage]->GetBufferSize());
-
-
-		//set reflections
-		{
-			for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
+			auto& permutation = shaderPermutations[pIndex];
+			for (auto valueArr : permutation)
 			{
-				if (Blobs.m_stageblob[stage] != nullptr)
+				D3D_SHADER_MACRO newMacro = {};
+
+				std::string defStr = std::to_string(valueArr.second);
+
+				size_t nameSize = valueArr.first.size();
+				size_t definitionSize = defStr.size();
+
+				char* name = new char[nameSize + 1];
+				char* definition = new char[definitionSize + 1];
+
+				strcpy_s(name, nameSize + 1, valueArr.first.c_str());
+				strcpy_s(definition, definitionSize + 1, defStr.c_str());
+
+				name[nameSize] = '\0';
+				definition[definitionSize] = '\0';
+
+				newMacro.Name = name;
+				newMacro.Definition = definition;
+				NullTerminatedMacro.push_back(newMacro);
+			}
+
+			NullTerminatedMacro.push_back({ NULL, NULL });
+
+			r = D3DCompileFromFile(
+				pathwstr.c_str(),
+				NullTerminatedMacro.data(),
+				D3D_COMPILE_STANDARD_FILE_INCLUDE,
+				TShader::GetEntryPointName(stage).c_str(),
+				TShader::GetFeatureLevel(stage).c_str(),
+				SHADER_COMPILE_FLAGS,
+				NULL,
+				&pblob,
+				&errmsg);
+
+			for (auto& macro : NullTerminatedMacro)
+			{
+				delete macro.Definition;
+				delete macro.Name;
+			}
+
+			if (r != S_OK || pblob == nullptr)
+			{
+				char* msg = (char*)errmsg->GetBufferPointer();
+				size_t msgsize = errmsg->GetBufferSize();
+
+				std::stringstream strs;
+				for (int i = 0; i < msgsize; ++i)
+					strs << msg;
+
+				volatile std::string errmsgstr = strs.str();
+
+				if (pblob)
+					pblob->Release();
+				errmsg->Release();
+
+				check(0);
+			}
+
+			Blobs.m_stageblob[stage] = pblob;
+
+			CreateShaderStage(
+				shader,
+				stage, 
+				Blobs.m_stageblob[stage]->GetBufferPointer(), 
+				Blobs.m_stageblob[stage]->GetBufferSize(),
+				pIndex);
+
+
+			//set reflections
+			{
+				for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
 				{
-					void** pbuffer = reinterpret_cast<void**>(&shader.m_shaderreflections.m_stagereflection[stage]);
-					r = D3DReflect(Blobs.m_stageblob[stage]->GetBufferPointer(), Blobs.m_stageblob[stage]->GetBufferSize(), IID_ID3D11ShaderReflection, pbuffer);
-					checkhr(r);
+					if (Blobs.m_stageblob[stage] != nullptr)
+					{
+						void** pbuffer = reinterpret_cast<void**>(&shader.m_shaderreflections[pIndex].m_stagerreflection[stage]);
+						r = D3DReflect(Blobs.m_stageblob[stage]->GetBufferPointer(), Blobs.m_stageblob[stage]->GetBufferSize(), IID_ID3D11ShaderReflection, pbuffer);
+						checkhr(r);
+					}
 				}
 			}
 		}
@@ -315,7 +363,7 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	{
 		int texslot = 0, sampslot = 0, uavslot = 0;
 
-		ID3D11ShaderReflection* reflection = shader.m_shaderreflections.m_stagereflection[stage];
+		ID3D11ShaderReflection* reflection = shader.m_shaderreflections[0].m_stagerreflection[stage];
 
 		if (reflection)
 		{
@@ -368,7 +416,8 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	{
 		for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
 		{
-			ID3D11ShaderReflection* Reflection = shader.m_shaderreflections.m_stagereflection[stage];
+			//assumes no permutation on cbuffers
+			ID3D11ShaderReflection* Reflection = shader.m_shaderreflections[0].m_stagerreflection[stage];
 			if (Reflection)
 			{
 				D3D11_SHADER_DESC shaderdesc;
@@ -459,7 +508,7 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	//Compile InputLayout if it uses vertex shader
 	if (shader.m_usedshaderstages[EShaderStage::eVS] == true)
 	{
-		ID3D11ShaderReflection* VSReflection = shader.m_shaderreflections.m_vsreflection;
+		ID3D11ShaderReflection* VSReflection = shader.m_shaderreflections[0].m_vsreflection;
 
 		D3D11_SHADER_DESC shaderdesc = {};
 		VSReflection->GetDesc(&shaderdesc);
@@ -617,7 +666,12 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	return texture;
 }
 
-void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stage, void* pshadercode, const size_t shaderbinary)
+void CD3D11Interface::CreateShaderStage(
+	TShader& shader,
+	EShaderStage::Type stage,
+	void* pshadercode,
+	const size_t shaderbinary,
+	int32 permutationIndex = 0)
 {
 	check(shader.m_usedshaderstages[stage] == true);
 
@@ -627,37 +681,37 @@ void CD3D11Interface::CreateShaderStage(TShader& shader, EShaderStage::Type stag
 	{
 		case EShaderStage::eVS:
 		{
-			r = m_device->CreateVertexShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_vs);
+			r = m_device->CreateVertexShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_vs);
 			checkhr(r);
 		}
 			break;
 		case EShaderStage::eHS:
 		{
-			r = m_device->CreateHullShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_hs);
+			r = m_device->CreateHullShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_hs);
 			checkhr(r);
 		}
 			break;
 		case EShaderStage::eDS:
 		{
-			r = m_device->CreateDomainShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_ds);
+			r = m_device->CreateDomainShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_ds);
 			checkhr(r);
 		}
 			break;
 		case EShaderStage::eGS:
 		{
-			r = m_device->CreateGeometryShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_gs);
+			r = m_device->CreateGeometryShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_gs);
 			checkhr(r);
 		}
 			break;
 		case EShaderStage::ePS:
 		{
-			r = m_device->CreatePixelShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_ps);
+			r = m_device->CreatePixelShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_ps);
 			checkhr(r);
 		}
 			break;
 		case EShaderStage::eCS:
 		{
-			r = m_device->CreateComputeShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages.m_cs);
+			r = m_device->CreateComputeShader(pshadercode, shaderbinary, NULL, &shader.m_shaderstages[permutationIndex].m_cs);
 			checkhr(r);
 		}
 		break;
