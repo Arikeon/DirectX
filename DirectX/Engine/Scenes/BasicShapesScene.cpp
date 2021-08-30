@@ -51,6 +51,10 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	m_objects.push_back(skybox);
 
 	//______________spheres
+	//const int32 numSpheres = 1;
+	TObject spheres;
+	IO::TFileIO::LoadAsset(renderer, "Shapes", "Sphere.obj", spheres);
+	m_objects.push_back(spheres);
 
 }
 

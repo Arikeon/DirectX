@@ -288,10 +288,13 @@ namespace IO
 
 	void TFileIO::CreateSphere(CRenderer* renderer,
 		TObject& Object,
-		float size,
+		float lat,
+		float lon,
+		float scale,
 		int32 TextureID = -1)
 	{
-
+		//do this or load in an .obj
+		//https://medium.com/@oscarsc/four-ways-to-create-a-mesh-for-a-sphere-d7956b825db4
 	}
 
 	TextureID TFileIO::LoadTextureFromFile(CRenderer* renderer,

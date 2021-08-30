@@ -27,7 +27,9 @@ namespace IO
 
 		static void CreateSphere(CRenderer* renderer,
 			TObject& Object,
-			float size,
+			float lat,
+			float lon,
+			float scale,
 			int32 TextureID);
 
 		static TextureID LoadTextureFromFile(CRenderer* renderer,
