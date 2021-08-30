@@ -55,6 +55,7 @@ public:
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
 	TD3DRenderTarget& GetGBufferRTV(int32 index) { return m_GBuffer.GetRTV(index); }
+	ID3D11RasterizerState* GetRenderState(int32 index) { return m_rasterizerstates[index]; }
 	std::vector<struct ID3D11RenderTargetView*> GetGBuffer();
 
 	TextureID CreateTexture(

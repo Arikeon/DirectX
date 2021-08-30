@@ -66,7 +66,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		rtvs[i] = renderer->GetGBufferRTV(i).m_rtv;
 	}
 
-
 	for (int i = 0; i < (int)model.m_meshes.size(); ++i)
 	{
 		TMesh& currMesh = model.m_meshes[i];
@@ -147,6 +146,8 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		context->OMSetRenderTargets(numRTVs, rtvs, dsv);
 		context->RSSetViewports(1, &d3dview);
 		context->IASetInputLayout(shader.m_inputlayout);
+		//TODO add forced rasterization state for wireframe view mode
+		context->RSSetState(renderer->GetRenderState((int32)model.m_rasterizationState));
 		context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
 		UINT stride = vbuffer.m_info.m_stride;
 		UINT offset = 0;

@@ -2,6 +2,7 @@
 #include "Algorithm.h"
 #include "BufferStruct.h"
 #include "Object.h"
+#include "Colors.h"
 
 #include <fstream>
 #include <iostream>
@@ -52,7 +53,7 @@ namespace IO
 
 	}
 
-	TObject& TFileIO::LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, std::string assetName)
+	void TFileIO::LoadAsset(CRenderer* renderer, std::string assetDir, std::string assetName, TObject& Object)
 	{
 		const unsigned assimpFlags =
 			aiProcess_CalcTangentSpace |
@@ -76,12 +77,7 @@ namespace IO
 			check(0);
 		}
 
-		return LoadRootNode(renderer, objectArray, FullDir, scene);
-	}
 
-
-	TObject& TFileIO::LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene)
-	{
 		aiNode* nodeRoot = scene->mRootNode;
 		aiMesh** meshRoot = scene->mMeshes;
 		aiMaterial** materialRoot = scene->mMaterials;
@@ -91,8 +87,9 @@ namespace IO
 		float4x4 objectTransform = {};
 		memcpy(&objectTransform, &nodeRoot->mTransformation, sizeof(float4x4));
 
-		TObject object = {};
-		object.CopyFromNode(nodeRoot);
+		check(Object.m_name == "");
+		Object = {};
+		Object.CopyFromNode(nodeRoot);
 
 		const unsigned int numChildren = nodeRoot->mNumChildren;
 		unsigned int meshIndex = 0;
@@ -101,18 +98,14 @@ namespace IO
 		aiNode** rootNodeChild = nodeRoot->mChildren;
 
 		LoadNode(renderer,
-			object,
-			assetDir,
+			Object,
+			FullDir,
 			rootNodeChild,
 			meshRoot,
 			materialRoot,
 			numChildren,
 			meshIndex,
 			childIndex);
-
-		objectArray.push_back(object);
-
-		return objectArray[objectArray.size() - 1];
 	}
 
 	void TFileIO::LoadNode(
@@ -227,6 +220,148 @@ namespace IO
 			childIndex);
 	}
 
+	void TFileIO::CreateCube(CRenderer* renderer,
+		TObject& Object,
+		float size,
+		int32 TextureID = -1)
+	{
+		static int32 numCubes = 0;
+		TModel model = {};
+		TMesh mesh = {};
+		TMaterial material = {};
+
+		model.m_name = "Cube_" + std::to_string(numCubes++);
+
+		float scale = size * 0.5f;
+		{
+			//TODO calc normals
+			std::vector<BasePassInVS> vertexArray = {
+				{ float3(-scale, scale, -scale), {}, {}, {},			{0, 0.666666f} },
+				{ float3(-scale, -scale, -scale), {}, {}, {},			{0.25f, 0.666666f} },
+				{ float3(scale, scale, -scale), {}, {}, {},				{0, 0.333333f} },
+				{ float3(scale, -scale, -scale), {}, {}, {},			{0.25f, 0.333333f} },
+
+				{ float3(-scale, -scale, scale), {}, {}, {},			{0.5f, 0.666666f} },
+				{ float3(scale, -scale, scale), {}, {}, {},				{0.5f, 0.333333f} },
+				{ float3(-scale, scale, scale), {}, {}, {},				{0.75f, 0.666666f} },
+				{ float3(scale, scale, scale), {}, {},	{},				{0.75f, 0.333333f} },
+
+				{ float3(-scale, scale, -scale), {}, {}, {},			{1.f, 0.666666f} },
+				{ float3(scale, scale, -scale), {}, {}, {},				{1.f, 0.333333f} },
+
+				{ float3(-scale, scale, -scale), {}, {}, {},			{0.25f, 1.f} },
+				{ float3(-scale, scale, scale), {}, {}, {},				{0.5f, 1.f} },
+
+				{ float3(scale, scale, -scale), {}, {}, {},				{0.25f, 0} },
+				{ float3(scale, scale, scale), {}, {},	{},				{0.5f, 0} },
+			
+			};
+
+			std::vector<unsigned int> indexArray = {
+				0, 2, 1,	//front
+				1, 2, 3,
+				4, 5, 6,	//back
+				5, 7, 6,
+				6, 7, 8,	//top
+				7, 9 ,8,
+				1, 3, 4,	//bottom
+				3, 5, 4,
+				1, 11,10,	//left
+				1, 4, 11,
+				3, 12, 5,	//right
+				5, 12, 13
+			};
+
+			mesh.CreateMesh<BasePassInVS>(renderer, vertexArray, indexArray);
+		}
+		
+
+		material.m_textureDiffuse = TextureID;
+		renderer->m_materials.push_back(material);
+		mesh.m_materialKey = (int32)renderer->m_materials.size() - 1;
+
+		mesh.m_bInitialized = true;
+		model.m_meshes.push_back(mesh);
+
+		Object.m_models.push_back(model);
+	}
+
+	void TFileIO::CreateSphere(CRenderer* renderer,
+		TObject& Object,
+		float size,
+		int32 TextureID = -1)
+	{
+
+	}
+
+	TextureID TFileIO::LoadTextureFromFile(CRenderer* renderer,
+		std::string assetDir,
+		std::string assetName)
+	{
+		check(assetDir != "" && assetName != "");
+
+		ID3D11Device* device = renderer->GetD3DInterface()->GetDevice();
+		ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
+
+		const std::wstring wAssetDir = Algorithm::ChopLast(Algorithm::GetExecutablePath(), L"\\", 4) + L"\\DirectX\\Assets\\";
+		std::string FullDir = Algorithm::wstring_to_string(wAssetDir) + assetDir + "\\" + assetName;
+
+		ID3D11Resource* resource = nullptr;
+		ID3D11ShaderResourceView* srv = nullptr;
+
+		HRESULT r = {};
+		r = DirectX::CreateWICTextureFromFile(device, Algorithm::string_to_wstring(FullDir).c_str(), &resource, &srv);
+		checkhr(r);
+
+		return renderer->CreateTexture(resource, srv);
+
+		return -1;
+	}
+
+	TextureID TFileIO::LoadTextureFromFile(
+		CRenderer* renderer,
+		currAIMaterial* material,
+		std::string assetDir,
+		aiString dir)
+	{
+		ID3D11Device* device = renderer->GetD3DInterface()->GetDevice();
+		ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
+
+		std::wstring wassetDir = Algorithm::string_to_wstring(assetDir);
+		std::wstring wdir = Algorithm::ChopLast(wassetDir, L"\\") + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
+
+
+		ID3D11Resource* resource = nullptr;
+		ID3D11ShaderResourceView* srv = nullptr;
+
+		HRESULT r = {};
+		r = DirectX::CreateWICTextureFromFile(device, wdir.c_str(), &resource, &srv);
+		checkhr(r);
+
+		return renderer->CreateTexture(resource, srv);
+
+#if 0 //broken
+		auto scratch = DirectX::ScratchImage{};
+
+		HRESULT r = {};
+		r = DirectX::LoadFromWICFile(wdir.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratch);
+
+		checkhr(r);
+
+
+		auto image = scratch.GetMetadata();
+
+		return renderer->CreateTexture(
+			static_cast<unsigned int>(image.width),
+			static_cast<unsigned int>(image.height),
+			static_cast<unsigned int>(image.depth),
+			static_cast<unsigned int>(image.arraySize),
+			static_cast<unsigned int>(image.mipLevels),
+			image.format);
+#endif
+		return -1;
+	}
+
 	MaterialID TFileIO::LoadMaterial(
 		CRenderer* renderer,
 		std::string assetDir,
@@ -329,49 +464,5 @@ namespace IO
 #endif
 
 		return ID;
-	}
-
-	TextureID TFileIO::LoadTextureFromFile(
-		CRenderer* renderer,
-		currAIMaterial* material,
-		std::string assetDir,
-		aiString dir)
-	{
-		ID3D11Device* device = renderer->GetD3DInterface()->GetDevice();
-		ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
-
-		std::wstring wassetDir = Algorithm::string_to_wstring(assetDir);
-		std::wstring wdir = Algorithm::ChopLast(wassetDir, L"\\") + L"\\" + Algorithm::string_to_wstring(dir.C_Str());
-
-		
-		ID3D11Resource* resource = nullptr;
-		ID3D11ShaderResourceView* srv = nullptr;
-
-		HRESULT r = {};
-		r = DirectX::CreateWICTextureFromFile(device, wdir.c_str(), &resource, &srv);
-		checkhr(r);
-
-		return renderer->CreateTexture(resource, srv);
-
-#if 0 //broken
-		auto scratch = DirectX::ScratchImage{};
-
-		HRESULT r = {};
-		r = DirectX::LoadFromWICFile(wdir.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratch);
-
-		checkhr(r);
-
-
-		auto image = scratch.GetMetadata();
-
-		return renderer->CreateTexture(
-			static_cast<unsigned int>(image.width),
-			static_cast<unsigned int>(image.height),
-			static_cast<unsigned int>(image.depth),
-			static_cast<unsigned int>(image.arraySize),
-			static_cast<unsigned int>(image.mipLevels),
-			image.format);
-#endif
-		return -1;
 	}
 }

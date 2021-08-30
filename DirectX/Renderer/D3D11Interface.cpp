@@ -189,6 +189,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 	//Initialize rasterizerstate
 	//TODO pre-alloc all states
 	{
+		//ERasterizerStates::eFillSolidCullBack
 		D3D11_RASTERIZER_DESC RasterizerDesc = {};
 		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
 		RasterizerDesc.CullMode = D3D11_CULL_BACK;
@@ -202,6 +203,55 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		RasterizerDesc.AntialiasedLineEnable = false;
 
 		r = m_device->CreateRasterizerState(&RasterizerDesc, &prenderer->m_rasterizerstates[0]);
+		checkhr(r);
+
+
+		//ERasterizerStates::eFillSolidCullFront
+		RasterizerDesc = {};
+		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		RasterizerDesc.CullMode = D3D11_CULL_FRONT;
+		RasterizerDesc.DepthClipEnable = true;
+		RasterizerDesc.FrontCounterClockwise = true;
+		RasterizerDesc.DepthBias = false;
+		RasterizerDesc.DepthBiasClamp = 0;
+		RasterizerDesc.SlopeScaledDepthBias = 0;
+		RasterizerDesc.ScissorEnable = false;
+		RasterizerDesc.MultisampleEnable = false;
+		RasterizerDesc.AntialiasedLineEnable = false;
+
+		r = m_device->CreateRasterizerState(&RasterizerDesc, &prenderer->m_rasterizerstates[1]);
+		checkhr(r);
+
+		//ERasterizerStates::eFillSolidCullNone
+		RasterizerDesc = {};
+		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		RasterizerDesc.CullMode = D3D11_CULL_NONE;
+		RasterizerDesc.DepthClipEnable = true;
+		RasterizerDesc.FrontCounterClockwise = true;
+		RasterizerDesc.DepthBias = false;
+		RasterizerDesc.DepthBiasClamp = 0;
+		RasterizerDesc.SlopeScaledDepthBias = 0;
+		RasterizerDesc.ScissorEnable = false;
+		RasterizerDesc.MultisampleEnable = false;
+		RasterizerDesc.AntialiasedLineEnable = false;
+
+		r = m_device->CreateRasterizerState(&RasterizerDesc, &prenderer->m_rasterizerstates[2]);
+		checkhr(r);
+
+		//ERasterizerStates::eFillWireframeCullNone
+		RasterizerDesc = {};
+		RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+		RasterizerDesc.CullMode = D3D11_CULL_NONE;
+		RasterizerDesc.DepthClipEnable = true;
+		RasterizerDesc.FrontCounterClockwise = true;
+		RasterizerDesc.DepthBias = false;
+		RasterizerDesc.DepthBiasClamp = 0;
+		RasterizerDesc.SlopeScaledDepthBias = 0;
+		RasterizerDesc.ScissorEnable = false;
+		RasterizerDesc.MultisampleEnable = false;
+		RasterizerDesc.AntialiasedLineEnable = false;
+
+		r = m_device->CreateRasterizerState(&RasterizerDesc, &prenderer->m_rasterizerstates[3]);
 		checkhr(r);
 	}
 
@@ -634,6 +684,7 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	TextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 	TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	TextureDesc.CPUAccessFlags = false;
+	TextureDesc.MiscFlags = arraySize > 1 ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
 	texture.SetDesc(TextureDesc);
 	

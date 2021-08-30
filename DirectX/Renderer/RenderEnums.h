@@ -6,8 +6,10 @@ namespace ERasterizerStates
 {
 	enum Type
 	{
-		eSolid = 0,
-
+		eFillSolidCullBack = 0,
+		eFillSolidCullFront,
+		eFillSolidCullNone,
+		eFillWireframeCullNone,
 		eCount
 	};
 }

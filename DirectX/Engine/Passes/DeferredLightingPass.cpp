@@ -79,6 +79,7 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	context->OMSetRenderTargets(1, &backbuffer, nullptr); //no depth
 	context->RSSetViewports(1, &d3dview);
 	context->IASetInputLayout(ScreenQuadVS.m_inputlayout);
+	context->RSSetState(renderer->GetRenderState((int32)ERasterizerStates::eFillSolidCullNone));
 	context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(ScreenQuadMesh.m_topology));
 
 

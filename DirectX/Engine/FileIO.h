@@ -18,9 +18,29 @@ namespace IO
 	public:
 		static void DebugOutTexture(CRenderer* renderer, ID3D11Texture2D* texture, std::wstring name);
 
-		static TObject& LoadAsset(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, std::string assetName);
+		static void LoadAsset(CRenderer* renderer, std::string assetDir, std::string assetName, TObject& Object);
+
+		static void CreateCube(CRenderer* renderer,
+			TObject& Object,
+			float size,
+			int32 TextureID);
+
+		static void CreateSphere(CRenderer* renderer,
+			TObject& Object,
+			float size,
+			int32 TextureID);
+
+		static TextureID LoadTextureFromFile(CRenderer* renderer,
+			std::string assetDir,
+			std::string assetName);
+
 	private:
-		static TObject& LoadRootNode(CRenderer* renderer, std::vector<TObject>& objectArray, std::string assetDir, const aiScene* scene);
+		static TextureID LoadTextureFromFile(
+			CRenderer* renderer,
+			struct currAIMaterial* material,
+			std::string assetDir,
+			aiString dir);
+
 		//recursion
 		static void LoadNode(
 			CRenderer* renderer,
@@ -40,11 +60,5 @@ namespace IO
 			aiMesh* meshChild,
 			aiMaterial** materialRoot
 		);
-
-		static TextureID LoadTextureFromFile(
-			CRenderer* renderer,
-			struct currAIMaterial* material,
-			std::string assetDir,
-			aiString dir);
 	};
 }

@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "DebugLinesStructs.h"
 #include "Renderer.h"
+#include "RenderEnums.h"
 
 struct aiNode;
 class CRenderer;
@@ -16,6 +17,7 @@ struct TModel
 	std::vector<TMesh> m_meshes;
 	std::string m_name;
 	TTransform m_transform;
+	ERasterizerStates::Type m_rasterizationState = ERasterizerStates::eFillSolidCullBack;
 };
 
 struct TDebugLines : public TModel

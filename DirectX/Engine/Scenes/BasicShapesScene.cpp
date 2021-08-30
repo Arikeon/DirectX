@@ -3,6 +3,7 @@
 #include "StructCollection.h"
 #include "Model.h"
 #include "Mesh.h"
+#include "FileIO.h"
 
 CBasicShapesScene::CBasicShapesScene()
 {
@@ -36,6 +37,20 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 {
 	check(renderer);
 
+	m_camera.SetStartingPosition(0, 7, -10);
+
+	//Initialize debug lines
+	m_debuglines.Initialize(renderer);
+
+	//______________skybox
+	TObject skybox;
+	float SkyboxScale = 9999.f;
+	int32 SkyboxTexture = IO::TFileIO::LoadTextureFromFile(renderer, "SkyboxAssets", "skybox.png");
+	IO::TFileIO::CreateCube(renderer, skybox, SkyboxScale, SkyboxTexture);
+	skybox.m_models[0].m_rasterizationState = ERasterizerStates::eFillSolidCullBack;
+	m_objects.push_back(skybox);
+
+	//______________spheres
 
 }
 

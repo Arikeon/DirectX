@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Colors.h"
 #include "Object.h"
+#include "Light.h"
 
 //Shaders
 #include "BasePassStructs.h"
@@ -41,6 +42,9 @@ protected:
 	EScene::Type m_selectedscene;
 	CCamera m_camera;
 	std::vector<TObject> m_objects;
+	std::vector<TDirectionalLight> m_DirectionalLights;
+	std::vector<TPointLight> m_PointLights;
+	std::vector<TSpotLight> m_SpotLights;
 	TObject m_ScreenQuad;
 	TDebugLines m_debuglines;
 	bool m_bDrawTransforms = true;

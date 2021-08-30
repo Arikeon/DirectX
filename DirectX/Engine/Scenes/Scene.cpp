@@ -82,9 +82,9 @@ void CScene::DrawTransform(TModel& model)
 	XMStoreFloat3(&fup, up);
 	XMStoreFloat3(&fforward, forward);
 
-	m_debuglines.AddDebugLines(fposition, fright, TColors::Red);
-	m_debuglines.AddDebugLines(fposition, fup, TColors::Green);
-	m_debuglines.AddDebugLines(fposition, fforward, TColors::Blue);
+	//m_debuglines.AddDebugLines(fposition, fright, TColors::Red);
+	//m_debuglines.AddDebugLines(fposition, fup, TColors::Green);
+	//m_debuglines.AddDebugLines(fposition, fforward, TColors::Blue);
 }
 
 void CScene::DrawModelTransforms()

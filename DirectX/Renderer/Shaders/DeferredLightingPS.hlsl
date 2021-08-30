@@ -2,7 +2,7 @@
 #include "ScreenQuadStructs.h"
 
 START_CBUFFER(LightBuffer, b0)
-float3 position;
+float4 positionAndType;
 END_CBUFFER(LightBuffer);
 
 #if SHADER

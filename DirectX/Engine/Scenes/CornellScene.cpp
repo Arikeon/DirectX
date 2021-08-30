@@ -36,9 +36,28 @@ void CCornellScene::LoadScene(CRenderer* renderer)
 	//Initialize debug lines
 	m_debuglines.Initialize(renderer);
 
-	TObject& cornelle = IO::TFileIO::LoadAsset(renderer, m_objects, "CornellAssets", "CornellBox-Glossy.obj");
-	//TObject& cornelle = IO::TFileIO::LoadAsset(renderer, m_objects, "windmill", "windmill.obj");
-	cornelle.ScaleMeshes(float3(7.f, 7.f, 7.f));
+	TObject skybox, cornelle;
+
+
+
+
+	//______________cornelle
+	//IO::TFileIO::LoadAsset(renderer, "CornellAssets", "CornellBox-Sphere.obj", cornelle);
+	//cornelle.ScaleMeshes(float3(7.f, 7.f, 7.f));
+	//
+	////Cornelle has inward facing walls
+	//for (int32 i = 0; i < (int32)cornelle.m_models.size(); ++i)
+	//{
+	//	TModel& model = cornelle.m_models[i];
+	//	model.m_rasterizationState = ERasterizerStates::eFillSolidCullFront;
+	//}
+	//m_objects.push_back(cornelle);
+
+
+	//TDirectionalLight DirectionalLight = {};
+	//DirectionalLight.m_color = float3(1.f, 1.f, 1.f);
+	//DirectionalLight.m_intensity = 0.2f;
+	//DirectionalLight.
 }
 
 void CCornellScene::UnloadScene()
