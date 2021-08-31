@@ -52,6 +52,7 @@ public:
 	TD3DDepthTarget& GetDepthTarget(int index) { return m_depthtargets[index]; }
 	TD3DBuffer& GetVertexBuffer(BufferID index) { return m_vertexbuffers[index]; }
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
+	TD3DBuffer& GetInstanceBuffer(BufferID index) { return m_instancebuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
 	TD3DRenderTarget& GetGBufferRTV(int32 index) { return m_GBuffer.GetRTV(index); }
@@ -89,6 +90,7 @@ private:
 	std::vector<TShader> m_shaders;
 	std::vector<TD3DBuffer> m_vertexbuffers;
 	std::vector<TD3DBuffer> m_indexbuffers;
+	std::vector<TD3DBuffer> m_instancebuffers;
 	std::vector<TD3DRenderTarget> m_rtvs;
 	std::vector<TD3DTexture> m_textures;
 	std::vector<TD3DSampler> m_samplers;

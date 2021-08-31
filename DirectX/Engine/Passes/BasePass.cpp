@@ -83,7 +83,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		BasePassWVP WVP;
 		XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, true>());
 		WVP.World._44 = 1.f;
-
 		WVP.View = camera.m_cameramatrix;
 
 		//Setup projection per frame
@@ -92,7 +91,23 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		shader.WriteConstants("View", (void*)&WVP.View);
 		shader.WriteConstants("Proj", (void*)&WVP.Proj);
 
-		shader.SetShaderStages<EShaderStage::eVS>(context);
+
+		bool bUsesInstanceBuffer = currMesh.HasInstances();
+		int32 NumInstances = 0;
+
+		if (bUsesInstanceBuffer)
+		{
+			NumInstances = (int32)currMesh.m_instanceTransforms.size();
+
+			BasePassInstanceBuffer InstanceBufferStruct = {};
+			for (int32 j = 0; j < NumInstances; ++j)
+			{
+				TTransform& transform = currMesh.m_instanceTransforms[j];
+				XMStoreFloat4x4(&InstanceBufferStruct.InstanceMatrix[j], transform.GetMatrix<true, true, true>());
+			}
+
+			shader.WriteConstants("InstanceMatrix", (void*)&InstanceBufferStruct.InstanceMatrix);
+		}
 
 		int32 permutationIndex = 0;
 
@@ -105,7 +120,8 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 
 			permutationIndex = shader.m_permutations.GetShaderWithPermutation({
 				{"USE_TEXTURE_DIFFUSE" , (int32)bHasDiffuseMap},
-				{"USE_TEXTURE_Normal" , (int32)bHasNormalMap} });
+				{"USE_TEXTURE_Normal" , (int32)bHasNormalMap},
+				{"USE_INSTANCING" , (int32)bUsesInstanceBuffer},});
 
 			TD3DSampler sampler;
 
@@ -138,7 +154,16 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			ConstantMaterial.Metallic = Material.m_metallic;
 			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor);
 		}
+		else
+		{
+			permutationIndex = shader.m_permutations.GetShaderWithPermutation({
+				{"USE_TEXTURE_DIFFUSE" , (int32)false},
+				{"USE_TEXTURE_Normal" , (int32)false},
+				{"USE_INSTANCING" , (int32)bUsesInstanceBuffer}, });
+		}
 
+		shader.SetShaderStages<EShaderStage::eVS>(context, permutationIndex);
+		//HS DS
 		shader.SetShaderStages<EShaderStage::ePS>(context, permutationIndex);
 
 		shader.BindData(context);
@@ -155,16 +180,32 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
 
 		bool bUsesIndexBuffer = currMesh.m_indexkey != -1;
-		if (bUsesIndexBuffer)
-		{
-			TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
-			context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
 
-			context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
+		if (bUsesInstanceBuffer)
+		{
+			if (bUsesIndexBuffer)
+			{
+				TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
+				context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
+				context->DrawIndexedInstanced(ibuffer.m_info.m_elementcount, NumInstances, 0, 0, 0);
+			}
+			else
+			{
+				context->DrawInstanced(vbuffer.m_info.m_elementcount, NumInstances, 0, 0);
+			}
 		}
 		else
 		{
-			context->Draw(vbuffer.m_info.m_elementcount, 0);
+			if (bUsesIndexBuffer)
+			{
+				TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
+				context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
+				context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
+			}
+			else
+			{
+				context->Draw(vbuffer.m_info.m_elementcount, 0);
+			}
 		}
 	}
 }

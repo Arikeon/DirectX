@@ -627,6 +627,7 @@ struct TShader
 		m_constantbuffermap.clear();
 	}
 
+	//TODO permute these but hash them to remove duplicates
 	std::vector<TConstantBufferBinding>	m_constantbuffers;
 	std::vector<TD3DConstantBufferLayout> m_constantbufferlayouts;
 	std::vector<TCPUConstant> m_CPUconstantbuffers;

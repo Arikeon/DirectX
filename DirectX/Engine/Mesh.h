@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "BufferStruct.h"
 #include "D3D11Interface.h"
+#include "Transform.h"
 
 #include <vector>
 #include <array>
@@ -75,6 +76,7 @@ private:
 
 public:
 	bool HasMaterial() { return m_materialKey > -1; }
+	bool HasInstances() { return (int32)m_instanceTransforms.size() > 0; }
 
 	template <class TVertexType, int arraycount>
 	void CreateMesh(CRenderer* renderer,
@@ -136,6 +138,7 @@ public:
 	MaterialID m_materialKey = -1;
 	BufferID m_vertexkey, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
+	std::vector<TTransform> m_instanceTransforms;
 	std::array<bool, EVertexLayout::eCount> m_vertexLayout;
 	ETopologyType::Type m_topology = ETopologyType::eTriangleList;
 };

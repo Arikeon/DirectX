@@ -1,7 +1,7 @@
 #include "HLSLGlue.h"
 #include "BasePassStructs.h"
 
-START_CBUFFER(BasePassMaterial, b0)
+START_CBUFFER(BasePassMaterial, b3)
 float4 DiffuseColor;
 float Roughness;
 float Metallic;
@@ -11,10 +11,10 @@ END_CBUFFER(BasePassMaterial);
 
 struct GBufferOut
 {
-	float4 color		SEMANTIC(SV_TARGET0)
-	float4 worldnormal	SEMANTIC(SV_TARGET1)
-	float4 roughness	SEMANTIC(SV_TARGET2)
-	float4 metallic		SEMANTIC(SV_TARGET3)
+	float4 color		SEMANTIC(SV_TARGET0);
+	float4 worldnormal	SEMANTIC(SV_TARGET1);
+	float4 roughness	SEMANTIC(SV_TARGET2);
+	float4 metallic		SEMANTIC(SV_TARGET3);
 };
 
 SamplerState Sampler;
