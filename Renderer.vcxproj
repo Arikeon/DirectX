@@ -164,6 +164,7 @@
     <ClInclude Include="DirectX\Renderer\Shader.h" />
     <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h" />
     <ClInclude Include="DirectX\Renderer\Shaders\DebugLinesStructs.h" />
+    <ClInclude Include="DirectX\Renderer\Shaders\FrameBuffer.h" />
     <ClInclude Include="DirectX\Renderer\Shaders\ScreenQuadStructs.h" />
     <ClInclude Include="DirectX\Renderer\StructCollection.h" />
   </ItemGroup>

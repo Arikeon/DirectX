@@ -298,10 +298,16 @@ void CD3D11Interface::CompileShader(TShader& shader)
 
 	check(shader.m_permutations.bIsValid());
 
-	shader.m_shaderstages.resize(shaderPermutations.size());
-	shader.m_shaderreflections.resize(shaderPermutations.size());
+	const int32 numPermutations = (int32)shaderPermutations.size();
 
-	for (int pIndex = 0; pIndex < shaderPermutations.size(); ++pIndex)
+	shader.m_shaderstages.resize(numPermutations);
+	shader.m_shaderreflections.resize(numPermutations);
+	shader.m_constantbuffers.resize(numPermutations);
+	shader.m_constantbufferlayouts.resize(numPermutations);
+	shader.m_CPUconstantbuffers.resize(numPermutations);
+	shader.m_constantbuffermap.resize(numPermutations);
+
+	for (int pIndex = 0; pIndex < numPermutations; ++pIndex)
 	{
 		std::vector<PermutationValue> permutationsValue = shaderPermutations[pIndex];
 
@@ -403,10 +409,106 @@ void CD3D11Interface::CompileShader(TShader& shader)
 				}
 			}
 		}
+
+
+		//Atleast one shader have to compile
+		check(NumberOfStages > 0);
+
+
+		//Allocate cbuffers (CPU&GPU)
+		{
+			for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
+			{
+				//assumes no permutation on cbuffers
+				ID3D11ShaderReflection* Reflection = shader.m_shaderreflections[pIndex].m_stagerreflection[stage];
+				if (Reflection)
+				{
+					D3D11_SHADER_DESC shaderdesc;
+					Reflection->GetDesc(&shaderdesc);
+
+					int bufferslot = 0;
+					for (int cbuffercount = 0; cbuffercount < (int)shaderdesc.ConstantBuffers; ++cbuffercount)
+					{
+						TD3DConstantBufferLayout Layout;
+						Layout.m_bufferSize = 0;
+						ID3D11ShaderReflectionConstantBuffer* pcbuffer = Reflection->GetConstantBufferByIndex(cbuffercount);
+						pcbuffer->GetDesc(&Layout.m_desc);
+
+						for (int cbuffervariable = 0; cbuffervariable < (int)Layout.m_desc.Variables; ++cbuffervariable)
+						{
+							ID3D11ShaderReflectionVariable* pVariable = pcbuffer->GetVariableByIndex(cbuffervariable);
+							D3D11_SHADER_VARIABLE_DESC variabledesc;
+							pVariable->GetDesc(&variabledesc);
+							Layout.m_variables.push_back(variabledesc);
+
+							ID3D11ShaderReflectionType* ptype = pVariable->GetType();
+							D3D11_SHADER_TYPE_DESC typedesc;
+							ptype->GetDesc(&typedesc);
+							Layout.m_types.push_back(typedesc);
+
+							Layout.m_bufferSize += variabledesc.Size;
+						}
+						Layout.m_stage = (EShaderStage::Type)stage;
+						Layout.m_bufferSlot = bufferslot++;
+
+						shader.m_constantbufferlayouts[pIndex].push_back(Layout);
+					}
+				}
+			}
+
+			//CPU
+			int cbufferregister = 0;
+			for (int cblayout = 0; cblayout < (int)shader.m_constantbufferlayouts[pIndex].size(); ++cblayout)
+			{
+				TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[pIndex][cblayout];
+
+				std::vector<CPUConstantID> cpubufferID;
+
+				for (int varcount = 0; varcount < (int)layout.m_variables.size(); ++varcount)
+				{
+					D3D11_SHADER_VARIABLE_DESC vardesc = layout.m_variables[varcount];
+
+					TCPUConstant c;
+					CPUConstantID c_id = static_cast<CPUConstantID>(shader.m_CPUconstantbuffers[pIndex].size());
+
+					c.m_name = vardesc.Name;
+					c.m_size = vardesc.Size;
+					c.m_pdata = new char[c.m_size];
+					memset(c.m_pdata, 0, c.m_size);
+					shader.m_constantbuffermap[pIndex].push_back(std::make_pair(cbufferregister, c_id));
+					shader.m_CPUconstantbuffers[pIndex].push_back(c);
+				}
+				++cbufferregister;
+			}
+
+			//GPU
+			{
+				D3D11_BUFFER_DESC cbufferDesc = {};
+				cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+				cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+				cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+				cbufferDesc.MiscFlags = 0;
+				cbufferDesc.StructureByteStride = 0;
+
+				for (int cblayout = 0; cblayout < shader.m_constantbufferlayouts[pIndex].size(); ++cblayout)
+				{
+					TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[pIndex][cblayout];
+
+					TConstantBufferBinding cbufferbinding;
+					cbufferDesc.ByteWidth = layout.m_desc.Size;
+
+					r = m_device->CreateBuffer(&cbufferDesc, NULL, &cbufferbinding.m_pdata);
+					checkhr(r);
+
+					cbufferbinding.m_dirty = true;
+					cbufferbinding.m_shaderstage = layout.m_stage;
+					cbufferbinding.m_bufferslot = layout.m_bufferSlot;
+					shader.m_constantbuffers[pIndex].push_back(cbufferbinding);
+				}
+			}
+		}
 	}
 
-	//Atleast one shader have to compile
-	check(NumberOfStages > 0);
 
 	//Allocate textures
 	for (int stage = 0; stage < (int)EShaderStage::eCount; ++stage)
@@ -458,99 +560,6 @@ void CD3D11Interface::CompileShader(TShader& shader)
 				break;
 
 				}
-			}
-		}
-	}
-
-	//Allocate cbuffers (CPU&GPU)
-	{
-		for (unsigned stage = EShaderStage::eVS; stage < EShaderStage::eCount; ++stage)
-		{
-			//assumes no permutation on cbuffers
-			ID3D11ShaderReflection* Reflection = shader.m_shaderreflections[0].m_stagerreflection[stage];
-			if (Reflection)
-			{
-				D3D11_SHADER_DESC shaderdesc;
-				Reflection->GetDesc(&shaderdesc);
-
-				int bufferslot = 0;
-				for (int cbuffercount = 0; cbuffercount < (int)shaderdesc.ConstantBuffers; ++cbuffercount)
-				{
-					TD3DConstantBufferLayout Layout;
-					Layout.m_bufferSize = 0;
-					ID3D11ShaderReflectionConstantBuffer* pcbuffer = Reflection->GetConstantBufferByIndex(cbuffercount);
-					pcbuffer->GetDesc(&Layout.m_desc);
-
-					for (int cbuffervariable = 0; cbuffervariable < (int)Layout.m_desc.Variables; ++cbuffervariable)
-					{
-						ID3D11ShaderReflectionVariable* pVariable = pcbuffer->GetVariableByIndex(cbuffervariable);
-						D3D11_SHADER_VARIABLE_DESC variabledesc;
-						pVariable->GetDesc(&variabledesc);
-						Layout.m_variables.push_back(variabledesc);
-
-						ID3D11ShaderReflectionType* ptype = pVariable->GetType();
-						D3D11_SHADER_TYPE_DESC typedesc;
-						ptype->GetDesc(&typedesc);
-						Layout.m_types.push_back(typedesc);
-
-						Layout.m_bufferSize += variabledesc.Size;
-					}
-					Layout.m_stage = (EShaderStage::Type)stage;
-					Layout.m_bufferSlot = bufferslot++;
-
-					shader.m_constantbufferlayouts.push_back(Layout);
-				}
-			}
-		}
-
-		//CPU
-		int cbufferregister = 0;
-		for (int cblayout = 0; cblayout < (int)shader.m_constantbufferlayouts.size(); ++cblayout)
-		{
-			TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[cblayout];
-
-			std::vector<CPUConstantID> cpubufferID;
-
-			for (int varcount = 0; varcount < (int)layout.m_variables.size(); ++varcount)
-			{
-				D3D11_SHADER_VARIABLE_DESC vardesc = layout.m_variables[varcount];
-
-				TCPUConstant c;
-				CPUConstantID c_id = static_cast<CPUConstantID>(shader.m_CPUconstantbuffers.size());
-
-				c.m_name = vardesc.Name;
-				c.m_size = vardesc.Size;
-				c.m_pdata = new char[c.m_size];
-				memset(c.m_pdata, 0, c.m_size);
-				shader.m_constantbuffermap.push_back(std::make_pair(cbufferregister, c_id));
-				shader.m_CPUconstantbuffers.push_back(c);
-			}
-			++cbufferregister;
-		}
-
-		//GPU
-		{
-			D3D11_BUFFER_DESC cbufferDesc = {};
-			cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-			cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			cbufferDesc.MiscFlags = 0;
-			cbufferDesc.StructureByteStride = 0;
-
-			for (int cblayout = 0; cblayout < shader.m_constantbufferlayouts.size(); ++cblayout)
-			{
-				TD3DConstantBufferLayout& layout = shader.m_constantbufferlayouts[cblayout];
-
-				TConstantBufferBinding cbufferbinding;
-				cbufferDesc.ByteWidth = layout.m_desc.Size;
-
-				r = m_device->CreateBuffer(&cbufferDesc, NULL, &cbufferbinding.m_pdata);
-				checkhr(r);
-
-				cbufferbinding.m_dirty = true;
-				cbufferbinding.m_shaderstage = layout.m_stage;
-				cbufferbinding.m_bufferslot = layout.m_bufferSlot;
-				shader.m_constantbuffers.push_back(cbufferbinding);
 			}
 		}
 	}

@@ -250,6 +250,8 @@ public:
 		}
 	}
 
+	int32 NumPermutations() { return (int32)m_pArray.size(); }
+
 private:
 	void SortKeysInner(std::vector<TShaderPermutationKey>& keys)
 	{
@@ -323,7 +325,6 @@ private:
 	}
 
 	PermutationArray m_pArray;
-	int32 m_shaderIndexUpperLimit;
 	std::vector<TShaderPermutationKey> m_keys;
 	bool m_bIsValid = false;
 	bool m_bSorted = false;
@@ -425,19 +426,19 @@ struct TShader
 		context->PSSetSamplers(StartSlot, 1, &sampler);
 	}
 
-	void WriteConstants(std::string name, void* data)
+	void WriteConstants(std::string name, void* data, int32 permutationIndex = 0)
 	{
-		for (int i = 0; i < (int)m_constantbuffermap.size(); i++)
+		for (int i = 0; i < (int)m_constantbuffermap[permutationIndex].size(); i++)
 		{
-			ConstantBufferMapping& buffID = m_constantbuffermap[i];
+			ConstantBufferMapping& buffID = m_constantbuffermap[permutationIndex][i];
 
 			CPUConstantID constantID = buffID.second;
-			TCPUConstant& CPUConstant = m_CPUconstantbuffers[constantID];
+			TCPUConstant& CPUConstant = m_CPUconstantbuffers[permutationIndex][constantID];
 
 			if (strcmp(CPUConstant.m_name.c_str(), name.c_str()) == 0)
 			{
 				memcpy(CPUConstant.m_pdata, data, CPUConstant.m_size);
-				m_constantbuffers[buffID.first].m_dirty = true;
+				m_constantbuffers[permutationIndex][buffID.first].m_dirty = true;
 				return;
 			}
 		}
@@ -447,11 +448,11 @@ struct TShader
 		CONSOLE_LOG(L"Unable to find: " + wname);
 	}
 
-	void BindData(ID3D11DeviceContext* context)
+	void BindData(ID3D11DeviceContext* context, int32 permutationIndex = 0)
 	{
-		for (int i = 0; i < (int)m_constantbuffers.size(); ++i)
+		for (int i = 0; i < (int)m_constantbuffers[permutationIndex].size(); ++i)
 		{
-			TConstantBufferBinding& binding = m_constantbuffers[i];
+			TConstantBufferBinding& binding = m_constantbuffers[permutationIndex][i];
 
 			if (binding.m_dirty)
 			{
@@ -461,15 +462,15 @@ struct TShader
 				context->Map(pdata, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 				char* buffpos = (char*)mappedResource.pData;
 
-				for (ConstantBufferMapping& indexedPair : m_constantbuffermap)
+				for (ConstantBufferMapping& indexedPair : m_constantbuffermap[permutationIndex])
 				{
 					if (indexedPair.first != i)
 						continue;
 
 					int slotIndex = indexedPair.first;
 					CPUConstantID cpuid = indexedPair.second;
-					check(cpuid < (int)m_CPUconstantbuffers.size());
-					TCPUConstant& constant = m_CPUconstantbuffers[cpuid];
+					check(cpuid < (int)m_CPUconstantbuffers[permutationIndex].size());
+					TCPUConstant& constant = m_CPUconstantbuffers[permutationIndex][cpuid];
 					memcpy(buffpos, constant.m_pdata, constant.m_size);
 					buffpos += constant.m_size;
 				}
@@ -594,7 +595,7 @@ struct TShader
 
 	void Release()
 	{
-		for (int i = 0; i < m_permutations.m_pArray.size(); ++i)
+		for (int i = 0; i < m_permutations.NumPermutations(); ++i)
 		{
 			DXRelease(m_shaderstages[i].m_vs);
 			DXRelease(m_shaderstages[i].m_hs);
@@ -608,30 +609,32 @@ struct TShader
 			{
 				DXRelease(m_shaderreflections[i].m_stagerreflection[j]);
 			}
-		}
 
-		for (int i = 0; i < m_constantbuffers.size(); ++i)
-		{
-			DXRelease(m_constantbuffers[i].m_pdata);
-		}
-		m_constantbuffers.clear();
+			for (int j = 0; j < m_constantbuffers[i].size(); ++j)
+			{
+				DXRelease(m_constantbuffers[i][j].m_pdata);
+			}
 
-		for (int i = 0; i < m_CPUconstantbuffers.size(); ++i)
-		{
-			delete m_CPUconstantbuffers[i].m_pdata;
-			m_CPUconstantbuffers[i].m_pdata = nullptr;
-		}
-		m_CPUconstantbuffers.clear();
+			m_constantbuffers[i].clear();
 
-		m_constantbufferlayouts.clear();
-		m_constantbuffermap.clear();
+			for (int j = 0; j < m_CPUconstantbuffers[i].size(); ++j)
+			{
+				delete m_CPUconstantbuffers[i][j].m_pdata;
+				m_CPUconstantbuffers[i][j].m_pdata = nullptr;
+			}
+
+
+			m_CPUconstantbuffers[i].clear();
+			m_constantbufferlayouts[i].clear();
+			m_constantbuffermap[i].clear();
+		}
 	}
 
-	//TODO permute these but hash them to remove duplicates
-	std::vector<TConstantBufferBinding>	m_constantbuffers;
-	std::vector<TD3DConstantBufferLayout> m_constantbufferlayouts;
-	std::vector<TCPUConstant> m_CPUconstantbuffers;
-	std::vector<ConstantBufferMapping> m_constantbuffermap;
+
+	std::vector<std::vector<TConstantBufferBinding>> m_constantbuffers;
+	std::vector<std::vector<TD3DConstantBufferLayout>> m_constantbufferlayouts;
+	std::vector<std::vector<TCPUConstant>> m_CPUconstantbuffers;
+	std::vector<std::vector<ConstantBufferMapping>> m_constantbuffermap;
 
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
 	std::string m_shaderdir;

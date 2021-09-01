@@ -70,7 +70,7 @@ void CEngine::Update()
 			DispatchMessage(&WndEvent);
 		}
 
-		m_scene->UpdateScene(m_renderer);
+		m_scene->UpdateScene(m_renderer, Time.m_deltaTime);
 		m_renderer->Clear();
 		m_scene->RenderScene(m_renderer, m_window, Time.m_deltaTime);
 		m_renderer->Present();

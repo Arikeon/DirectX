@@ -29,12 +29,13 @@ public:
 	virtual ~CScene();
 	virtual void Initialize(CRenderer* renderer);
 	virtual void LoadScene(CRenderer* renderer) = 0;
-	virtual void UpdateScene(CRenderer* renderer) = 0;
+	virtual void UpdateScene(CRenderer* renderer, float delta) = 0;
 	virtual void UnloadScene() = 0;
 	virtual void RenderScene(CRenderer* renderer, TWindow window, float delta);
 	virtual void DrawTransform(TModel& object);
 	virtual void DrawModelTransforms();
 	virtual std::vector<TObject>& GetObjects() { return m_objects; }
+	virtual std::vector<TLight>& GetLights() { return m_Lights; }
 
 protected:
 	virtual void InitializeScreenQuad(CRenderer* renderer);
@@ -42,9 +43,7 @@ protected:
 	EScene::Type m_selectedscene;
 	CCamera m_camera;
 	std::vector<TObject> m_objects;
-	std::vector<TDirectionalLight> m_DirectionalLights;
-	std::vector<TPointLight> m_PointLights;
-	std::vector<TSpotLight> m_SpotLights;
+	std::vector<TLight> m_Lights;
 	TObject m_ScreenQuad;
 	TDebugLines m_debuglines;
 	bool m_bDrawTransforms = true;

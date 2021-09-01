@@ -4,7 +4,12 @@
 #include "BasePassVS.hlsl"
 
 
-void TBasePass::Render(CRenderer* renderer, std::vector<TObject>& objects, TDebugLines debuglines, CCamera camera, TWindow window, float delta)
+void TBasePass::Render(CRenderer* renderer,
+	std::vector<TObject>& objects,
+	TDebugLines debuglines,
+	CCamera camera,
+	TWindow window,
+	float delta)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 
@@ -22,15 +27,17 @@ void TBasePass::Render(CRenderer* renderer, std::vector<TObject>& objects, TDebu
 
 		TShader& BasePassShader = renderer->GetShader(EShaderList::eBasePass);
 
-		renderer->UnbindRTV();
-		renderer->UnbindSRV(BasePassShader);
-
 		for (int i = 0; i < nummodels; ++i)
 		{
 			TModel& model = models[i];
 			DrawMeshes(renderer, BasePassShader, camera, window, delta, model);
 		}
 
+		renderer->UnbindRTV();
+		renderer->UnbindSRV(BasePassShader);
+
+		//Render this AFTER scene has been rendered - make new draw pass
+#if 0
 		//Draw debug lines
 		if (debuglines.m_meshes.size() > 0)
 		{
@@ -42,6 +49,7 @@ void TBasePass::Render(CRenderer* renderer, std::vector<TObject>& objects, TDebu
 
 			DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
 		}
+#endif
 	}
 }
 
@@ -79,50 +87,65 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
 		const float aspectratio = static_cast<float>(window.m_width) / static_cast<float>(window.m_height);
 
-		//World View Proj buffer
-		BasePassWVP WVP;
-		XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, true>());
-		WVP.World._44 = 1.f;
-		WVP.View = camera.m_cameramatrix;
-
-		//Setup projection per frame
-		XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FLT_MAX));
-		shader.WriteConstants("World", (void*)&WVP.World);
-		shader.WriteConstants("View", (void*)&WVP.View);
-		shader.WriteConstants("Proj", (void*)&WVP.Proj);
-
-
+		bool bHasMaterial = currMesh.HasMaterial();
 		bool bUsesInstanceBuffer = currMesh.HasInstances();
+		bool bHasDiffuseMap = false, bHasNormalMap = false;
+
 		int32 NumInstances = 0;
-
-		if (bUsesInstanceBuffer)
-		{
-			NumInstances = (int32)currMesh.m_instanceTransforms.size();
-
-			BasePassInstanceBuffer InstanceBufferStruct = {};
-			for (int32 j = 0; j < NumInstances; ++j)
-			{
-				TTransform& transform = currMesh.m_instanceTransforms[j];
-				XMStoreFloat4x4(&InstanceBufferStruct.InstanceMatrix[j], transform.GetMatrix<true, true, true>());
-			}
-
-			shader.WriteConstants("InstanceMatrix", (void*)&InstanceBufferStruct.InstanceMatrix);
-		}
-
 		int32 permutationIndex = 0;
+		std::vector<PermutationValue> permutationKey;
 
-		if (currMesh.HasMaterial())
+		permutationKey.push_back({ "USE_INSTANCING", (int32)bUsesInstanceBuffer });
+
+		if (bHasMaterial)
 		{
 			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
 
-			bool bHasDiffuseMap = Material.m_textureDiffuse != -1;
-			bool bHasNormalMap = Material.m_textureNormal != -1;
+			bHasDiffuseMap = Material.m_textureDiffuse != -1;
+			bHasNormalMap = Material.m_textureNormal != -1;
+		}
 
-			permutationIndex = shader.m_permutations.GetShaderWithPermutation({
-				{"USE_TEXTURE_DIFFUSE" , (int32)bHasDiffuseMap},
-				{"USE_TEXTURE_Normal" , (int32)bHasNormalMap},
-				{"USE_INSTANCING" , (int32)bUsesInstanceBuffer},});
+		permutationKey.push_back({ "USE_TEXTURE_DIFFUSE" , (int32)bHasDiffuseMap });
+		permutationKey.push_back({ "USE_TEXTURE_Normal" , (int32)bHasNormalMap });
 
+		permutationIndex = shader.m_permutations.GetShaderWithPermutation(permutationKey);
+
+
+		//________________Map Vertex & Instance data
+		{
+			//World View Proj buffer
+			BasePassWVP WVP;
+			XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, true>());
+			WVP.World._44 = 1.f;
+			WVP.View = camera.m_cameramatrix;
+
+			//Setup projection per frame
+			XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FLT_MAX));
+			shader.WriteConstants("World", (void*)&WVP.World, permutationIndex);
+			shader.WriteConstants("View", (void*)&WVP.View, permutationIndex);
+			shader.WriteConstants("Proj", (void*)&WVP.Proj, permutationIndex);
+
+			if (bUsesInstanceBuffer)
+			{
+				NumInstances = (int32)currMesh.m_instanceTransforms.size();
+
+				BasePassInstanceBuffer InstanceBufferStruct = {};
+				for (int32 j = 0; j < NumInstances; ++j)
+				{
+					TTransform& transform = currMesh.m_instanceTransforms[j];
+					XMStoreFloat4x4(&InstanceBufferStruct.InstanceMatrix[j], transform.GetMatrix<true, true, true>());
+				}
+
+				shader.WriteConstants("InstanceMatrix", (void*)&InstanceBufferStruct.InstanceMatrix, permutationIndex);
+			}
+		}
+
+
+
+		//________________Map Pixel Shader data
+		if (bHasMaterial)
+		{
+			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
 			TD3DSampler sampler;
 
 			if (Material.bHasSamplerOverride())
@@ -152,59 +175,63 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
 			ConstantMaterial.Roughness = Material.m_roughness;
 			ConstantMaterial.Metallic = Material.m_metallic;
-			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor);
-		}
-		else
-		{
-			permutationIndex = shader.m_permutations.GetShaderWithPermutation({
-				{"USE_TEXTURE_DIFFUSE" , (int32)false},
-				{"USE_TEXTURE_Normal" , (int32)false},
-				{"USE_INSTANCING" , (int32)bUsesInstanceBuffer}, });
+			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor, permutationIndex);
 		}
 
-		shader.SetShaderStages<EShaderStage::eVS>(context, permutationIndex);
-		//HS DS
-		shader.SetShaderStages<EShaderStage::ePS>(context, permutationIndex);
 
-		shader.BindData(context);
 
-		context->OMSetRenderTargets(numRTVs, rtvs, dsv);
-		context->RSSetViewports(1, &d3dview);
-		context->IASetInputLayout(shader.m_inputlayout);
-		//TODO add forced rasterization state for wireframe view mode
-		context->RSSetState(renderer->GetRenderState((int32)model.m_rasterizationState));
-		context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
-		UINT stride = vbuffer.m_info.m_stride;
-		UINT offset = 0;
-
-		context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
-
-		bool bUsesIndexBuffer = currMesh.m_indexkey != -1;
-
-		if (bUsesInstanceBuffer)
+		//________________Bind shader data
 		{
-			if (bUsesIndexBuffer)
+			shader.SetShaderStages<EShaderStage::eVS>(context, permutationIndex);
+			//HS DS
+			shader.SetShaderStages<EShaderStage::ePS>(context, permutationIndex);
+
+			shader.BindData(context, permutationIndex);
+
+			context->OMSetRenderTargets(numRTVs, rtvs, dsv);
+			context->RSSetViewports(1, &d3dview);
+			context->IASetInputLayout(shader.m_inputlayout);
+			//TODO add forced rasterization state for wireframe view mode
+			context->RSSetState(renderer->GetRenderState((int32)model.m_rasterizationState));
+			context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
+		}
+
+
+
+		//________________Draw shaders
+		{
+			UINT stride = vbuffer.m_info.m_stride;
+			UINT offset = 0;
+
+			context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
+
+			bool bUsesIndexBuffer = currMesh.m_indexkey != -1;
+
+			if (bUsesInstanceBuffer)
 			{
-				TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
-				context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
-				context->DrawIndexedInstanced(ibuffer.m_info.m_elementcount, NumInstances, 0, 0, 0);
+				if (bUsesIndexBuffer)
+				{
+					TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
+					context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
+					context->DrawIndexedInstanced(ibuffer.m_info.m_elementcount, NumInstances, 0, 0, 0);
+				}
+				else
+				{
+					context->DrawInstanced(vbuffer.m_info.m_elementcount, NumInstances, 0, 0);
+				}
 			}
 			else
 			{
-				context->DrawInstanced(vbuffer.m_info.m_elementcount, NumInstances, 0, 0);
-			}
-		}
-		else
-		{
-			if (bUsesIndexBuffer)
-			{
-				TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
-				context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
-				context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
-			}
-			else
-			{
-				context->Draw(vbuffer.m_info.m_elementcount, 0);
+				if (bUsesIndexBuffer)
+				{
+					TD3DBuffer ibuffer = renderer->GetIndexBuffer(currMesh.m_indexkey);
+					context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
+					context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
+				}
+				else
+				{
+					context->Draw(vbuffer.m_info.m_elementcount, 0);
+				}
 			}
 		}
 	}

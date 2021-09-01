@@ -9,7 +9,7 @@ class CCornellScene : public CScene
 public:
 	CCornellScene();
 	virtual ~CCornellScene();
-	virtual void UpdateScene(CRenderer* renderer) override final;
+	virtual void UpdateScene(CRenderer* renderer, float delta) override final;
 	virtual void LoadScene(CRenderer* renderer) override final;
 	virtual void UnloadScene() override final;
 };

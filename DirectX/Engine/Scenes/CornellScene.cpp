@@ -11,7 +11,7 @@ CCornellScene::~CCornellScene()
 
 }
 
-void CCornellScene::UpdateScene(CRenderer* renderer)
+void CCornellScene::UpdateScene(CRenderer* renderer, float delta)
 {
 	m_debuglines.ClearLines();
 

@@ -1,7 +1,7 @@
 #include "HLSLGlue.h"
 #include "BasePassStructs.h"
 
-START_CBUFFER(BasePassMaterial, b3)
+START_CBUFFER(BasePassMaterial, b0)
 float4 DiffuseColor;
 float Roughness;
 float Metallic;

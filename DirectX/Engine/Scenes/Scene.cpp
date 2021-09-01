@@ -120,5 +120,5 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 	DrawModelTransforms();
 
 	basePass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
-	deferredLightingPass->Render(renderer, m_ScreenQuad, delta);
+	deferredLightingPass->Render(renderer, GetLights(), m_ScreenQuad, m_camera, delta);
 }
