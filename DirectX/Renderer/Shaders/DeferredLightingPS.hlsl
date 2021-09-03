@@ -5,7 +5,14 @@
 #define MAX_POINT_LIGHT 10
 #define MAX_SPOT_LIGHT 10
 
-START_CBUFFER(LightBuffer, b0)
+START_CBUFFER(DeferredBuffer, b0) //TEMP, move to frame buffer
+float4 CameraPosition;
+float4x4 InverseViewMatrix;
+float4x4 InverseProjectionMatrix;
+END_CBUFFER(DeferredBuffer);
+
+
+START_CBUFFER(LightBuffer, b1)
 float4 DirectionalColor;
 float4 DirectionalPositionAndIntensity;
 float3 DirectionalDirection;
@@ -20,19 +27,12 @@ float4 SpotDirection[MAX_SPOT_LIGHT];
 int PointLightCount;
 int SpotLightCount;
 END_CBUFFER(LightBuffer);
-
-START_CBUFFER(DeferredBuffer, b1) //TEMP, move to frame buffer
-float4 CameraPosition;
-
-END_CBUFFER(DeferredBuffer);
-
 #if SHADER
 
 SamplerState s_Sampler;
-Texture2D t_Diffuse;
-Texture2D t_WorldNormal;
-Texture2D t_Roughness;
-Texture2D t_Metallic;
+Texture2D t_Diffuse						: register(t0);
+Texture2D t_WorldNormal					: register(t1);
+Texture2D t_RoughnessMetallicDistance	: register(t2);
 
 //Texture2D t_DirectionalShadow;
 
@@ -54,16 +54,32 @@ float4 SpecularComponentReflection(float3 ViewDirection, float SpecularPower, fl
 	return SpecularComponent;
 }
 
+float3 GetPositionVS(float2 uv, float depth)
+{
+	//https://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
+	float x = uv.x * 2 - 1;
+	float y = (1 - uv.y) * 2 - 1;
+	
+	float4 projectedPosition = float4(x, y, depth, 1.0f);
+	float4 viewPosition = mul(projectedPosition, InverseProjectionMatrix);
+
+	return viewPosition.xyz / viewPosition.w;
+}
 
 float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 {
-	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
-	float4 worldnormal = t_WorldNormal.Sample(s_Sampler, input.uv);
-	float roughness = t_Roughness.Sample(s_Sampler, input.uv);
-	float metallic = t_Metallic.Sample(s_Sampler, input.uv);
+	//float4 worldNormal = t_WorldNormal.Sample(s_Sampler, input.uv);
+	//float roughness = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).x;
+	//float metallic = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).y;
 
-//temp dir stuff
-	//float3 viewDirection = camera.xyz - 
+	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
+	float distance = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).z;
+
+	float4 PositionVS = float4(GetPositionVS(input.uv, distance), 1.0f);
+
+	float3 PositionWS = mul(InverseViewMatrix, PositionVS).xyz;
+
+	//color = float4(PositionWS, 1.0f);
 
 #if LIGHT_TYPE_DIRECTIONAL
 #endif

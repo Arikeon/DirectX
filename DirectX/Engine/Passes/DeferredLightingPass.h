@@ -7,6 +7,7 @@ struct TDeferredLightingPass : public TPass
 		std::vector<TLight> Lights,
 		TObject& ScreenQuadObject,
 		CCamera camera,
+		TWindow window,
 		float delta);
 
 private:
@@ -16,5 +17,6 @@ private:
 		TShader ScreenQuadVS,
 		TModel& ScreenQuadModel,
 		CCamera camera,
+		TWindow window,
 		float delta);
 };

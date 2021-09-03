@@ -285,7 +285,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
 		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eWorldNormal);
 	}
-	//________________Roughness________________
+	//________________Roughness_&_Metallic_&_Distance________________
 	{
 		TD3DTexture tex = {};
 		tex.m_name = "GBuffer_RoughnessRenderTarget";
@@ -295,7 +295,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		desc.Height					= window.m_height;
 		desc.ArraySize				= 1;
 		desc.MipLevels				= 1;
-		desc.Format					= DXGI_FORMAT_R32_FLOAT;
+		desc.Format					= DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage					= D3D11_USAGE_DEFAULT;
 		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		desc.SampleDesc.Count		= 1;
@@ -322,46 +322,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eRoughness);
-	}
-	//________________Metallic________________
-	{
-		TD3DTexture tex = {};
-		tex.m_name = "GBuffer_MetallicRenderTarget";
-
-		D3D11_TEXTURE2D_DESC desc	= {};
-		desc.Width					= window.m_width;
-		desc.Height					= window.m_height;
-		desc.ArraySize				= 1;
-		desc.MipLevels				= 1;
-		desc.Format					= DXGI_FORMAT_R32_FLOAT;
-		desc.Usage					= D3D11_USAGE_DEFAULT;
-		desc.BindFlags				= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-		desc.SampleDesc.Count		= 1;
-
-		tex.SetDesc(desc);
-
-		r = device->CreateTexture2D(&desc, nullptr, &tex.m_tex2D);
-		checkhr(r);
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format							= desc.Format;
-		srvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip		= 0;
-		srvDesc.Texture2D.MipLevels				= -1;
-		
-		r = device->CreateShaderResourceView(tex.m_tex2D, &srvDesc, &tex.m_srv);
-		checkhr(r);
-
-		TD3DRenderTarget rtv = {};
-		device->CreateRenderTargetView(tex.m_tex2D, nullptr, &rtv.m_rtv);
-		checkhr(r);
-
-		rtv.bIsValid = true;
-		tex.bIsValid = true;
-
-		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eMetallic);
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eRoughnessMetallicDistance);
 	}
 
 	check(m_GBuffer.CountValid() == EGBufferKeys::eMax);

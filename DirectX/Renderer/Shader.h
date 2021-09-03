@@ -445,7 +445,7 @@ struct TShader
 
 		std::wstring wname(Algorithm::string_to_wstring(name));
 
-		CONSOLE_LOG(L"Unable to find: " + wname);
+		CONSOLE_LOG(L"Unable to find: " + wname + L". Possibly due to not being used in shader.");
 	}
 
 	void BindData(ID3D11DeviceContext* context, int32 permutationIndex = 0)

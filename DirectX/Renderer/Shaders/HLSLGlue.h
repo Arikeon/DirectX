@@ -7,7 +7,8 @@
 #define CPU_SHADER_READABLE __cplusplus || SHADER
 #define CPP __cplusplus
 
-// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct
+
+#define FRUSTRUM_FAR_PLANE 3.402823466e+38F //FLT_MAX
 
 #if CPP
 	//Buffer & Structs
@@ -18,6 +19,7 @@
 	#define CENTROID
 	#define NOINTERPOLATION
 	#define NOPERSPECTIVE
+	#define LINEAR
 #elif SHADER //defined during compile
 	//Buffer & Structs
 	#define START_CBUFFER(CB, reg) cbuffer CB : register(reg) {
@@ -26,4 +28,5 @@
 	#define CENTROID centroid
 	#define NOINTERPOLATION nointerpolation
 	#define NOPERSPECTIVE noperspective
+	#define LINEAR linear
 #endif

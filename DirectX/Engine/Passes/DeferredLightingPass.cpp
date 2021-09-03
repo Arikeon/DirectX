@@ -6,6 +6,7 @@ void TDeferredLightingPass::Render(CRenderer* renderer,
 	std::vector<TLight> Lights,
 	TObject& ScreenQuadObject,
 	CCamera camera,
+	TWindow window,
 	float delta)
 {
 	check(ScreenQuadObject.m_models.size() == 1);
@@ -13,7 +14,7 @@ void TDeferredLightingPass::Render(CRenderer* renderer,
 	TShader DeferredLightingPS = renderer->GetShader(EShaderList::eDeferredLighting);
 	TShader ScreenQuadVS = renderer->GetShader(EShaderList::eScreenQuad);
 
-	DrawScreenQuad(renderer, Lights, DeferredLightingPS, ScreenQuadVS, ScreenQuadObject.m_models[0], camera, delta);
+	DrawScreenQuad(renderer, Lights, DeferredLightingPS, ScreenQuadVS, ScreenQuadObject.m_models[0], camera, window, delta);
 
 	renderer->UnbindRTV();
 	renderer->UnbindSRV(ScreenQuadVS);
@@ -26,6 +27,7 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	TShader ScreenQuadVS,
 	TModel& ScreenQuadModel,
 	CCamera camera,
+	TWindow window,
 	float delta)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
@@ -38,8 +40,6 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		{"LIGHT_TYPE_POINT",		(int32)0},
 		{"LIGHT_TYPE_SPOT",			(int32)0},
 		{"SHADOWED",				(int32)0}});
-
-
 
 	//Gather Lights
 	std::vector<TDirectionalLight> DirectionalLights;
@@ -78,9 +78,31 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 
 	check(DirectionalLights.size() <= 1);
 
-	LightBuffer lightBuffer = {};
+	//TEMP TODO remove redundancy
+	DeferredBuffer deferredBuffer;
+	{
+		XMStoreFloat4(&deferredBuffer.CameraPosition, camera.m_pos);
 
+		const float aspectratio = static_cast<float>(window.m_width) / static_cast<float>(window.m_height);
+		matrix projection = XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE);
+		matrix view = XMLoadFloat4x4(&camera.m_cameramatrix);
+
+		XMStoreFloat4x4(&deferredBuffer.InverseViewMatrix, XMMatrixInverse(nullptr, view));
+		XMStoreFloat4x4(&deferredBuffer.InverseProjectionMatrix, XMMatrixInverse(nullptr, projection));
+
+		DeferredLightingPS.WriteConstants("CameraPosition", (void*)&deferredBuffer.CameraPosition, permutationIndex);
+		DeferredLightingPS.WriteConstants("InverseViewMatrix", (void*)&deferredBuffer.InverseViewMatrix, permutationIndex);
+		DeferredLightingPS.WriteConstants("InverseProjectionMatrix", (void*)&deferredBuffer.InverseProjectionMatrix, permutationIndex);
+
+
+		matrix WVP = view * projection;
+
+		ScreenQuadVS.WriteConstants("WorldViewProj", (void*)&WVP);
+	}
+
+	LightBuffer lightBuffer = {};
 	//Push light buffer data
+	if (0)
 	{
 		if ((int32)DirectionalLights.size() == 1)
 		{
@@ -112,17 +134,11 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		}
 
 
-		DeferredLightingPS.WriteConstants("DirectionalColor",				(void*)&lightBuffer.DirectionalColor, permutationIndex);
-		DeferredLightingPS.WriteConstants("DirectionalPositionAndIntensity",(void*)&lightBuffer.DirectionalPositionAndIntensity, permutationIndex);
-		DeferredLightingPS.WriteConstants("DirectionalDirection",			(void*)&lightBuffer.DirectionalDirection, permutationIndex);
+		DeferredLightingPS.WriteConstants("DirectionalColor", (void*)&lightBuffer.DirectionalColor, permutationIndex);
+		DeferredLightingPS.WriteConstants("DirectionalPositionAndIntensity", (void*)&lightBuffer.DirectionalPositionAndIntensity, permutationIndex);
+		DeferredLightingPS.WriteConstants("DirectionalDirection", (void*)&lightBuffer.DirectionalDirection, permutationIndex);
 	}
 
-	//TEMP
-	DeferredBuffer deferredBuffer;
-	{
-		XMStoreFloat4(&deferredBuffer.CameraPosition, camera.m_pos);
-		DeferredLightingPS.WriteConstants("CameraPosition", (void*)&deferredBuffer.CameraPosition);
-	}
 
 	//set Gbuffer and samplers
 	{
@@ -135,11 +151,8 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		TD3DTexture WorldNormalTex = renderer->GetTexture(
 			renderer->GetGBufferRTV(EGBufferKeys::eWorldNormal).m_textureid);
 
-		TD3DTexture RoughnessTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eRoughness).m_textureid);
-
-		TD3DTexture MetallicTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eMetallic).m_textureid);
+		TD3DTexture RoughnessMetallicDistanceTex = renderer->GetTexture(
+			renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicDistance).m_textureid);
 
 		if (DiffuseTex.IsValid())
 			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 0>(context, DiffuseTex.m_srv);
@@ -147,11 +160,8 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		if (WorldNormalTex.IsValid())
 			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 1>(context, WorldNormalTex.m_srv);
 
-		if (WorldNormalTex.IsValid())
-			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 2>(context, WorldNormalTex.m_srv);
-
-		if (MetallicTex.IsValid())
-			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 3>(context, MetallicTex.m_srv);
+		if (RoughnessMetallicDistanceTex.IsValid())
+			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 2>(context, RoughnessMetallicDistanceTex.m_srv);
 	}
 	
 	TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];

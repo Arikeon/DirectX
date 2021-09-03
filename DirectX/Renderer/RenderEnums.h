@@ -88,8 +88,7 @@ namespace EGBufferKeys
 	{
 		eBaseColor = 0,
 		eWorldNormal,
-		eRoughness,
-		eMetallic,
+		eRoughnessMetallicDistance,
 		eMax
 	};
 }

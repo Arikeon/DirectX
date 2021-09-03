@@ -26,13 +26,25 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer, float delta)
 		skybox.m_models[0].m_transform.m_rotation.y += .0006f * delta;
 		skybox.m_models[0].m_transform.m_rotation.x += .0006f * delta;
 	}
+
+#if 1
+	float3 CameraPos;
+	XMStoreFloat3(&CameraPos, m_camera.m_pos);
+	float3 SpherePos = m_objects[1].m_models[0].m_transform.m_position;
+
+	float inner = pow((CameraPos.x - SpherePos.x), 2) + pow((CameraPos.y - SpherePos.y), 2) + pow((CameraPos.z - SpherePos.z), 2);
+
+	float distancefromSphere = sqrt(inner);
+
+	CONSOLE_LOG(std::to_wstring(distancefromSphere));
+#endif
 }
 
 void CBasicShapesScene::LoadScene(CRenderer* renderer)
 {
 	check(renderer);
 
-	m_camera.SetStartingPosition(0, 7, -10);
+	m_camera.SetStartingPosition(0, 0, -20);
 
 	//Initialize debug lines
 	m_debuglines.Initialize(renderer);
@@ -49,26 +61,30 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	//______________teapots
 	const int32 numteapots = 10;
 	TObject teapots;
-	IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
+	//slow
+	//IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
+	IO::TFileIO::LoadAsset(renderer, "Shapes", "cube.obj", teapots);
+	float boxScale = 5;
+	teapots.ScaleMeshes({ boxScale, boxScale, boxScale });
 
-	int32 i = 0, j = 0;
-	float xPos = -10.f, zPos = 0.f;
-
-	for (; i < 2; ++i, zPos += 6.f)
-	{
-		for (; j < numteapots / 2; ++j, xPos += 6.f)
-		{
-			TTransform transform = teapots.m_models[0].m_transform;
-			transform.m_position.x = xPos;
-			transform.m_position.z = zPos;
-
-			teapots.m_models[0].m_meshes[0].m_instanceTransforms.push_back(transform);
-		}
-
-		xPos = -10.f;
-
-		j = 0;
-	}
+	//int32 i = 0, j = 0;
+	//float xPos = -10.f, zPos = 0.f;
+	//
+	//for (; i < 2; ++i, zPos += 6.f)
+	//{
+	//	for (; j < numteapots / 2; ++j, xPos += 6.f)
+	//	{
+	//		TTransform transform = teapots.m_models[0].m_transform;
+	//		transform.m_position.x = xPos;
+	//		transform.m_position.z = zPos;
+	//
+	//		teapots.m_models[0].m_meshes[0].m_instanceTransforms.push_back(transform);
+	//	}
+	//
+	//	xPos = -10.f;
+	//
+	//	j = 0;
+	//}
 
 	m_objects.push_back(teapots);
 

@@ -137,6 +137,8 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 
 		check(MainRTV.m_rtv && rtvTexture.m_tex2D);
 
+		rtvTexture.m_name = "BackBuffer";
+
 		rtvTexture.bIsValid = true;
 		MainRTV.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, rtvTexture);
 
@@ -149,17 +151,43 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		TD3DDepthTarget MainDepth;
 		TD3DTexture dsvTexture = {};
 
+#if 0
+		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
+		DepthStencilDesc.DepthEnable = true;
+		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+		DepthStencilDesc.StencilEnable = true;
+		DepthStencilDesc.StencilReadMask = 0xFF;
+		DepthStencilDesc.StencilWriteMask = 0xFF;
+
+		DepthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		DepthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		DepthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		DepthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		DepthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		DepthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+		DepthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		DepthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+#endif
+
+		//Stencil formats
+		//DXGI_FORMAT_R32G8X24_TYPELESS
+		//DXGI_FORMAT_D32_FLOAT_S8X24_UINT
+		//DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS
+
 		//Depth Buffer
 		D3D11_TEXTURE2D_DESC DepthTextureDesc = {};
 		DepthTextureDesc.Height = window.m_height;
 		DepthTextureDesc.Width = window.m_width;
 		DepthTextureDesc.MipLevels = 1;
 		DepthTextureDesc.ArraySize = 1;
-		DepthTextureDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		DepthTextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		DepthTextureDesc.SampleDesc.Count = 1;
 		DepthTextureDesc.SampleDesc.Quality = 0;
 		DepthTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-		DepthTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		DepthTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 		DepthTextureDesc.CPUAccessFlags = false;
 
 		r = m_device->CreateTexture2D(&DepthTextureDesc, 0, &dsvTexture.m_tex2D);
@@ -167,17 +195,22 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 		DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
 		r = m_device->CreateDepthStencilView(dsvTexture.m_tex2D, &DepthStencilViewDesc, &MainDepth.m_dsv);
 		checkhr(r);
 
-		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
-		DepthStencilDesc.DepthEnable = true;
-		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
 		check(MainDepth.m_dsv && dsvTexture.m_tex2D);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		dsvTexture.m_name = "SceneDepth";
+		r = m_device->CreateShaderResourceView(dsvTexture.m_tex2D, &srvDesc, &dsvTexture.m_srv);
+		checkhr(r);
 
 		dsvTexture.bIsValid = true;
 		MainDepth.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, dsvTexture);

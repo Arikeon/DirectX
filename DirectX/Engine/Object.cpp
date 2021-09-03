@@ -44,9 +44,24 @@ void TObject::RotateMeshes(float3 offset)
 
 void TObject::ScaleMeshes(float3 scale)
 {
-	for (int32 i = 0; i < m_models.size(); i++)
+	for (int32 i = 0; i < (int32)m_models.size(); i++)
 	{
 		TModel& model = m_models[i];
+
+
+		//Scale instances if any
+		for (int32 j = 0; j < (int32)m_models.size(); ++j)
+		{
+			TMesh& mesh = m_models[i].m_meshes[j];
+
+			for (int32 instance = 0; instance < (int32)mesh.m_instanceTransforms.size(); ++instance)
+			{
+				mesh.m_instanceTransforms[instance].m_scale.x += scale.x;
+				mesh.m_instanceTransforms[instance].m_scale.y += scale.y;
+				mesh.m_instanceTransforms[instance].m_scale.z += scale.z;
+			}
+		}
+		
 		model.m_transform.m_scale.x += scale.x;
 		model.m_transform.m_scale.y += scale.y;
 		model.m_transform.m_scale.z += scale.z;

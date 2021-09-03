@@ -11,10 +11,9 @@ END_CBUFFER(BasePassMaterial);
 
 struct GBufferOut
 {
-	float4 color		SEMANTIC(SV_TARGET0);
-	float4 worldnormal	SEMANTIC(SV_TARGET1);
-	float4 roughness	SEMANTIC(SV_TARGET2);
-	float4 metallic		SEMANTIC(SV_TARGET3);
+	float4 color						SEMANTIC(SV_TARGET0);
+	float4 worldnormal					SEMANTIC(SV_TARGET1);
+	float4 roughnessmetallicdistance	SEMANTIC(SV_TARGET2);
 };
 
 SamplerState Sampler;
@@ -35,8 +34,9 @@ GBufferOut MainPS(BasePassInPS input)
 #else
 		output.worldnormal	= float4(input.normal, 0.f);
 #endif //USE_TEXTURE_NORMAL
-	output.roughness	= Roughness;
-	output.metallic		= Metallic;
+	output.roughnessmetallicdistance.x		= Roughness;
+	output.roughnessmetallicdistance.y		= Metallic;
+	output.roughnessmetallicdistance.z		= length(input.worldviewPos);
 
 	return output;
 }

@@ -30,18 +30,21 @@ BasePassInPS MainVS(BasePassInVS input
 	output.normal = input.normal;
 	output.uv = input.texcoord;
 
-	output.position = input.position;
-	output.svposition = float4(output.position, 1.0f);
+	output.svposition = float4(input.position, 1.0f);
 #if USE_INSTANCING
 	output.svposition = mul(output.svposition, InstanceMatrix[instanceid]);
 #else
 	output.svposition = mul(output.svposition, World);
 #endif
 	output.svposition = mul(output.svposition, View);
+
+	output.worldviewPos = output.svposition.xyz;
+
 	output.svposition = mul(output.svposition, Proj);
 #if USE_INSTANCING
 	output.instanceid = instanceid;
 #endif
+
 	return output;
 }
 

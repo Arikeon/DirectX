@@ -62,7 +62,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 	TModel model)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
-
 	ID3D11DepthStencilView* dsv = renderer->GetDepthTarget(0).m_dsv;
 
 	const int32 numRTVs = EGBufferKeys::eMax;
@@ -119,8 +118,9 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			WVP.World._44 = 1.f;
 			WVP.View = camera.m_cameramatrix;
 
+
 			//Setup projection per frame
-			XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FLT_MAX));
+			XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE));
 			shader.WriteConstants("World", (void*)&WVP.World, permutationIndex);
 			shader.WriteConstants("View", (void*)&WVP.View, permutationIndex);
 			shader.WriteConstants("Proj", (void*)&WVP.Proj, permutationIndex);
