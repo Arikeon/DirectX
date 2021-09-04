@@ -360,6 +360,9 @@ void CRenderer::CompileShaders()
 		{"USE_TEXTURE_NORMAL", 0, 1 },
 		{"USE_INSTANCING", 0, 1 }};
 
+	//std::vector<TShaderPermutationKey> DepthPermutations = {
+	//	{"USE_INSTANCING", 0, 1 } };
+
 	std::vector<TShaderPermutationKey> DeferredLightingPermutations = {
 		{"LIGHT_TYPE_DIRECTIONAL", 0, 1 },
 		{"LIGHT_TYPE_POINT", 0, 1 },

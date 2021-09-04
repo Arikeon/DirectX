@@ -16,7 +16,6 @@ struct BasePassInVS
 struct BasePassInPS
 {
 	float4 svposition SEMANTIC(SV_POSITION);
-	float3 worldviewPos SEMANTIC(COLOR0);
 	float3 normal SEMANTIC(NORMAL);
 	float2 uv SEMANTIC(TEXCOORD0);
 	int	   instanceid SEMANTIC(INDEX);

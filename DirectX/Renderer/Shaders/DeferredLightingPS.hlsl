@@ -33,6 +33,7 @@ SamplerState s_Sampler;
 Texture2D t_Diffuse						: register(t0);
 Texture2D t_WorldNormal					: register(t1);
 Texture2D t_RoughnessMetallicDistance	: register(t2);
+Texture2D t_Depth	: register(t3);
 
 //Texture2D t_DirectionalShadow;
 

@@ -7,9 +7,7 @@
 #define MAX_INSTANCE 20 //permute?
 
 START_CBUFFER(BasePassWVP, b0)
-	float4x4 World;
-	float4x4 View;
-	float4x4 Proj;
+	float4x4 WorldViewProjection;
 END_CBUFFER(BasePassWVP);
 
 START_CBUFFER(BasePassInstanceBuffer, b1)
@@ -33,16 +31,9 @@ BasePassInPS MainVS(BasePassInVS input
 	output.svposition = float4(input.position, 1.0f);
 #if USE_INSTANCING
 	output.svposition = mul(output.svposition, InstanceMatrix[instanceid]);
-#else
-	output.svposition = mul(output.svposition, World);
-#endif
-	output.svposition = mul(output.svposition, View);
-
-	output.worldviewPos = output.svposition.xyz;
-
-	output.svposition = mul(output.svposition, Proj);
-#if USE_INSTANCING
 	output.instanceid = instanceid;
+#else
+	output.svposition = mul(output.svposition, WorldViewProjection);
 #endif
 
 	return output;

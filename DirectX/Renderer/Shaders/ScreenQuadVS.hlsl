@@ -1,10 +1,6 @@
 #include "HLSLGlue.h"
 #include "ScreenQuadStructs.h"
 
-START_CBUFFER(ScreenQuadPassVP, b0)
-float4x4 WorldViewProj;
-END_CBUFFER(ScreenQuadPassVP);
-
 #if SHADER
 
 ScreenQuadInPS MainVS( ScreenQuadInVS input )

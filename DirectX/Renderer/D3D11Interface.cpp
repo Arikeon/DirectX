@@ -339,6 +339,8 @@ void CD3D11Interface::CompileShader(TShader& shader)
 	shader.m_constantbufferlayouts.resize(numPermutations);
 	shader.m_CPUconstantbuffers.resize(numPermutations);
 	shader.m_constantbuffermap.resize(numPermutations);
+	shader.m_texturebindings.resize(numPermutations);
+	shader.m_samplerbindings.resize(numPermutations);
 
 	for (int pIndex = 0; pIndex < numPermutations; ++pIndex)
 	{
@@ -540,61 +542,61 @@ void CD3D11Interface::CompileShader(TShader& shader)
 				}
 			}
 		}
-	}
 
 
-	//Allocate textures
-	for (int stage = 0; stage < (int)EShaderStage::eCount; ++stage)
-	{
-		int texslot = 0, sampslot = 0, uavslot = 0;
-
-		ID3D11ShaderReflection* reflection = shader.m_shaderreflections[0].m_stagerreflection[stage];
-
-		if (reflection)
+		//Allocate textures
+		for (int stage = 0; stage < (int)EShaderStage::eCount; ++stage)
 		{
-			D3D11_SHADER_DESC shaderdesc = {};
-			reflection->GetDesc(&shaderdesc);
+			int texslot = 0, sampslot = 0, uavslot = 0;
 
-			for (int boundrescount = 0; boundrescount < (int)shaderdesc.BoundResources; ++boundrescount)
+			ID3D11ShaderReflection* reflection = shader.m_shaderreflections[pIndex].m_stagerreflection[stage];
+
+			if (reflection)
 			{
-				D3D11_SHADER_INPUT_BIND_DESC shaderinputdesc = {};
-				reflection->GetResourceBindingDesc(boundrescount, &shaderinputdesc);
+				D3D11_SHADER_DESC shaderdesc = {};
+				reflection->GetDesc(&shaderdesc);
 
-				switch (shaderinputdesc.Type)
+				for (int boundrescount = 0; boundrescount < (int)shaderdesc.BoundResources; ++boundrescount)
 				{
-				case D3D_SIT_CBUFFER:
+					D3D11_SHADER_INPUT_BIND_DESC shaderinputdesc = {};
+					reflection->GetResourceBindingDesc(boundrescount, &shaderinputdesc);
+
+					switch (shaderinputdesc.Type)
+					{
+					case D3D_SIT_CBUFFER:
 						break;
-				case D3D_SIT_SAMPLER:
-				{
-					TSamplerBinding sampbinding;
-					sampbinding.m_shaderStage = (EShaderStage::Type)stage;
-					sampbinding.m_samplerSlot = sampslot++;
-					shader.m_samplerbindings.push_back(sampbinding);
-					shader.m_shadersamplerlookup[shaderinputdesc.Name] = static_cast<int>(shader.m_samplerbindings.size() - 1);
-				}
-				break;
-				case D3D_SIT_TEXTURE:
-				{
-					TTextureBinding textbinding;
-					textbinding.m_shaderStage = (EShaderStage::Type)stage;
-					textbinding.m_textureSlot = sampslot++;
-					shader.m_texturebindings.push_back(textbinding);
-					shader.m_shadertexturelookup[shaderinputdesc.Name] = static_cast<int>(shader.m_texturebindings.size() - 1);
-				}
-				break;
-				case D3D_SIT_UAV_RWTYPED:
-				{
-					TTextureBinding textbinding;
-					textbinding.m_shaderStage = (EShaderStage::Type)stage;
-					textbinding.m_textureSlot = uavslot++;
-					shader.m_texturebindings.push_back(textbinding);
-					shader.m_shadertexturelookup[shaderinputdesc.Name] = static_cast<int>(shader.m_texturebindings.size() - 1);
-				}
-				break;
+					case D3D_SIT_SAMPLER:
+					{
+						TSamplerBinding sampbinding;
+						sampbinding.m_name = shaderinputdesc.Name;
+						sampbinding.m_shaderStage = (EShaderStage::Type)stage;
+						sampbinding.m_samplerSlot = sampslot++;
+						shader.m_samplerbindings[pIndex].push_back(sampbinding);
+					}
+					break;
+					case D3D_SIT_TEXTURE:
+					{
+						TTextureBinding textbinding;
+						textbinding.m_name = shaderinputdesc.Name;
+						textbinding.m_shaderStage = (EShaderStage::Type)stage;
+						textbinding.m_textureSlot = texslot++;
+						shader.m_texturebindings[pIndex].push_back(textbinding);
+					}
+					break;
+					case D3D_SIT_UAV_RWTYPED:
+					{
+						TTextureBinding textbinding;
+						textbinding.m_shaderStage = (EShaderStage::Type)stage;
+						textbinding.m_textureSlot = uavslot++;
+						shader.m_texturebindings[pIndex].push_back(textbinding);
+					}
+					break;
 
+					}
 				}
 			}
 		}
+
 	}
 
 	//Compile InputLayout if it uses vertex shader
@@ -828,36 +830,33 @@ void CD3D11Interface::UnbindSRV(TShader shader)
 
 	ID3D11ShaderResourceView* NullSRVs[SRV_MAX] = {};
 
-	for (int32 i = 0; i < shader.m_texturebindings.size(); ++i)
+	bool bUsesVSStage = shader.m_usedshaderstages[EShaderStage::eVS];
+	bool bUsesHSStage = shader.m_usedshaderstages[EShaderStage::eHS];
+	bool bUsesDSStage = shader.m_usedshaderstages[EShaderStage::eDS];
+	bool bUsesGStage = shader.m_usedshaderstages[EShaderStage::eGS];
+	bool bUsesPSStage = shader.m_usedshaderstages[EShaderStage::ePS];
+	bool bUsesCSStage = shader.m_usedshaderstages[EShaderStage::eCS];
+
+	if (bUsesVSStage)
+		m_context->VSSetShaderResources(0, SRV_MAX, NullSRVs);
+
+	if (bUsesHSStage)
+		m_context->HSSetShaderResources(0, SRV_MAX, NullSRVs);
+
+	if (bUsesDSStage)
+		m_context->DSSetShaderResources(0, SRV_MAX, NullSRVs);
+
+	if (bUsesGStage)
+		m_context->GSSetShaderResources(0, SRV_MAX, NullSRVs);
+
+	if (bUsesPSStage)
+		m_context->PSSetShaderResources(0, SRV_MAX, NullSRVs);
+
+	if (bUsesCSStage)
 	{
-		TTextureBinding texbinding = shader.m_texturebindings[i];
-
-		switch (texbinding.m_shaderStage)
-		{
-		case EShaderStage::eVS:
-			m_context->VSSetShaderResources(0, SRV_MAX, NullSRVs);
-			break;
-		case EShaderStage::eGS:
-			m_context->GSSetShaderResources(0, SRV_MAX, NullSRVs);
-			break;
-		case EShaderStage::eHS:
-			m_context->HSSetShaderResources(0, SRV_MAX, NullSRVs);
-			break;
-		case EShaderStage::eDS:
-			m_context->DSSetShaderResources(0, SRV_MAX, NullSRVs);
-			break;
-		case EShaderStage::ePS:
-			m_context->PSSetShaderResources(0, SRV_MAX, NullSRVs);
-			break;
-		case EShaderStage::eCS:
-		{
-			ID3D11UnorderedAccessView* NullUAVs[SRV_MAX] = {};
-			m_context->CSSetShaderResources(texbinding.m_textureSlot, SRV_MAX, NullSRVs);
-			m_context->CSSetUnorderedAccessViews(texbinding.m_textureSlot, SRV_MAX, NullUAVs, nullptr);
-		}
-			break;
-		}
-
+		ID3D11UnorderedAccessView* NullUAVs[SRV_MAX] = {};
+		m_context->CSSetShaderResources(0, SRV_MAX, NullSRVs);
+		m_context->CSSetUnorderedAccessViews(0, SRV_MAX, NullUAVs, nullptr);
 	}
 }
 

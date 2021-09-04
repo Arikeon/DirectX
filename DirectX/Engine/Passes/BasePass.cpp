@@ -113,30 +113,33 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		//________________Map Vertex & Instance data
 		{
 			//World View Proj buffer
-			BasePassWVP WVP;
-			XMStoreFloat4x4(&WVP.World, model.m_transform.GetMatrix<true, true, true>());
-			WVP.World._44 = 1.f;
-			WVP.View = camera.m_cameramatrix;
 
+			matrix world, view, projection;
 
-			//Setup projection per frame
-			XMStoreFloat4x4(&WVP.Proj, XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE));
-			shader.WriteConstants("World", (void*)&WVP.World, permutationIndex);
-			shader.WriteConstants("View", (void*)&WVP.View, permutationIndex);
-			shader.WriteConstants("Proj", (void*)&WVP.Proj, permutationIndex);
+			world = model.m_transform.GetMatrix<true, false, true>();
+			view = XMLoadFloat4x4(&camera.m_cameramatrix);
+			projection = XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE);
+
+			float4x4 WorldViewProjection;
+			XMStoreFloat4x4(&WorldViewProjection, (world * view) * projection);
+
+			shader.WriteConstants("WorldViewProjection", (void*)&WorldViewProjection, permutationIndex);
 
 			if (bUsesInstanceBuffer)
 			{
 				NumInstances = (int32)currMesh.m_instanceTransforms.size();
 
-				BasePassInstanceBuffer InstanceBufferStruct = {};
+				BasePassInstanceBuffer InstanceBuffer;
+
 				for (int32 j = 0; j < NumInstances; ++j)
 				{
 					TTransform& transform = currMesh.m_instanceTransforms[j];
-					XMStoreFloat4x4(&InstanceBufferStruct.InstanceMatrix[j], transform.GetMatrix<true, true, true>());
+					matrix instancedWorld = transform.GetMatrix<true, true, true>();
+
+					XMStoreFloat4x4(&InstanceBuffer.InstanceMatrix[j], (instancedWorld * view) * projection);
 				}
 
-				shader.WriteConstants("InstanceMatrix", (void*)&InstanceBufferStruct.InstanceMatrix, permutationIndex);
+				shader.WriteConstants("InstanceMatrix", (void*)&InstanceBuffer.InstanceMatrix, permutationIndex);
 			}
 		}
 
@@ -157,18 +160,21 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 				sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
 			}
 
-			shader.SetSamplerState<EShaderStage::ePS>(context, sampler.m_samplerstate);
+			if (sampler.IsValid())
+				shader.BindSampler(context, "s_Sampler", sampler.m_samplerstate, permutationIndex);
 
 			if (bHasDiffuseMap)
 			{
 				TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
-				shader.SetShaderResource<EShaderStage::ePS, 0>(context, Diffuse.m_srv);
+				if (Diffuse.IsValid())
+					shader.BindTexture(context, "t_Diffuse", Diffuse.m_srv, permutationIndex);
 			}
 
 			if (bHasNormalMap)
 			{
 				TD3DTexture Normal = renderer->GetTexture(Material.m_textureNormal);
-				shader.SetShaderResource<EShaderStage::ePS, 1>(context, Normal.m_srv);
+				if (Normal.IsValid())
+					shader.BindTexture(context, "t_Normal", Normal.m_srv, permutationIndex);
 			}
 
 			BasePassMaterial ConstantMaterial = {};

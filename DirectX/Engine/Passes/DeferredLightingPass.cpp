@@ -93,11 +93,6 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		DeferredLightingPS.WriteConstants("CameraPosition", (void*)&deferredBuffer.CameraPosition, permutationIndex);
 		DeferredLightingPS.WriteConstants("InverseViewMatrix", (void*)&deferredBuffer.InverseViewMatrix, permutationIndex);
 		DeferredLightingPS.WriteConstants("InverseProjectionMatrix", (void*)&deferredBuffer.InverseProjectionMatrix, permutationIndex);
-
-
-		matrix WVP = view * projection;
-
-		ScreenQuadVS.WriteConstants("WorldViewProj", (void*)&WVP);
 	}
 
 	LightBuffer lightBuffer = {};
@@ -143,7 +138,7 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	//set Gbuffer and samplers
 	{
 		TD3DSampler sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
-		DeferredLightingPS.SetSamplerState<EShaderStage::ePS>(context, sampler.m_samplerstate);
+		DeferredLightingPS.BindSampler(context, "s_Sampler", sampler.m_samplerstate);
 
 		TD3DTexture DiffuseTex = renderer->GetTexture(
 			renderer->GetGBufferRTV(EGBufferKeys::eBaseColor).m_textureid);
@@ -154,14 +149,15 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		TD3DTexture RoughnessMetallicDistanceTex = renderer->GetTexture(
 			renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicDistance).m_textureid);
 
+
 		if (DiffuseTex.IsValid())
-			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 0>(context, DiffuseTex.m_srv);
+			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex);
 
 		if (WorldNormalTex.IsValid())
-			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 1>(context, WorldNormalTex.m_srv);
+			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex);
 
 		if (RoughnessMetallicDistanceTex.IsValid())
-			DeferredLightingPS.SetShaderResource<EShaderStage::ePS, 2>(context, RoughnessMetallicDistanceTex.m_srv);
+			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicDistance", RoughnessMetallicDistanceTex.m_srv, permutationIndex);
 	}
 	
 	TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];

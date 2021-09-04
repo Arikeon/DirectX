@@ -8,13 +8,12 @@
 #include <algorithm>
 #include <forward_list>
 
+
 #define EShaderListToString(name) #name
 
 using CPUConstantID = int;
 using GPU_ConstantBufferSlotIndex = int;
 using ConstantBufferMapping = std::pair<GPU_ConstantBufferSlotIndex, CPUConstantID>;
-using ShaderTextureLookup = std::unordered_map<std::string, int>;
-using ShaderSamplerLookup = std::unordered_map<std::string, int>;
 
 namespace EShaderList
 {
@@ -23,6 +22,7 @@ namespace EShaderList
 		//Base Pass
 		eBasePass = 0,
 		eDebugBasePass,
+		//eDepth,
 		eScreenQuad,
 		eDeferredLighting,
 		eCount,
@@ -112,11 +112,13 @@ struct TConstantBufferBinding
 };
 struct TTextureBinding
 {
+	std::string m_name;
 	EShaderStage::Type m_shaderStage;
 	int m_textureSlot;
 };
 struct TSamplerBinding
 {
+	std::string m_name;
 	EShaderStage::Type m_shaderStage;
 	int m_samplerSlot;
 };
@@ -402,33 +404,97 @@ struct TShader
 		}
 	}
 
-	template<EShaderStage::Type stage, int32 StartSlot = 0>
-	void SetShaderResource(ID3D11DeviceContext* context, ID3D11ShaderResourceView* srv)
-	{
-		check(srv != nullptr);
 
-		if (stage == EShaderStage::eVS)
+	void BindTexture(ID3D11DeviceContext* context, std::string name, ID3D11ShaderResourceView* srv, int32 permutationIndex = 0)
+	{
+		check(srv);
+
+		if (m_texturebindings[permutationIndex].size() == 0)
+			return;
+
+		for (int32 i = 0; i < (int32)m_texturebindings[permutationIndex].size(); i++)
 		{
-			//TODO
+			TTextureBinding binding = m_texturebindings[permutationIndex][i];
+
+			if (strcmp(binding.m_name.c_str(), name.c_str()) == 0)
+			{
+				switch (binding.m_shaderStage)
+				{
+					//TODO add count?
+				case EShaderStage::eVS:
+					context->VSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				case EShaderStage::eHS:
+					context->HSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				case EShaderStage::eDS:
+					context->DSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				case EShaderStage::eGS:
+					context->GSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				case EShaderStage::ePS:
+					context->PSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				case EShaderStage::eCS:
+					context->CSSetShaderResources(binding.m_textureSlot, 1, &srv);
+					break;
+				}
+				return;
+			}
 		}
-		if (stage == EShaderStage::ePS)
-		{
-			context->PSSetShaderResources(StartSlot, 1, &srv);
-		}
+
+		std::wstring wname(Algorithm::string_to_wstring(name));
+
+		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
-	template<EShaderStage::Type stage, int32 StartSlot = 0>
-	void SetSamplerState(ID3D11DeviceContext* context, ID3D11SamplerState* sampler)
+	void BindSampler(ID3D11DeviceContext* context, std::string name, ID3D11SamplerState* sampler, int32 permutationIndex = 0)
 	{
-		check(sampler != nullptr);
-		//check(stage == EShaderStage::ePS || stage == EShaderStage::eCS);
+		check(sampler);
 
-		context->PSSetSamplers(StartSlot, 1, &sampler);
+		if (m_samplerbindings[permutationIndex].size() == 0)
+			return;
+
+		for (int32 i = 0; i < (int32)m_samplerbindings[permutationIndex].size(); i++)
+		{
+			TSamplerBinding binding = m_samplerbindings[permutationIndex][i];
+
+			if (strcmp(binding.m_name.c_str(), name.c_str()) == 0)
+			{
+				switch (binding.m_shaderStage)
+				{
+				case EShaderStage::eVS:
+					context->VSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				case EShaderStage::eHS:
+					context->HSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				case EShaderStage::eDS:
+					context->DSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				case EShaderStage::eGS:
+					context->GSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				case EShaderStage::ePS:
+					context->PSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				case EShaderStage::eCS:
+					context->CSSetSamplers(binding.m_samplerSlot, 1, &sampler);
+					break;
+				}
+				return;
+			}
+		}
+
+		std::wstring wname(Algorithm::string_to_wstring(name));
+
+		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
 	void WriteConstants(std::string name, void* data, int32 permutationIndex = 0)
 	{
-		for (int i = 0; i < (int)m_constantbuffermap[permutationIndex].size(); i++)
+		for (int32 i = 0; i < (int32)m_constantbuffermap[permutationIndex].size(); i++)
 		{
 			ConstantBufferMapping& buffID = m_constantbuffermap[permutationIndex][i];
 
@@ -445,7 +511,7 @@ struct TShader
 
 		std::wstring wname(Algorithm::string_to_wstring(name));
 
-		CONSOLE_LOG(L"Unable to find: " + wname + L". Possibly due to not being used in shader.");
+		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
 	void BindData(ID3D11DeviceContext* context, int32 permutationIndex = 0)
@@ -639,10 +705,8 @@ struct TShader
 	std::array<bool, EShaderStage::eCount> m_usedshaderstages;
 	std::string m_shaderdir;
 
-	std::vector<TTextureBinding> m_texturebindings;
-	std::vector<TSamplerBinding> m_samplerbindings;
-	ShaderTextureLookup m_shadertexturelookup;
-	ShaderSamplerLookup m_shadersamplerlookup;
+	std::vector<std::vector<TTextureBinding>> m_texturebindings;
+	std::vector<std::vector<TSamplerBinding>> m_samplerbindings;
 
 	ID3D11InputLayout* m_inputlayout;
 	TShaderInfo m_info;
