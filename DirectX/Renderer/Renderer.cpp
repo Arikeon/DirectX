@@ -9,6 +9,24 @@
 #include <DirectXTex.h>
 #endif //ENABLE_DEBUG
 
+void CRenderer::ConstructFrameBuffer(TWindow window, CCamera camera)
+{
+	FrameBuffer& frameBuffer = m_frameBuffer;
+
+	const float aspectratio = static_cast<float>(window.m_width) / static_cast<float>(window.m_height);
+
+	matrix view = XMLoadFloat4x4(&camera.m_cameramatrix),
+		projection = XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE);
+
+	XMStoreFloat4(&frameBuffer.CameraPosition, camera.m_pos);
+	frameBuffer.View = camera.m_cameramatrix;
+	XMStoreFloat4x4(&frameBuffer.Projection, projection);
+	XMStoreFloat4x4(&frameBuffer.InverseView, XMMatrixInverse(nullptr, view));
+	XMStoreFloat4x4(&frameBuffer.InverseProjection, XMMatrixInverse(nullptr, projection));
+
+	frameBuffer.bIsUpToDate = true;
+}
+
 void CRenderer::UnbindRTV()
 {
 	m_D3DInterface->UnbindRTV();
@@ -173,6 +191,7 @@ CRenderer::~CRenderer()
 	D3DArrayRelease(m_textures);
 	D3DArrayRelease(m_samplers);
 	D3DArrayRelease(m_depthtargets);
+	D3DArrayRelease(m_depthstencilstates);
 	DXArrayRelease(m_rasterizerstates);
 }
 
@@ -196,6 +215,7 @@ void CRenderer::Initialize(TWindow window)
 
 	CompileShaders();
 }
+
 
 void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 {
@@ -360,8 +380,8 @@ void CRenderer::CompileShaders()
 		{"USE_TEXTURE_NORMAL", 0, 1 },
 		{"USE_INSTANCING", 0, 1 }};
 
-	//std::vector<TShaderPermutationKey> DepthPermutations = {
-	//	{"USE_INSTANCING", 0, 1 } };
+	std::vector<TShaderPermutationKey> DepthPermutations = {
+		{"USE_INSTANCING", 0, 1 } };
 
 	std::vector<TShaderPermutationKey> DeferredLightingPermutations = {
 		{"LIGHT_TYPE_DIRECTIONAL", 0, 1 },
@@ -370,6 +390,7 @@ void CRenderer::CompileShaders()
 		{"SHADOWED", 0, 1 }};
 	
 	m_shaders[EShaderList::eBasePass].			Initialize<true, false, false, false, true, false>("BasePass", BasePassPermutations);
+	m_shaders[EShaderList::eDepth].				Initialize<true, false, false, false, true, false>("Depth", DepthPermutations);
 	m_shaders[EShaderList::eDebugBasePass].		Initialize<true, false, false, false, true, false>("DebugLines");
 	m_shaders[EShaderList::eScreenQuad].		Initialize<true, false, false, false, false, false>("ScreenQuad");
 	m_shaders[EShaderList::eDeferredLighting].	Initialize<false, false, false, false, true, false>("DeferredLighting", DeferredLightingPermutations);

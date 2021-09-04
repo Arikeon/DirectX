@@ -2,10 +2,11 @@
 #include "Renderer.h"
 #include <array>
 #include "BasePass.h"
-#include "ScreenQuadStructs.h"
+#include "StructCollection.h"
 
 //Passes
 #include "Pass.h"
+#include "DepthPrepass.h"
 #include "BasePass.h"
 #include "DeferredLightingPass.h"
 
@@ -107,18 +108,26 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 {
 	static TBasePass* basePass = nullptr;
 	static TDeferredLightingPass* deferredLightingPass = nullptr;
+	static TDepthPrePass* depthprepass = nullptr;
 
+	//This is a hack to some weird compile error TODO static class?
 	bool bSingletonInitialized = false;
 	if (!bSingletonInitialized)
 	{
 		bSingletonInitialized = true;
 		basePass = new TBasePass;
 		deferredLightingPass = new TDeferredLightingPass;
+		depthprepass = new TDepthPrePass;
 	}
 
 	m_camera.Update(delta);
 	DrawModelTransforms();
 
+	renderer->ConstructFrameBuffer(window, m_camera);
+
+	depthprepass->Render(renderer, GetObjects(), m_debuglines, m_camera, window, delta);
 	basePass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
 	deferredLightingPass->Render(renderer, GetLights(), m_ScreenQuad, m_camera, window, delta);
+
+	renderer->GetFrameBuffer().bIsUpToDate = false;
 }

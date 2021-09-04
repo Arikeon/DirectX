@@ -3,7 +3,7 @@
 #include "BufferKeys.h"
 #include "Transform.h"
 #include "Mesh.h"
-#include "DebugLinesStructs.h"
+#include "StructCollection.h"
 #include "Renderer.h"
 #include "RenderEnums.h"
 

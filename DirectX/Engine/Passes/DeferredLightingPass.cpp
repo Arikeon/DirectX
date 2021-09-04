@@ -1,5 +1,5 @@
 #include "DeferredLightingPass.h"
-#include "ScreenQuadStructs.h"
+#include "StructCollection.h"
 #include "DeferredlightingPS.hlsl"
 
 void TDeferredLightingPass::Render(CRenderer* renderer,
@@ -41,6 +41,8 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		{"LIGHT_TYPE_SPOT",			(int32)0},
 		{"SHADOWED",				(int32)0}});
 
+	FrameBuffer& frameBuffer = renderer->GetFrameBuffer();
+
 	//Gather Lights
 	std::vector<TDirectionalLight> DirectionalLights;
 	std::vector<TPointLight> PointLights;
@@ -77,23 +79,6 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	}
 
 	check(DirectionalLights.size() <= 1);
-
-	//TEMP TODO remove redundancy
-	DeferredBuffer deferredBuffer;
-	{
-		XMStoreFloat4(&deferredBuffer.CameraPosition, camera.m_pos);
-
-		const float aspectratio = static_cast<float>(window.m_width) / static_cast<float>(window.m_height);
-		matrix projection = XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE);
-		matrix view = XMLoadFloat4x4(&camera.m_cameramatrix);
-
-		XMStoreFloat4x4(&deferredBuffer.InverseViewMatrix, XMMatrixInverse(nullptr, view));
-		XMStoreFloat4x4(&deferredBuffer.InverseProjectionMatrix, XMMatrixInverse(nullptr, projection));
-
-		DeferredLightingPS.WriteConstants("CameraPosition", (void*)&deferredBuffer.CameraPosition, permutationIndex);
-		DeferredLightingPS.WriteConstants("InverseViewMatrix", (void*)&deferredBuffer.InverseViewMatrix, permutationIndex);
-		DeferredLightingPS.WriteConstants("InverseProjectionMatrix", (void*)&deferredBuffer.InverseProjectionMatrix, permutationIndex);
-	}
 
 	LightBuffer lightBuffer = {};
 	//Push light buffer data
@@ -151,19 +136,21 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 
 
 		if (DiffuseTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex, false);
 
 		if (WorldNormalTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex, false);
 
 		if (RoughnessMetallicDistanceTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicDistance", RoughnessMetallicDistanceTex.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicDistance", RoughnessMetallicDistanceTex.m_srv, permutationIndex, false);
 	}
 	
 	TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];
 
 	//Bind Shader Data
 	{
+		ScreenQuadVS.BindFrameBuffer(frameBuffer, permutationIndex);
+		DeferredLightingPS.BindFrameBuffer(frameBuffer, permutationIndex);
 		ScreenQuadVS.SetShaderStages(context);
 		DeferredLightingPS.SetShaderStages(context);
 		ScreenQuadVS.BindData(context);

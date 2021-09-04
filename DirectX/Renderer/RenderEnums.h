@@ -14,6 +14,17 @@ namespace ERasterizerStates
 	};
 }
 
+namespace EDepthStencilStates
+{
+	enum Type
+	{
+		//TODO apporiately rename thse
+		eBasePass = 0,
+		ePrePass,
+		eCount,
+	};
+}
+
 namespace EViews
 {
 	enum Type

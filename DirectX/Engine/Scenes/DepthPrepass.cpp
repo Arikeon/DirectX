@@ -1,10 +1,10 @@
-#include "BasePass.h"
+#include "DepthPrepass.h"
 #include "StructCollection.h"
-#include "BasePassPS.hlsl"
-#include "BasePassVS.hlsl"
+#include "DepthVS.hlsl"
+#include "Shader.h"
 #include "FrameBuffer.h"
 
-void TBasePass::Render(CRenderer* renderer,
+void TDepthPrePass::Render(CRenderer* renderer,
 	std::vector<TObject>& objects,
 	TDebugLines debuglines,
 	CCamera camera,
@@ -12,7 +12,8 @@ void TBasePass::Render(CRenderer* renderer,
 	float delta)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
-	TShader& BasePassShader = renderer->GetShader(EShaderList::eBasePass);
+	TShader& DepthPrePassShader = renderer->GetShader(EShaderList::eDepth);
+	renderer->UnbindRTV();
 
 	for (unsigned int i = 0; i < (int)objects.size(); ++i)
 	{
@@ -29,31 +30,15 @@ void TBasePass::Render(CRenderer* renderer,
 		for (int i = 0; i < nummodels; ++i)
 		{
 			TModel& model = models[i];
-			DrawMeshes(renderer, BasePassShader, camera, window, delta, model);
+			DrawMeshes(renderer, DepthPrePassShader, camera, window, delta, model);
 		}
-		//Render this AFTER scene has been rendered - make new draw pass
-#if 0
-		//Draw debug lines
-		if (debuglines.m_meshes.size() > 0)
-		{
-			TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
-			D3D11_MAPPED_SUBRESOURCE subresourcemap;
-			context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);
-			memcpy(subresourcemap.pData, &debuglines.m_debuglines[0], sizeof(DebugLinesInVS) * debuglines.GetLineCount());
-			context->Unmap(vbuffer.m_pGPUdata, (UINT)0);
-
-			DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
-		}
-#endif
 	}
 
-
-	renderer->UnbindRTV();
-	renderer->UnbindSRV(BasePassShader);
+	renderer->UnbindSRV(DepthPrePassShader);
 }
 
 
-void TBasePass::DrawMeshes(CRenderer* renderer,
+void TDepthPrePass::DrawMeshes(CRenderer* renderer,
 	TShader shader,
 	CCamera camera,
 	TWindow window,
@@ -62,53 +47,35 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 	ID3D11DepthStencilView* dsv = renderer->GetGBufferDepth().m_dsv;
-	ID3D11DepthStencilState* dss = renderer->GetDepthStencilState((int32)EDepthStencilStates::eBasePass).m_dss;
+	ID3D11DepthStencilState* dss = renderer->GetDepthStencilState((int32)EDepthStencilStates::ePrePass).m_dss;
+	D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
+	FrameBuffer& frameBuffer = renderer->GetFrameBuffer();
 
-	const int32 numRTVs = EGBufferKeys::eMax;
+	const int32 numRTVs = 1;
 	ID3D11RenderTargetView* rtvs[numRTVs];
 
 	check(numRTVs <= RTVSLOTMAX);
-	for (int32 i = 0; i < numRTVs; ++i)
-	{
-		rtvs[i] = renderer->GetGBufferRTV(i).m_rtv;
-	}
-
-	FrameBuffer& frameBuffer = renderer->GetFrameBuffer();
+	rtvs[0] = renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicDistance).m_rtv;
 
 	for (int i = 0; i < (int)model.m_meshes.size(); ++i)
 	{
 		TMesh& currMesh = model.m_meshes[i];
 
-		if (!currMesh.m_bInitialized)
+		if (!currMesh.m_bInitialized || currMesh.m_vertexdepthkey == -1)
 			continue;
 
 		TD3DBuffer vbuffer;
-		vbuffer = renderer->GetVertexBuffer(currMesh.m_vertexkey);
+		vbuffer = renderer->GetVertexBuffer(currMesh.m_vertexdepthkey);
 
-		D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
-
-		bool bHasMaterial = currMesh.HasMaterial();
 		bool bUsesInstanceBuffer = currMesh.HasInstances();
-		bool bHasDiffuseMap = false, bHasNormalMap = false;
 
 		int32 NumInstances = 0;
 		int32 permutationIndex = 0;
 		std::vector<PermutationValue> permutationKey;
 
 		permutationKey.push_back({ "USE_INSTANCING", (int32)bUsesInstanceBuffer });
-
-		if (bHasMaterial)
-		{
-			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
-
-			bHasDiffuseMap = Material.m_textureDiffuse != -1;
-			bHasNormalMap = Material.m_textureNormal != -1;
-		}
-
-		permutationKey.push_back({ "USE_TEXTURE_DIFFUSE" , (int32)bHasDiffuseMap });
-		permutationKey.push_back({ "USE_TEXTURE_Normal" , (int32)bHasNormalMap });
-
 		permutationIndex = shader.m_permutations.GetShaderWithPermutation(permutationKey);
+
 
 		//________________Map Vertex & Instance data
 		{
@@ -129,7 +96,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			{
 				NumInstances = (int32)currMesh.m_instanceTransforms.size();
 
-				BasePassInstanceBuffer InstanceBuffer;
+				DepthPassInstanceBuffer InstanceBuffer;
 
 				for (int32 j = 0; j < NumInstances; ++j)
 				{
@@ -142,49 +109,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 				shader.WriteConstants("InstanceMatrix", (void*)&InstanceBuffer.InstanceMatrix, permutationIndex);
 			}
 		}
-
-
-
-		//________________Map Pixel Shader data
-		if (bHasMaterial)
-		{
-			TMaterial& Material = renderer->GetMaterial(currMesh.m_materialKey);
-			TD3DSampler sampler;
-
-			if (Material.bHasSamplerOverride())
-			{
-				sampler = renderer->GetSampler(Material.m_samplerOverride);
-			}
-			else
-			{
-				sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
-			}
-
-			if (sampler.IsValid())
-				shader.BindSampler(context, "s_Sampler", sampler.m_samplerstate, permutationIndex);
-
-			if (bHasDiffuseMap)
-			{
-				TD3DTexture Diffuse = renderer->GetTexture(Material.m_textureDiffuse);
-				if (Diffuse.IsValid())
-					shader.BindTexture(context, "t_Diffuse", Diffuse.m_srv, permutationIndex);
-			}
-
-			if (bHasNormalMap)
-			{
-				TD3DTexture Normal = renderer->GetTexture(Material.m_textureNormal);
-				if (Normal.IsValid())
-					shader.BindTexture(context, "t_Normal", Normal.m_srv, permutationIndex);
-			}
-
-			BasePassMaterial ConstantMaterial = {};
-			ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
-			ConstantMaterial.Roughness = Material.m_roughness;
-			ConstantMaterial.Metallic = Material.m_metallic;
-			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor, permutationIndex);
-		}
-
-
 
 		//________________Bind shader data
 		{
@@ -199,11 +123,9 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			context->OMSetRenderTargets(numRTVs, rtvs, dsv);
 			context->RSSetViewports(1, &d3dview);
 			context->IASetInputLayout(shader.m_inputlayout);
-			//TODO add forced rasterization state for wireframe view mode
 			context->RSSetState(renderer->GetRenderState((int32)model.m_rasterizationState));
 			context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(currMesh.m_topology));
 		}
-
 
 
 		//________________Draw shaders
@@ -242,5 +164,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 				}
 			}
 		}
+
 	}
 }

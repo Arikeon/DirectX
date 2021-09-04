@@ -37,8 +37,7 @@
 #include <ScreenGrab.h>
 
 //Vertex type
-#include "DebugLinesStructs.h"
-#include "BasePassStructs.h"
+#include "StructCollection.h"
 
 using namespace Assimp;
 
@@ -162,15 +161,20 @@ namespace IO
 #endif
 
 				std::vector<BasePassInVS> vertexArray;
+				std::vector<DepthPassInVS> vertexArrayDepth;
 				std::vector<unsigned int> indexArray;
 
 				vertexArray.resize(currAIMesh->mNumVertices);
+				vertexArrayDepth.resize(currAIMesh->mNumVertices);
+
 				for (unsigned int vertexIndex = 0; vertexIndex < (unsigned int)vertexArray.size(); ++vertexIndex)
 				{
 					BasePassInVS& currVertex = vertexArray[vertexIndex];
+					DepthPassInVS& currVertexDepth = vertexArrayDepth[vertexIndex];
 
 					check(currAIMesh->HasPositions());
 					memcpy(&currVertex.position, &currAIMesh->mVertices[vertexIndex], sizeof(aiVector3D));
+					memcpy(&currVertexDepth.position, &currAIMesh->mVertices[vertexIndex], sizeof(aiVector3D));
 
 					//Vertex colors
 
@@ -204,6 +208,7 @@ namespace IO
 				}
 
 				currMesh.CreateMesh<BasePassInVS>(renderer, vertexArray, indexArray);
+				currMesh.CreateMesh<DepthPassInVS>(renderer, vertexArrayDepth, indexArray);
 				check(currMesh.m_vertexkey != -1 && currMesh.m_indexkey != -1);
 				object.m_models.push_back(model);
 			}

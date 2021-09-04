@@ -30,15 +30,9 @@
     <ClInclude Include="DirectX\Renderer\Shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h">
-      <Filter>Source Files\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="DirectX\Renderer\Shaders\HLSLGlue.h" />
     <ClInclude Include="DirectX\Renderer\BufferKeys.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectX\Renderer\StructCollection.h">
-      <Filter>Source Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="DirectX\Renderer\BufferStruct.h">
       <Filter>Source Files</Filter>
@@ -46,13 +40,10 @@
     <ClInclude Include="DirectX\Renderer\RenderEnums.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectX\Renderer\Shaders\DebugLinesStructs.h">
-      <Filter>Source Files\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectX\Renderer\Shaders\ScreenQuadStructs.h">
-      <Filter>Source Files\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="DirectX\Renderer\Shaders\FrameBuffer.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Renderer\Shaders\StructCollection.h">
       <Filter>Source Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -73,6 +64,12 @@
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DirectX\Renderer\Shaders\DeferredLightingPS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\DepthVS.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\DepthPS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

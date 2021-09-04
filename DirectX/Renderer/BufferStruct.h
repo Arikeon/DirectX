@@ -115,6 +115,21 @@ struct TD3DTexture
 	bool bIsValid = false;
 };
 
+struct TD3DDepthStencilState
+{
+	void Release()
+	{
+		DXRelease(m_dss);
+		bIsValid = false;
+	}
+
+	ID3D11DepthStencilState* m_dss;
+
+	bool IsValid() { return bIsValid; }
+
+	bool bIsValid = false;
+};
+
 struct TD3DDepthTarget
 {
 	void Release()
@@ -208,6 +223,8 @@ struct TGBuffer
 {
 	void Release()
 	{
+		D3DRelease(m_GBufferDepth);
+
 		for (int32 i = 0; i < (int32)EGBufferKeys::eMax; ++i)
 		{
 			TD3DRenderTarget& rtv = m_arrRTV[i];
@@ -240,6 +257,7 @@ struct TGBuffer
 
 	bool IsValid() { return bIsValid; }
 
+	TD3DDepthTarget m_GBufferDepth;
 	TD3DRenderTarget m_arrRTV[EGBufferKeys::eMax];
 	bool bIsValid = false;
 };

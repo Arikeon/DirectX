@@ -1,16 +1,10 @@
 #include "HLSLGlue.h"
-#include "ScreenQuadStructs.h"
+#include "StructCollection.h"
+#include "FrameBuffer.h"
 
 //TODO 2.5d culling?
 #define MAX_POINT_LIGHT 10
 #define MAX_SPOT_LIGHT 10
-
-START_CBUFFER(DeferredBuffer, b0) //TEMP, move to frame buffer
-float4 CameraPosition;
-float4x4 InverseViewMatrix;
-float4x4 InverseProjectionMatrix;
-END_CBUFFER(DeferredBuffer);
-
 
 START_CBUFFER(LightBuffer, b1)
 float4 DirectionalColor;
@@ -62,7 +56,7 @@ float3 GetPositionVS(float2 uv, float depth)
 	float y = (1 - uv.y) * 2 - 1;
 	
 	float4 projectedPosition = float4(x, y, depth, 1.0f);
-	float4 viewPosition = mul(projectedPosition, InverseProjectionMatrix);
+	float4 viewPosition = mul(projectedPosition, InverseProjection);
 
 	return viewPosition.xyz / viewPosition.w;
 }
@@ -75,12 +69,6 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 
 	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
 	float distance = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).z;
-
-	float4 PositionVS = float4(GetPositionVS(input.uv, distance), 1.0f);
-
-	float3 PositionWS = mul(InverseViewMatrix, PositionVS).xyz;
-
-	//color = float4(PositionWS, 1.0f);
 
 #if LIGHT_TYPE_DIRECTIONAL
 #endif

@@ -1,5 +1,5 @@
 #include "HLSLGlue.h"
-#include "ScreenQuadStructs.h"
+#include "StructCollection.h"
 
 #if SHADER
 

@@ -1,5 +1,5 @@
 #include "HLSLGlue.h"
-#include "BasePassStructs.h"
+#include "StructCollection.h"
 
 START_CBUFFER(BasePassMaterial, b0)
 float4 DiffuseColor;

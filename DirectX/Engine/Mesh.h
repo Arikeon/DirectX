@@ -5,6 +5,7 @@
 #include "BufferStruct.h"
 #include "D3D11Interface.h"
 #include "Transform.h"
+#include "StructCollection.h"
 
 #include <vector>
 #include <array>
@@ -48,11 +49,18 @@ private:
 
 		vbuffer.Initialize(device, pvdata);
 
-		m_vertexkey = (int)renderer->m_vertexbuffers.size();
+		if (std::is_same<TVertexType, DepthPassInVS>::value)
+		{
+			m_vertexdepthkey = (int)renderer->m_vertexbuffers.size();
+		}
+		else
+		{
+			m_vertexkey = (int)renderer->m_vertexbuffers.size();
+		}
 		vbuffer.bIsValid = true;
 		renderer->m_vertexbuffers.push_back(vbuffer);
 
-		if (indicount)
+		if (indicount && m_indexkey == -1)
 		{
 			TD3DBuffer ibuffer;
 
@@ -136,7 +144,7 @@ public:
 	}
 
 	MaterialID m_materialKey = -1;
-	BufferID m_vertexkey, m_indexkey = -1;//default if none available
+	BufferID m_vertexkey = -1, m_vertexdepthkey = -1, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
 	std::vector<TTransform> m_instanceTransforms;
 	std::array<bool, EVertexLayout::eCount> m_vertexLayout;

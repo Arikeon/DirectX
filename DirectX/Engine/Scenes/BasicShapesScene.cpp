@@ -32,7 +32,7 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer, float delta)
 	XMStoreFloat3(&CameraPos, m_camera.m_pos);
 	float3 SpherePos = m_objects[1].m_models[0].m_transform.m_position;
 
-	float inner = pow((CameraPos.x - SpherePos.x), 2) + pow((CameraPos.y - SpherePos.y), 2) + pow((CameraPos.z - SpherePos.z), 2);
+	float inner = (float)pow((CameraPos.x - SpherePos.x), 2) + pow((CameraPos.y - SpherePos.y), 2) + pow((CameraPos.z - SpherePos.z), 2);
 
 	float distancefromSphere = sqrt(inner);
 

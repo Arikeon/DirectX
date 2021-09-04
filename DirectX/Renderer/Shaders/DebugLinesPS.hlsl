@@ -1,5 +1,5 @@
 #include "HLSLGlue.h"
-#include "DebugLinesStructs.h"
+#include "StructCollection.h"
 
 float4 MainPS(DebugLinesInPS input) : SV_TARGET
 {

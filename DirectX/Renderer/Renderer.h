@@ -5,6 +5,8 @@
 #include "BufferKeys.h"
 #include "BufferStruct.h"
 #include "RenderEnums.h"
+#include "FrameBuffer.h"
+#include "Camera.h"
 
 #include <Windows.h>
 #include <vector>
@@ -43,6 +45,7 @@ class CRenderer
 	friend struct IO::TFileIO;
 
 public:
+	void ConstructFrameBuffer(TWindow window, CCamera camera);
 	void UnbindRTV();
 	void UnbindSRV(TShader shader);
 	TShader& GetShader(ShaderID id) { return m_shaders[id]; }
@@ -56,8 +59,11 @@ public:
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
 	TD3DRenderTarget& GetGBufferRTV(int32 index) { return m_GBuffer.GetRTV(index); }
+	TD3DDepthTarget& GetGBufferDepth() { return m_GBuffer.m_GBufferDepth; }
 	ID3D11RasterizerState* GetRenderState(int32 index) { return m_rasterizerstates[index]; }
 	std::vector<struct ID3D11RenderTargetView*> GetGBuffer();
+	FrameBuffer& GetFrameBuffer() { check(m_frameBuffer.IsUpToDate());  return m_frameBuffer; }
+	TD3DDepthStencilState& GetDepthStencilState(int32 index) { check(m_depthstencilstates[index].IsValid()); return m_depthstencilstates[index]; }
 
 	TextureID CreateTexture(
 		unsigned int width,
@@ -87,6 +93,8 @@ private:
 	void Clear();
 	void Present();
 
+	FrameBuffer m_frameBuffer;
+
 	std::vector<TShader> m_shaders;
 	std::vector<TD3DBuffer> m_vertexbuffers;
 	std::vector<TD3DBuffer> m_indexbuffers;
@@ -95,6 +103,7 @@ private:
 	std::vector<TD3DTexture> m_textures;
 	std::vector<TD3DSampler> m_samplers;
 	std::vector<TD3DDepthTarget> m_depthtargets;
+	std::vector<TD3DDepthStencilState> m_depthstencilstates;
 	std::vector<TMaterial> m_materials;
 	std::array<ID3D11RasterizerState*, ERasterizerStates::eCount> m_rasterizerstates;
 	std::array<D3D11_VIEWPORT, EViews::eCount> m_views;

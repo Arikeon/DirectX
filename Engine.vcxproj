@@ -173,6 +173,7 @@
     <ClCompile Include="DirectX\Engine\Passes\DeferredLightingPass.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\BasicShapesScene.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\CornellScene.cpp" />
+    <ClCompile Include="DirectX\Engine\Scenes\DepthPrepass.cpp" />
     <ClCompile Include="DirectX\Engine\Scenes\Scene.cpp" />
     <ClCompile Include="DirectX\Engine\ThreadPool.cpp" />
     <ClCompile Include="DirectX\Engine\DeltaTime.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="DirectX\Engine\Passes\Pass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\BasicShapesScene.h" />
     <ClInclude Include="DirectX\Engine\Scenes\CornellScene.h" />
+    <ClInclude Include="DirectX\Engine\Scenes\DepthPrepass.h" />
     <ClInclude Include="DirectX\Engine\Scenes\Scene.h" />
     <ClInclude Include="DirectX\Engine\ThreadPool.h" />
     <ClInclude Include="DirectX\Engine\DeltaTime.h" />

@@ -8,7 +8,7 @@
 #include "Light.h"
 
 //Shaders
-#include "BasePassStructs.h"
+#include "StructCollection.h"
 
 class CRenderer;
 

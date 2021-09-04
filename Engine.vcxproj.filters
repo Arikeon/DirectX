@@ -64,6 +64,9 @@
     <ClCompile Include="DirectX\Engine\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX\Engine\Scenes\DepthPrepass.cpp">
+      <Filter>Source Files\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX\Engine\Engine.h">
@@ -119,6 +122,9 @@
     </ClInclude>
     <ClInclude Include="DirectX\Engine\Light.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX\Engine\Scenes\DepthPrepass.h">
+      <Filter>Source Files\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

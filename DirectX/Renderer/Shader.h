@@ -1,4 +1,5 @@
 #pragma once
+#include "FrameBuffer.h"
 #include "Algorithm.h"
 #include <array>
 #include <string>
@@ -22,7 +23,7 @@ namespace EShaderList
 		//Base Pass
 		eBasePass = 0,
 		eDebugBasePass,
-		//eDepth,
+		eDepth,
 		eScreenQuad,
 		eDeferredLighting,
 		eCount,
@@ -405,7 +406,7 @@ struct TShader
 	}
 
 
-	void BindTexture(ID3D11DeviceContext* context, std::string name, ID3D11ShaderResourceView* srv, int32 permutationIndex = 0)
+	void BindTexture(ID3D11DeviceContext* context, std::string name, ID3D11ShaderResourceView* srv, int32 permutationIndex = 0, bool bGiveWarning = false)
 	{
 		check(srv);
 
@@ -449,7 +450,7 @@ struct TShader
 		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
-	void BindSampler(ID3D11DeviceContext* context, std::string name, ID3D11SamplerState* sampler, int32 permutationIndex = 0)
+	void BindSampler(ID3D11DeviceContext* context, std::string name, ID3D11SamplerState* sampler, int32 permutationIndex = 0, bool bGiveWarning = false)
 	{
 		check(sampler);
 
@@ -492,7 +493,16 @@ struct TShader
 		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
-	void WriteConstants(std::string name, void* data, int32 permutationIndex = 0)
+	void BindFrameBuffer(FrameBuffer& frameBuffer, int32 permutationIndex)
+	{
+		WriteConstants("CameraPosition", (void*)&frameBuffer.CameraPosition, permutationIndex, false);
+		WriteConstants("View", (void*)&frameBuffer.View, permutationIndex, false);
+		WriteConstants("Projection", (void*)&frameBuffer.Projection, permutationIndex, false);
+		WriteConstants("InverseView", (void*)&frameBuffer.InverseView, permutationIndex, false);
+		WriteConstants("InverseProjection", (void*)&frameBuffer.InverseProjection, permutationIndex, false);
+	}
+
+	void WriteConstants(std::string name, void* data, int32 permutationIndex = 0, bool bGiveWarning = false)
 	{
 		for (int32 i = 0; i < (int32)m_constantbuffermap[permutationIndex].size(); i++)
 		{
@@ -509,9 +519,11 @@ struct TShader
 			}
 		}
 
-		std::wstring wname(Algorithm::string_to_wstring(name));
-
-		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
+		if (bGiveWarning)
+		{
+			std::wstring wname(Algorithm::string_to_wstring(name));
+			CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
+		}
 	}
 
 	void BindData(ID3D11DeviceContext* context, int32 permutationIndex = 0)

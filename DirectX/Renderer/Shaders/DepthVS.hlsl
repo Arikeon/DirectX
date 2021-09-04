@@ -1,35 +1,33 @@
 #include "HLSLGlue.h"
 #include "StructCollection.h"
+
 #if SHADER
 #pragma pack_matrix(row_major)
 #endif
 
-START_CBUFFER(BasePassWVP, b0)
+START_CBUFFER(DepthPassWVP, b0)
 float4x4 WorldViewProjection;
-END_CBUFFER(BasePassWVP);
+END_CBUFFER(DepthPassWVP);
 
-START_CBUFFER(BasePassInstanceBuffer, b1)
+START_CBUFFER(DepthPassInstanceBuffer, b1)
 #if CPP || USE_INSTANCING
 	float4x4 InstanceMatrix[MAX_INSTANCE];
 #endif
-END_CBUFFER(BasePassInstanceBuffer);
+END_CBUFFER(DepthPassInstanceBuffer);
 
 #if SHADER
 
-BasePassInPS MainVS(BasePassInVS input
+DepthPassInPS MainVS(DepthPassInVS input
 #if USE_INSTANCING
 , uint instanceid SEMANTIC(SV_InstanceID)
 #endif
 )
 {
-	BasePassInPS output;
-	output.normal = input.normal;
-	output.uv = input.texcoord;
-
+	DepthPassInPS output;
 	output.svposition = float4(input.position, 1.0f);
+
 #if USE_INSTANCING
 	output.svposition = mul(output.svposition, InstanceMatrix[instanceid]);
-	output.instanceid = instanceid;
 #else
 	output.svposition = mul(output.svposition, WorldViewProjection);
 #endif

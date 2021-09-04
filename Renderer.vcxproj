@@ -162,11 +162,8 @@
     <ClInclude Include="DirectX\Renderer\D3DDefines.h" />
     <ClInclude Include="DirectX\Renderer\Renderer.h" />
     <ClInclude Include="DirectX\Renderer\Shader.h" />
-    <ClInclude Include="DirectX\Renderer\Shaders\BasePassStructs.h" />
-    <ClInclude Include="DirectX\Renderer\Shaders\DebugLinesStructs.h" />
     <ClInclude Include="DirectX\Renderer\Shaders\FrameBuffer.h" />
-    <ClInclude Include="DirectX\Renderer\Shaders\ScreenQuadStructs.h" />
-    <ClInclude Include="DirectX\Renderer\StructCollection.h" />
+    <ClInclude Include="DirectX\Renderer\Shaders\StructCollection.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DirectX\Renderer\Shaders\BasePassPS.hlsl">
@@ -206,6 +203,20 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\DepthPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\DepthVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="DirectX\Renderer\Shaders\ScreenQuadVS.hlsl">

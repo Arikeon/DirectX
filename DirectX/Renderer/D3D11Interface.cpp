@@ -32,7 +32,7 @@ void CD3D11Interface::ClearBackBuffer()
 {
 	const float defaultcolor[4] = { 0.2f, 0.2f, 0.2f, 0 };
 	m_context->ClearRenderTargetView(prenderer->GetRenderTarget(0).m_rtv, defaultcolor);
-	m_context->ClearDepthStencilView(prenderer->GetDepthTarget(0).m_dsv, D3D11_CLEAR_DEPTH, 1, 1);
+	m_context->ClearDepthStencilView(prenderer->GetGBufferDepth().m_dsv, D3D11_CLEAR_DEPTH, 1, 1);
 }
 
 void CD3D11Interface::ClearGBuffer(TGBuffer& GBuffer)
@@ -148,29 +148,58 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 
 	//Initialize zbuffer ref
 	{
+		D3D11_DEPTH_STENCILOP_DESC DepthStencilOPDesc = {};
+		DepthStencilOPDesc.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		DepthStencilOPDesc.StencilDepthFailOp = D3D11_STENCIL_OP_INCR_SAT;
+		DepthStencilOPDesc.StencilPassOp = D3D11_STENCIL_OP_INCR_SAT;
+		DepthStencilOPDesc.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		//Base Pass
+		{
+			D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
+			DepthStencilDesc.DepthEnable = true;
+			DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+			DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+			DepthStencilDesc.StencilEnable = true;
+			DepthStencilDesc.StencilReadMask = 0xFF;
+			DepthStencilDesc.StencilWriteMask = 0xFF;
+			DepthStencilDesc.FrontFace = DepthStencilOPDesc;
+			DepthStencilDesc.BackFace = DepthStencilOPDesc;
+
+			TD3DDepthStencilState newState = {};
+			r = m_device->CreateDepthStencilState(&DepthStencilDesc, &newState.m_dss);
+			checkhr(r);
+
+			newState.bIsValid = true;
+			check(prenderer->m_depthstencilstates.size() == (int32)EDepthStencilStates::eBasePass);
+			prenderer->m_depthstencilstates.push_back(newState);
+		}
+
+		//Pre Z
+		{
+			D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
+			DepthStencilDesc.DepthEnable = true;
+			DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+			DepthStencilDesc.DepthFunc = D3D11_COMPARISON_EQUAL;
+			DepthStencilDesc.StencilEnable = true;
+			DepthStencilDesc.StencilReadMask = 0xFF;
+			DepthStencilDesc.StencilWriteMask = 0xFF;
+			DepthStencilDesc.FrontFace = DepthStencilOPDesc;
+			DepthStencilDesc.BackFace = DepthStencilOPDesc;
+
+			TD3DDepthStencilState newState = {};
+			r = m_device->CreateDepthStencilState(&DepthStencilDesc, &newState.m_dss);
+			checkhr(r);
+
+			newState.bIsValid = true;
+			check(prenderer->m_depthstencilstates.size() == (int32)EDepthStencilStates::ePrePass);
+			prenderer->m_depthstencilstates.push_back(newState);
+		}
+
+
+
 		TD3DDepthTarget MainDepth;
 		TD3DTexture dsvTexture = {};
-
-#if 0
-		D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
-		DepthStencilDesc.DepthEnable = true;
-		DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-
-		DepthStencilDesc.StencilEnable = true;
-		DepthStencilDesc.StencilReadMask = 0xFF;
-		DepthStencilDesc.StencilWriteMask = 0xFF;
-
-		DepthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		DepthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-		DepthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		DepthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-		DepthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		DepthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-		DepthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		DepthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-#endif
 
 		//Stencil formats
 		//DXGI_FORMAT_R32G8X24_TYPELESS
@@ -216,7 +245,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		MainDepth.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, dsvTexture);
 
 		MainDepth.bIsValid = true;
-		check(Algorithm::ArrPush_Back(prenderer->m_depthtargets, MainDepth) == 0);
+		prenderer->m_GBuffer.m_GBufferDepth =  MainDepth;
 	}
 
 	//Initialize rasterizerstate
