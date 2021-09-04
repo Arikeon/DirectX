@@ -25,9 +25,9 @@ END_CBUFFER(LightBuffer);
 
 SamplerState s_Sampler;
 Texture2D t_Diffuse						: register(t0);
-Texture2D t_WorldNormal					: register(t1);
-Texture2D t_RoughnessMetallicDistance	: register(t2);
-Texture2D t_Depth	: register(t3);
+Texture2D t_Depth						: register(t1);
+Texture2D t_WorldNormal					: register(t2);
+Texture2D t_RoughnessMetallicSpecular	: register(t3);
 
 //Texture2D t_DirectionalShadow;
 
@@ -52,23 +52,25 @@ float4 SpecularComponentReflection(float3 ViewDirection, float SpecularPower, fl
 float3 GetPositionVS(float2 uv, float depth)
 {
 	//https://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
-	float x = uv.x * 2 - 1;
-	float y = (1 - uv.y) * 2 - 1;
-	
-	float4 projectedPosition = float4(x, y, depth, 1.0f);
-	float4 viewPosition = mul(projectedPosition, InverseProjection);
-
+	float x = uv.x * 2.f - 1.f;
+	float y = (1.f - uv.y) * 2.f - 1.f;
+	float4 projectedPosition = float4(x, y, depth, 1.f);
+	float4 viewPosition = mul(InverseProjection, projectedPosition);
 	return viewPosition.xyz / viewPosition.w;
 }
 
 float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 {
 	//float4 worldNormal = t_WorldNormal.Sample(s_Sampler, input.uv);
-	//float roughness = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).x;
-	//float metallic = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).y;
+	//float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
+	//float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
 
 	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
-	float distance = t_RoughnessMetallicDistance.Sample(s_Sampler, input.uv).z;
+	float distance = t_Depth.Sample(s_Sampler, input.uv).r;
+
+	float3 WorldPos = GetPositionVS(input.uv, distance);
+	WorldPos = mul(InverseView, WorldPos);
+	color.xyz = WorldPos + CameraPosition;
 
 #if LIGHT_TYPE_DIRECTIONAL
 #endif

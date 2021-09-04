@@ -27,7 +27,7 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer, float delta)
 		skybox.m_models[0].m_transform.m_rotation.x += .0006f * delta;
 	}
 
-#if 1
+#if 0
 	float3 CameraPos;
 	XMStoreFloat3(&CameraPos, m_camera.m_pos);
 	float3 SpherePos = m_objects[1].m_models[0].m_transform.m_position;

@@ -1,9 +1,6 @@
 #include "HLSLGlue.h"
 #include "StructCollection.h"
 
-#if SHADER
-#pragma pack_matrix(row_major)
-#endif
 START_CBUFFER(DebugLinesWVP, b0)
 float4x4 WorldViewProjection;
 END_CBUFFER(DebugLinesWVP);
@@ -16,7 +13,7 @@ DebugLinesInPS MainVS(DebugLinesInVS input)
 
 	output.position = input.position;
 	output.svposition = float4(output.position, 1.0f);
-	output.svposition = mul(output.svposition, WorldViewProjection);
+	output.svposition = mul(WorldViewProjection, output.svposition);
 	return output;
 }
 #endif

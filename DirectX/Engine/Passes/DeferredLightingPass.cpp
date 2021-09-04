@@ -131,18 +131,20 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 		TD3DTexture WorldNormalTex = renderer->GetTexture(
 			renderer->GetGBufferRTV(EGBufferKeys::eWorldNormal).m_textureid);
 
-		TD3DTexture RoughnessMetallicDistanceTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicDistance).m_textureid);
+		TD3DTexture RoughnessMetallicSpecularTex = renderer->GetTexture(
+			renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicSpecular).m_textureid);
 
+		TD3DTexture DepthTexture = renderer->GetTexture(renderer->GetGBufferDepth().m_textureid);
 
-		if (DiffuseTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex, false);
+			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_Depth", DepthTexture.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex);
+			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicSpecular", RoughnessMetallicSpecularTex.m_srv, permutationIndex);
 
-		if (WorldNormalTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex, false);
-
-		if (RoughnessMetallicDistanceTex.IsValid())
-			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicDistance", RoughnessMetallicDistanceTex.m_srv, permutationIndex, false);
+		check(DiffuseTex.IsValid() 
+			&& WorldNormalTex.IsValid() 
+			&& RoughnessMetallicSpecularTex.IsValid()
+			&& DepthTexture.IsValid());
 	}
 	
 	TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];

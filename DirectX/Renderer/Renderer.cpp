@@ -18,11 +18,14 @@ void CRenderer::ConstructFrameBuffer(TWindow window, CCamera camera)
 	matrix view = XMLoadFloat4x4(&camera.m_cameramatrix),
 		projection = XMMatrixPerspectiveFovLH(window.FOV, aspectratio, 0.001f, FRUSTRUM_FAR_PLANE);
 
+	vector viewDeterminant = XMMatrixDeterminant(view);
+	vector projectionDeterminant = XMMatrixDeterminant(projection);
+
 	XMStoreFloat4(&frameBuffer.CameraPosition, camera.m_pos);
 	frameBuffer.View = camera.m_cameramatrix;
 	XMStoreFloat4x4(&frameBuffer.Projection, projection);
-	XMStoreFloat4x4(&frameBuffer.InverseView, XMMatrixInverse(nullptr, view));
-	XMStoreFloat4x4(&frameBuffer.InverseProjection, XMMatrixInverse(nullptr, projection));
+	XMStoreFloat4x4(&frameBuffer.InverseView, XMMatrixInverse(&viewDeterminant, view));
+	XMStoreFloat4x4(&frameBuffer.InverseProjection, XMMatrixInverse(&projectionDeterminant, projection));
 
 	frameBuffer.bIsUpToDate = true;
 }
@@ -342,7 +345,7 @@ void CRenderer::CreateGBufferRenderTargets(TWindow window, bool bResize)
 		tex.bIsValid = true;
 
 		rtv.m_textureid = (TextureID)Algorithm::ArrPush_Back(m_textures, tex);
-		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eRoughnessMetallicDistance);
+		m_GBuffer.AddRTV(rtv, (int32)EGBufferKeys::eRoughnessMetallicSpecular);
 	}
 
 	check(m_GBuffer.CountValid() == EGBufferKeys::eMax);

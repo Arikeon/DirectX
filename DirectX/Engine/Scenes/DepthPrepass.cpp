@@ -55,7 +55,7 @@ void TDepthPrePass::DrawMeshes(CRenderer* renderer,
 	ID3D11RenderTargetView* rtvs[numRTVs];
 
 	check(numRTVs <= RTVSLOTMAX);
-	rtvs[0] = renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicDistance).m_rtv;
+	rtvs[0] = renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicSpecular).m_rtv;
 
 	for (int i = 0; i < (int)model.m_meshes.size(); ++i)
 	{

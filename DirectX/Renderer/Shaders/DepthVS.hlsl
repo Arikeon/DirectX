@@ -1,9 +1,6 @@
 #include "HLSLGlue.h"
 #include "StructCollection.h"
 
-#if SHADER
-#pragma pack_matrix(row_major)
-#endif
 
 START_CBUFFER(DepthPassWVP, b0)
 float4x4 WorldViewProjection;
@@ -27,9 +24,9 @@ DepthPassInPS MainVS(DepthPassInVS input
 	output.svposition = float4(input.position, 1.0f);
 
 #if USE_INSTANCING
-	output.svposition = mul(output.svposition, InstanceMatrix[instanceid]);
+	output.svposition = mul(InstanceMatrix[instanceid], output.svposition );
 #else
-	output.svposition = mul(output.svposition, WorldViewProjection);
+	output.svposition = mul(WorldViewProjection, output.svposition );
 #endif
 
 	return output;

@@ -99,7 +99,7 @@ namespace EGBufferKeys
 	{
 		eBaseColor = 0,
 		eWorldNormal,
-		eRoughnessMetallicDistance,
+		eRoughnessMetallicSpecular,
 		eMax
 	};
 }
