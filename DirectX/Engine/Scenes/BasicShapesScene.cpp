@@ -26,18 +26,6 @@ void CBasicShapesScene::UpdateScene(CRenderer* renderer, float delta)
 		skybox.m_models[0].m_transform.m_rotation.y += .0006f * delta;
 		skybox.m_models[0].m_transform.m_rotation.x += .0006f * delta;
 	}
-
-#if 0
-	float3 CameraPos;
-	XMStoreFloat3(&CameraPos, m_camera.m_pos);
-	float3 SpherePos = m_objects[1].m_models[0].m_transform.m_position;
-
-	float inner = (float)pow((CameraPos.x - SpherePos.x), 2) + pow((CameraPos.y - SpherePos.y), 2) + pow((CameraPos.z - SpherePos.z), 2);
-
-	float distancefromSphere = sqrt(inner);
-
-	CONSOLE_LOG(std::to_wstring(distancefromSphere));
-#endif
 }
 
 void CBasicShapesScene::LoadScene(CRenderer* renderer)
@@ -59,32 +47,38 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	m_objects.push_back(skybox);
 
 	//______________teapots
-	const int32 numteapots = 10;
+	const int32 numteapots = 15;
 	TObject teapots;
 	//slow
 	//IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
 	IO::TFileIO::LoadAsset(renderer, "Shapes", "cube.obj", teapots);
-	float boxScale = 5;
-	teapots.ScaleMeshes({ boxScale, boxScale, boxScale });
 
-	//int32 i = 0, j = 0;
-	//float xPos = -10.f, zPos = 0.f;
-	//
-	//for (; i < 2; ++i, zPos += 6.f)
-	//{
-	//	for (; j < numteapots / 2; ++j, xPos += 6.f)
-	//	{
-	//		TTransform transform = teapots.m_models[0].m_transform;
-	//		transform.m_position.x = xPos;
-	//		transform.m_position.z = zPos;
-	//
-	//		teapots.m_models[0].m_meshes[0].m_instanceTransforms.push_back(transform);
-	//	}
-	//
-	//	xPos = -10.f;
-	//
-	//	j = 0;
-	//}
+	int32 i = 0, j = 0;
+	float xPos = -10.f, zPos = 0.f;
+	
+	for (; i < 3; ++i, zPos += 6.f)
+	{
+		for (; j < 5; ++j, xPos += 6.f)
+		{
+			TTransform transform = teapots.m_models[0].m_transform;
+			transform.m_position.x = xPos;
+			transform.m_position.z = zPos;
+	
+			teapots.m_models[0].m_meshes[0].m_instances.m_instanceTransforms.push_back(transform);
+
+			TMaterial newMaterial = {};
+			newMaterial.m_diffuseColor = renderer->GetMaterial(teapots.m_models[0].m_meshes[0].m_materialKey).m_diffuseColor;
+			newMaterial.m_metallic = 0.33f * (float)i;
+			newMaterial.m_roughness = 0.2f * (float)j;
+
+			teapots.m_models[0].m_meshes[0].m_instances.m_instanceMaterials.push_back(
+				(int32)Algorithm::ArrPush_Back(renderer->GetMaterials(), newMaterial));
+		}
+	
+		xPos = -10.f;
+	
+		j = 0;
+	}
 
 	m_objects.push_back(teapots);
 

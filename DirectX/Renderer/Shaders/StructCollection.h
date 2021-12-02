@@ -25,7 +25,7 @@ struct BasePassInPS
 	float4 svposition SEMANTIC(SV_POSITION);
 	float3 normal SEMANTIC(NORMAL);
 	float2 uv SEMANTIC(TEXCOORD0);
-	int	   instanceid SEMANTIC(INDEX);
+	NOINTERPOLATION int	   instanceid SEMANTIC(INDEX);
 };
 
 //____________________________Depth Pass____________________________

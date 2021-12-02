@@ -57,6 +57,7 @@ public:
 	TD3DBuffer& GetIndexBuffer(BufferID index) { return m_indexbuffers[index]; }
 	TD3DBuffer& GetInstanceBuffer(BufferID index) { return m_instancebuffers[index]; }
 	TMaterial& GetMaterial(MaterialID index) { return m_materials[index]; }
+	std::vector<TMaterial>& GetMaterials() { return m_materials; }
 	TD3DSampler& GetSampler(SamplerID index) { return m_samplers[index]; }
 	TD3DRenderTarget& GetGBufferRTV(int32 index) { return m_GBuffer.GetRTV(index); }
 	TD3DDepthTarget& GetGBufferDepth() { return m_GBuffer.m_GBufferDepth; }

@@ -10,6 +10,12 @@
 #include <vector>
 #include <array>
 
+struct TInstancedOverload
+{
+	std::vector<MaterialID> m_instanceMaterials;
+	std::vector<TTransform> m_instanceTransforms;
+};
+
 namespace EVertexLayout
 {
 	enum Type
@@ -83,8 +89,9 @@ private:
 	}
 
 public:
+	bool HasInstancedOverloardedMaterial() { return m_instances.m_instanceMaterials.size() > 0; }
 	bool HasMaterial() { return m_materialKey > -1; }
-	bool HasInstances() { return (int32)m_instanceTransforms.size() > 0; }
+	bool HasInstances() { return (int32)m_instances.m_instanceTransforms.size() > 0; }
 
 	template <class TVertexType, int arraycount>
 	void CreateMesh(CRenderer* renderer,
@@ -146,7 +153,7 @@ public:
 	MaterialID m_materialKey = -1;
 	BufferID m_vertexkey = -1, m_vertexdepthkey = -1, m_indexkey = -1;//default if none available
 	bool m_bInitialized = false;
-	std::vector<TTransform> m_instanceTransforms;
+	TInstancedOverload m_instances;
 	std::array<bool, EVertexLayout::eCount> m_vertexLayout;
 	ETopologyType::Type m_topology = ETopologyType::eTriangleList;
 };

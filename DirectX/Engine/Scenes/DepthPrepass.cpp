@@ -94,13 +94,13 @@ void TDepthPrePass::DrawMeshes(CRenderer* renderer,
 
 			if (bUsesInstanceBuffer)
 			{
-				NumInstances = (int32)currMesh.m_instanceTransforms.size();
+				NumInstances = (int32)currMesh.m_instances.m_instanceTransforms.size();
 
 				DepthPassInstanceBuffer InstanceBuffer;
 
 				for (int32 j = 0; j < NumInstances; ++j)
 				{
-					TTransform& transform = currMesh.m_instanceTransforms[j];
+					TTransform& transform = currMesh.m_instances.m_instanceTransforms[j];
 					matrix instancedWorld = transform.GetMatrix<true, true, true>();
 
 					XMStoreFloat4x4(&InstanceBuffer.InstanceMatrix[j], (instancedWorld * view) * projection);

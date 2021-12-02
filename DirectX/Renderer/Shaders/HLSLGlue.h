@@ -22,7 +22,7 @@
 	#define LINEAR
 #elif SHADER //defined during compile
 	//Buffer & Structs
-	#define START_CBUFFER(CB, reg) cbuffer CB : register(reg) {
+	#define START_CBUFFER(CB, reg) cbuffer CB /*: register(reg)*/ {
 	#define END_CBUFFER(CB) }
 	#define SEMANTIC(SM) : SM
 	#define CENTROID centroid

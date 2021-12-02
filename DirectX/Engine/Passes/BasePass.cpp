@@ -88,10 +88,11 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
 
 		bool bHasMaterial = currMesh.HasMaterial();
+		bool bHasInstancedMaterial = currMesh.HasInstancedOverloardedMaterial();
 		bool bUsesInstanceBuffer = currMesh.HasInstances();
 		bool bHasDiffuseMap = false, bHasNormalMap = false;
 
-		int32 NumInstances = 0;
+		int32 NumInstances = (int32)currMesh.m_instances.m_instanceTransforms.size();
 		int32 permutationIndex = 0;
 		std::vector<PermutationValue> permutationKey;
 
@@ -113,33 +114,32 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		//________________Map Vertex & Instance data
 		{
 			//World View Proj buffer
-
 			matrix world, view, projection;
-
-			world = model.m_transform.GetMatrix<true, false, true>();
 			view = XMLoadFloat4x4(&frameBuffer.View);
 			projection = XMLoadFloat4x4(&frameBuffer.Projection);
 
-			float4x4 WorldViewProjection;
-			XMStoreFloat4x4(&WorldViewProjection, (world * view) * projection);
-
-			shader.WriteConstants("WorldViewProjection", (void*)&WorldViewProjection, permutationIndex);
-
 			if (bUsesInstanceBuffer)
 			{
-				NumInstances = (int32)currMesh.m_instanceTransforms.size();
-
-				BasePassInstanceBuffer InstanceBuffer;
+				float4x4 InstanceMatricies[MAX_INSTANCE];
 
 				for (int32 j = 0; j < NumInstances; ++j)
 				{
-					TTransform& transform = currMesh.m_instanceTransforms[j];
+					TTransform& transform = currMesh.m_instances.m_instanceTransforms[j];
 					matrix instancedWorld = transform.GetMatrix<true, true, true>();
 
-					XMStoreFloat4x4(&InstanceBuffer.InstanceMatrix[j], (instancedWorld * view) * projection);
+					XMStoreFloat4x4(&InstanceMatricies[j], (instancedWorld * view) * projection);
 				}
 
-				shader.WriteConstants("InstanceMatrix", (void*)&InstanceBuffer.InstanceMatrix, permutationIndex);
+				shader.WriteConstants("InstancedWorldViewProjection", (void*)&InstanceMatricies, permutationIndex);
+			}
+			else
+			{
+				world = model.m_transform.GetMatrix<true, false, true>();
+
+				float4x4 WorldViewProjection;
+				XMStoreFloat4x4(&WorldViewProjection, (world * view) * projection);
+
+				shader.WriteConstants("WorldViewProjection", (void*)&WorldViewProjection, permutationIndex);
 			}
 		}
 
@@ -177,11 +177,44 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 					shader.BindTexture(context, "t_Normal", Normal.m_srv, permutationIndex);
 			}
 
-			BasePassMaterial ConstantMaterial = {};
-			ConstantMaterial.DiffuseColor = float4(Material.m_diffuseColor.x, Material.m_diffuseColor.y, Material.m_diffuseColor.z, 0.f);
-			ConstantMaterial.Roughness = Material.m_roughness;
-			ConstantMaterial.Metallic = Material.m_metallic;
-			shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor, permutationIndex);
+
+			if (bHasInstancedMaterial)
+			{
+				check((int32)currMesh.m_instances.m_instanceMaterials.size() == NumInstances);
+
+				InstancedBasePassMaterial ConstantMaterial;
+
+				for (int32 ins = 0; ins < NumInstances; ++ins)
+				{
+					TMaterial& InstancedMaterial = renderer->GetMaterial(currMesh.m_instances.m_instanceMaterials[ins]);
+
+					ConstantMaterial.InstancedDiffuseColor[ins] = float4(InstancedMaterial.m_diffuseColor.x,
+						InstancedMaterial.m_diffuseColor.y, InstancedMaterial.m_diffuseColor.z, 0.f);
+
+					ConstantMaterial.InstancedSpecular[ins] = float4(InstancedMaterial.m_specularColor.x,
+						InstancedMaterial.m_specularColor.y, InstancedMaterial.m_specularColor.z, 0.f);
+
+					ConstantMaterial.InstancedRoughness[ins] = InstancedMaterial.m_roughness;
+					ConstantMaterial.InstancedMetallic[ins] = InstancedMaterial.m_metallic;
+				}
+
+				shader.WriteConstants("InstancedDiffuseColor", (void*)&ConstantMaterial.InstancedDiffuseColor, permutationIndex);
+				shader.WriteConstants("InstancedSpecular", (void*)&ConstantMaterial.InstancedSpecular, permutationIndex);
+				shader.WriteConstants("InstancedRoughness", (void*)&ConstantMaterial.InstancedRoughness, permutationIndex);
+				shader.WriteConstants("InstancedMetallic", (void*)&ConstantMaterial.InstancedMetallic, permutationIndex);
+			}
+			else
+			{
+				BasePassMaterial ConstantMaterial = {};
+				ConstantMaterial.DiffuseColor = Material.m_diffuseColor;
+				//ConstantMaterial.Specular = Material.m_specularColor;
+				ConstantMaterial.Roughness = Material.m_roughness;
+				ConstantMaterial.Metallic = Material.m_metallic;
+				shader.WriteConstants("DiffuseColor", (void*)&ConstantMaterial.DiffuseColor, permutationIndex);
+				//shader.WriteConstants("Specular", (void*)&ConstantMaterial0.Specular, permutationIndex);
+				shader.WriteConstants("Roughness", (void*)&ConstantMaterial.Roughness, permutationIndex);
+				shader.WriteConstants("Metallic", (void*)&ConstantMaterial.Metallic, permutationIndex);
+			}
 		}
 
 

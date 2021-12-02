@@ -70,7 +70,7 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 
 	float3 WorldPos = GetPositionVS(input.uv, distance);
 	WorldPos = mul(InverseView, WorldPos);
-	color.xyz = WorldPos + CameraPosition;
+	//color.xyz = WorldPos + CameraPosition;
 
 #if LIGHT_TYPE_DIRECTIONAL
 #endif

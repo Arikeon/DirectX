@@ -54,11 +54,11 @@ void TObject::ScaleMeshes(float3 scale)
 		{
 			TMesh& mesh = m_models[i].m_meshes[j];
 
-			for (int32 instance = 0; instance < (int32)mesh.m_instanceTransforms.size(); ++instance)
+			for (int32 instance = 0; instance < (int32)mesh.m_instances.m_instanceTransforms.size(); ++instance)
 			{
-				mesh.m_instanceTransforms[instance].m_scale.x += scale.x;
-				mesh.m_instanceTransforms[instance].m_scale.y += scale.y;
-				mesh.m_instanceTransforms[instance].m_scale.z += scale.z;
+				mesh.m_instances.m_instanceTransforms[instance].m_scale.x += scale.x;
+				mesh.m_instances.m_instanceTransforms[instance].m_scale.y += scale.y;
+				mesh.m_instances.m_instanceTransforms[instance].m_scale.z += scale.z;
 			}
 		}
 		
