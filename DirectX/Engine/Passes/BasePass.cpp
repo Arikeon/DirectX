@@ -4,15 +4,24 @@
 #include "BasePassVS.hlsl"
 #include "FrameBuffer.h"
 
-void TBasePass::Render(CRenderer* renderer,
+void TBasePass::RenderSceneMesh(CRenderer* renderer,
 	std::vector<TObject>& objects,
-	TDebugLines debuglines,
 	CCamera camera,
 	TWindow window,
 	float delta)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 	TShader& BasePassShader = renderer->GetShader(EShaderList::eBasePass);
+
+	std::vector<ID3D11RenderTargetView*> GBufferRenderTargets;
+
+	const int32 numRTVs = EGBufferKeys::eMax;
+	check(numRTVs <= RTVSLOTMAX);
+
+	for (int32 i = 0; i < numRTVs; ++i)
+	{
+		GBufferRenderTargets.push_back(renderer->GetGBufferRTV(i).m_rtv);
+	}
 
 	for (unsigned int i = 0; i < (int)objects.size(); ++i)
 	{
@@ -29,24 +38,47 @@ void TBasePass::Render(CRenderer* renderer,
 		for (int i = 0; i < nummodels; ++i)
 		{
 			TModel& model = models[i];
-			DrawMeshes(renderer, BasePassShader, camera, window, delta, model);
+			DrawMeshes(renderer, BasePassShader, camera, window, delta, model, GBufferRenderTargets);
 		}
-		//Render this AFTER scene has been rendered - make new draw pass
-#if 0
-		//Draw debug lines
-		if (debuglines.m_meshes.size() > 0)
-		{
-			TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
-			D3D11_MAPPED_SUBRESOURCE subresourcemap;
-			context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);
-			memcpy(subresourcemap.pData, &debuglines.m_debuglines[0], sizeof(DebugLinesInVS) * debuglines.GetLineCount());
-			context->Unmap(vbuffer.m_pGPUdata, (UINT)0);
-
-			DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
-		}
-#endif
 	}
 
+
+	renderer->UnbindRTV();
+	renderer->UnbindSRV(BasePassShader);
+}
+
+void TBasePass::RenderSkyBoxAndUI(CRenderer* renderer,
+	TObject& Skybox,
+	TDebugLines debuglines,
+	CCamera camera,
+	TWindow window,
+	float delta)
+{
+	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
+	TShader& BasePassShader = renderer->GetShader(EShaderList::eBasePass);
+
+	std::vector<ID3D11RenderTargetView*> colorRenderTarget;
+
+	colorRenderTarget.push_back(renderer->GetRenderTarget(ERenderTargetKey::eColor).m_rtv);
+
+	{
+		TModel& model = Skybox.m_models[0];
+		DrawMeshes(renderer, BasePassShader, camera, window, delta, model, colorRenderTarget);
+	}
+
+#if 0
+	//Draw debug lines
+	if (debuglines.m_meshes.size() > 0)
+	{
+		TD3DBuffer vbuffer = renderer->GetVertexBuffer(debuglines.m_meshes[0].m_vertexkey);
+		D3D11_MAPPED_SUBRESOURCE subresourcemap;
+		context->Map(vbuffer.m_pGPUdata, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &subresourcemap);
+		memcpy(subresourcemap.pData, &debuglines.m_debuglines[0], sizeof(DebugLinesInVS) * debuglines.GetLineCount());
+		context->Unmap(vbuffer.m_pGPUdata, (UINT)0);
+
+		DrawMeshes(renderer, renderer->GetShader(EShaderList::eDebugBasePass), camera, window, delta, debuglines);
+	}
+#endif
 
 	renderer->UnbindRTV();
 	renderer->UnbindSRV(BasePassShader);
@@ -58,20 +90,12 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 	CCamera camera,
 	TWindow window,
 	float delta,
-	TModel model)
+	TModel model,
+	std::vector<ID3D11RenderTargetView*> rtvs)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
 	ID3D11DepthStencilView* dsv = renderer->GetGBufferDepth().m_dsv;
 	ID3D11DepthStencilState* dss = renderer->GetDepthStencilState((int32)EDepthStencilStates::eBasePass).m_dss;
-
-	const int32 numRTVs = EGBufferKeys::eMax;
-	ID3D11RenderTargetView* rtvs[numRTVs];
-
-	check(numRTVs <= RTVSLOTMAX);
-	for (int32 i = 0; i < numRTVs; ++i)
-	{
-		rtvs[i] = renderer->GetGBufferRTV(i).m_rtv;
-	}
 
 	FrameBuffer& frameBuffer = renderer->GetFrameBuffer();
 
@@ -96,6 +120,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		int32 permutationIndex = 0;
 		std::vector<PermutationValue> permutationKey;
 
+		permutationKey.push_back({ "USE_GBUFFER", (int32)rtvs.size() > 1 });
 		permutationKey.push_back({ "USE_INSTANCING", (int32)bUsesInstanceBuffer });
 
 		if (bHasMaterial)
@@ -229,7 +254,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			shader.BindData(context, permutationIndex);
 
 			context->OMSetDepthStencilState(dss, 0);
-			context->OMSetRenderTargets(numRTVs, rtvs, dsv);
+			context->OMSetRenderTargets((UINT)rtvs.size(), &rtvs[0], dsv);
 			context->RSSetViewports(1, &d3dview);
 			context->IASetInputLayout(shader.m_inputlayout);
 			//TODO add forced rasterization state for wireframe view mode

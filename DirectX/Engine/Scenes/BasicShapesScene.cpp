@@ -39,24 +39,22 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 
 	//______________skybox
 	//https://wwwtyro.github.io/space-3d/
-	TObject skybox;
 	float SkyboxScale = 9999.f;
 	int32 SkyboxTexture = IO::TFileIO::LoadTextureFromFile(renderer, "SkyboxAssets", "skybox.png");
-	IO::TFileIO::CreateCube(renderer, skybox, SkyboxScale, SkyboxTexture);
-	skybox.m_models[0].m_rasterizationState = ERasterizerStates::eFillSolidCullBack;
-	m_objects.push_back(skybox);
+	IO::TFileIO::CreateCube(renderer, Skybox, SkyboxScale, SkyboxTexture);
+	Skybox.m_models[0].m_rasterizationState = ERasterizerStates::eFillSolidCullFront;
 
 	//______________teapots
 	const int32 numteapots = 15;
 	TObject teapots;
 	//slow
-	//IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
-	IO::TFileIO::LoadAsset(renderer, "Shapes", "cube.obj", teapots);
+	IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
+	//IO::TFileIO::LoadAsset(renderer, "Shapes", "cube.obj", teapots);
 
 	int32 i = 0, j = 0;
 	float xPos = -10.f, zPos = 0.f;
 	
-	for (; i < 3; ++i, zPos += 6.f)
+	for (; i < 4; ++i, zPos += 6.f)
 	{
 		for (; j < 5; ++j, xPos += 6.f)
 		{
@@ -84,6 +82,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 
 	//______________lights
 	TDirectionalLight Star;
+	Star.m_position = float3(0.f, 10000, -10000);
 	Star.m_color = TColors::White;
 	Star.m_intensity = 0.5f;
 	Star.m_direction.z = -1.f;

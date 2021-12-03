@@ -146,6 +146,26 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		check(Algorithm::ArrPush_Back(prenderer->m_rtvs, MainRTV) == ERenderTargetKey::eBackBufeer);
 	}
 
+	//Initialize color rtv ref
+	{
+		TD3DRenderTarget RTV;
+		TD3DTexture RTVTexture = CreateTexture(window.m_height,
+			window.m_width,
+			1,
+			1,
+			1,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET));
+
+		r = m_device->CreateRenderTargetView(RTVTexture.m_tex2D, nullptr, &RTV.m_rtv);
+		checkhr(r);
+
+		RTVTexture.bIsValid = true;
+		RTV.m_textureid = (TextureID)Algorithm::ArrPush_Back(prenderer->m_textures, RTVTexture);
+
+		check(Algorithm::ArrPush_Back(prenderer->m_rtvs, RTV) == ERenderTargetKey::eColor);
+	}
+
 	//Initialize zbuffer ref
 	{
 		D3D11_DEPTH_STENCILOP_DESC DepthStencilOPDesc = {};
@@ -254,7 +274,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		//ERasterizerStates::eFillSolidCullBack
 		D3D11_RASTERIZER_DESC RasterizerDesc = {};
 		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
-		RasterizerDesc.CullMode = D3D11_CULL_BACK;
+		RasterizerDesc.CullMode = D3D11_CULL_FRONT;
 		RasterizerDesc.DepthClipEnable = true;
 		RasterizerDesc.FrontCounterClockwise = true;
 		RasterizerDesc.DepthBias = false;
@@ -271,7 +291,7 @@ void CD3D11Interface::InitializeD3D(TWindow window)
 		//ERasterizerStates::eFillSolidCullFront
 		RasterizerDesc = {};
 		RasterizerDesc.FillMode = D3D11_FILL_SOLID;
-		RasterizerDesc.CullMode = D3D11_CULL_FRONT;
+		RasterizerDesc.CullMode = D3D11_CULL_BACK;
 		RasterizerDesc.DepthClipEnable = true;
 		RasterizerDesc.FrontCounterClockwise = true;
 		RasterizerDesc.DepthBias = false;
@@ -739,7 +759,8 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	unsigned int depth,
 	unsigned int arraySize,
 	unsigned int mipLevels,
-	DXGI_FORMAT format)
+	DXGI_FORMAT format,
+	D3D11_BIND_FLAG bindflag = D3D11_BIND_SHADER_RESOURCE)
 {
 	//TODO add support for RW and UAV
 	HRESULT r = {};
@@ -755,7 +776,7 @@ TD3DTexture CD3D11Interface::CreateTexture(
 	TextureDesc.SampleDesc.Count = 1;
 	TextureDesc.SampleDesc.Quality = 0;
 	TextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
-	TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	TextureDesc.BindFlags = bindflag;
 	TextureDesc.CPUAccessFlags = false;
 	TextureDesc.MiscFlags = arraySize > 1 ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 

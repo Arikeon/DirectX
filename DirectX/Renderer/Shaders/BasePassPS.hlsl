@@ -24,8 +24,10 @@ END_CBUFFER(InstancedBasePassMaterial);
 struct GBufferOut
 {
 	float4 color						SEMANTIC(SV_TARGET0);
+#if USE_GBUFFER
 	float4 worldnormal					SEMANTIC(SV_TARGET1);
 	float4 roughnessmetallicspecular	SEMANTIC(SV_TARGET2);
+#endif
 };
 
 SamplerState s_Sampler;
@@ -47,23 +49,25 @@ GBufferOut MainPS(BasePassInPS input)
 
 #endif //USE_TEXTURE_DIFFUSE
 
+#if USE_GBUFFER
+	#if USE_TEXTURE_NORMAL
+			output.worldnormal	= t_Normal.Sample(s_Sampler, input.uv);
+	#else
+			output.worldnormal	= float4(input.normal, 0.f);
+	#endif //USE_TEXTURE_NORMAL
+#endif
 
-#if USE_TEXTURE_NORMAL
-		output.worldnormal	= t_Normal.Sample(s_Sampler, input.uv);
-#else
-		output.worldnormal	= float4(input.normal, 0.f);
-#endif //USE_TEXTURE_NORMAL
 
-
-
-#if USE_INSTANCING
-	output.roughnessmetallicspecular.x		= InstancedRoughness[input.instanceid];
-	output.roughnessmetallicspecular.y		= InstancedMetallic[input.instanceid];
-#else
-	output.roughnessmetallicspecular.x		= Roughness;
-	output.roughnessmetallicspecular.y		= Metallic;
-#endif  //USE_INSTANCING
-	//output.roughnessmetallicspecular.z		= Specular;
+#if USE_GBUFFER
+	#if USE_INSTANCING
+		output.roughnessmetallicspecular.x		= InstancedRoughness[input.instanceid];
+		output.roughnessmetallicspecular.y		= InstancedMetallic[input.instanceid];
+	#else
+		output.roughnessmetallicspecular.x		= Roughness;
+		output.roughnessmetallicspecular.y		= Metallic;
+	#endif  //USE_INSTANCING
+		//output.roughnessmetallicspecular.z	= Specular;
+#endif
 
 	return output;
 }

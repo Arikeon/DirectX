@@ -52,7 +52,8 @@ public:
 		unsigned int depth,
 		unsigned int arraySize,
 		unsigned int mipLevels,
-		DXGI_FORMAT format);
+		DXGI_FORMAT format,
+		D3D11_BIND_FLAG bindflag);
 
 	//Render Commands
 	void UnbindRTV();

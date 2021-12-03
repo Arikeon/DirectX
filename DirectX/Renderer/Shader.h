@@ -26,6 +26,7 @@ namespace EShaderList
 		eDepth,
 		eScreenQuad,
 		eDeferredLighting,
+		eHelper,
 		eCount,
 	};
 }
@@ -493,13 +494,13 @@ struct TShader
 		CONSOLE_LOG(L"Unable to find: " + wname + L" in shader binding");
 	}
 
-	void BindFrameBuffer(FrameBuffer& frameBuffer, int32 permutationIndex)
+	void BindFrameBuffer(FrameBuffer& frameBuffer, int32 permutationIndex = 0)
 	{
-		WriteConstants("CameraPosition", (void*)&frameBuffer.CameraPosition, permutationIndex, false);
-		WriteConstants("View", (void*)&frameBuffer.View, permutationIndex, false);
-		WriteConstants("Projection", (void*)&frameBuffer.Projection, permutationIndex, false);
-		WriteConstants("InverseView", (void*)&frameBuffer.InverseView, permutationIndex, false);
-		WriteConstants("InverseProjection", (void*)&frameBuffer.InverseProjection, permutationIndex, false);
+		WriteConstants("CameraPosition", (void*)&frameBuffer.CameraPosition, permutationIndex);
+		WriteConstants("View", (void*)&frameBuffer.View, permutationIndex);
+		WriteConstants("Projection", (void*)&frameBuffer.Projection, permutationIndex);
+		WriteConstants("InverseView", (void*)&frameBuffer.InverseView, permutationIndex);
+		WriteConstants("InverseProjection", (void*)&frameBuffer.InverseProjection, permutationIndex);
 	}
 
 	void WriteConstants(std::string name, void* data, int32 permutationIndex = 0, bool bGiveWarning = false)

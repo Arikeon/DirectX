@@ -7,7 +7,8 @@ namespace ELightType
 	{
 		eDirectional = 0,
 		ePoint,
-		eSpot
+		eSpot,
+		eMax,
 	};
 }
 

@@ -38,13 +38,12 @@ public:
 	virtual std::vector<TLight>& GetLights() { return m_Lights; }
 
 protected:
-	virtual void InitializeScreenQuad(CRenderer* renderer);
 
 	EScene::Type m_selectedscene;
 	CCamera m_camera;
+	TObject Skybox;
 	std::vector<TObject> m_objects;
 	std::vector<TLight> m_Lights;
-	TObject m_ScreenQuad;
 	TDebugLines m_debuglines;
 	bool m_bDrawTransforms = true;
 };

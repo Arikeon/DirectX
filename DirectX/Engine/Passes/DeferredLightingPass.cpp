@@ -4,73 +4,61 @@
 
 void TDeferredLightingPass::Render(CRenderer* renderer,
 	std::vector<TLight> Lights,
-	TObject& ScreenQuadObject,
 	CCamera camera,
 	TWindow window,
 	float delta)
 {
-	check(ScreenQuadObject.m_models.size() == 1);
-
-	TShader DeferredLightingPS = renderer->GetShader(EShaderList::eDeferredLighting);
 	TShader ScreenQuadVS = renderer->GetShader(EShaderList::eScreenQuad);
+	TShader DeferredLightingPS = renderer->GetShader(EShaderList::eDeferredLighting);
 
-	DrawScreenQuad(renderer, Lights, DeferredLightingPS, ScreenQuadVS, ScreenQuadObject.m_models[0], camera, window, delta);
-
-	renderer->UnbindRTV();
-	renderer->UnbindSRV(ScreenQuadVS);
-	renderer->UnbindSRV(DeferredLightingPS);
+	DrawScreenQuad(renderer, Lights, DeferredLightingPS, ScreenQuadVS, camera, window, delta);
 }
 
 void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	std::vector<TLight> Lights,
 	TShader DeferredLightingPS,
 	TShader ScreenQuadVS,
-	TModel& ScreenQuadModel,
 	CCamera camera,
 	TWindow window,
 	float delta)
 {
 	ID3D11DeviceContext* context = renderer->GetD3DInterface()->GetContext();
-
 	//render to back buffer for now
-	ID3D11RenderTargetView* backbuffer = renderer->GetRenderTarget(0).m_rtv;
-
-	int32 permutationIndex = DeferredLightingPS.m_permutations.GetShaderWithPermutation({
-		{"LIGHT_TYPE_DIRECTIONAL",	(int32)0},
-		{"LIGHT_TYPE_POINT",		(int32)0},
-		{"LIGHT_TYPE_SPOT",			(int32)0},
-		{"SHADOWED",				(int32)0}});
+	ID3D11RenderTargetView* ColorRTV = renderer->GetRenderTarget(ERenderTargetKey::eColor).m_rtv;
 
 	FrameBuffer& frameBuffer = renderer->GetFrameBuffer();
 
 	//Gather Lights
-	std::vector<TDirectionalLight> DirectionalLights;
-	std::vector<TPointLight> PointLights;
-	std::vector<TSpotLight> SpotLights;
+	std::array<std::vector<TLight>, ELightType::eMax> GatheredLights;
+	std::array<std::vector<TLight>, ELightType::eMax> GatheredLightsShadowed;
 
 	{
 		for (int32 i = 0; i < (int32)Lights.size(); ++i)
 		{
 			ELightType::Type type = Lights[i].m_lightType;
 
+			//also check visibility
 			switch (type)
 			{
 			case ELightType::eDirectional:
 			{
 				TDirectionalLight light = static_cast<TDirectionalLight&>(Lights[i]);
-				DirectionalLights.push_back(light);
+				light.m_shadowed ? 
+					GatheredLightsShadowed[ELightType::eDirectional].push_back(light) : GatheredLights[ELightType::eDirectional].push_back(light);
 			}
 			break;
 			case ELightType::ePoint:
 			{
 				TPointLight light = static_cast<TPointLight&>(Lights[i]);
-				PointLights.push_back(light);
+				light.m_shadowed ? 
+					GatheredLightsShadowed[ELightType::ePoint].push_back(light) : GatheredLights[ELightType::ePoint].push_back(light);
 			}
 			break;
 			case ELightType::eSpot:
 			{
 				TSpotLight light = static_cast<TSpotLight&>(Lights[i]);
-				SpotLights.push_back(light);
+				light.m_shadowed ? 
+					GatheredLightsShadowed[ELightType::eSpot].push_back(light) : GatheredLights[ELightType::eSpot].push_back(light);
 			}
 			break;
 			}
@@ -78,23 +66,19 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 
 	}
 
-	check(DirectionalLights.size() <= 1);
-
 	LightBuffer lightBuffer = {};
-	//Push light buffer data
-	if (0)
+	//Create batched buffer data
+	if (1)
 	{
-		if ((int32)DirectionalLights.size() == 1)
+		lightBuffer.AmbientStrength = .1f;
+
+		if ((int32)GatheredLights[ELightType::eDirectional].size() > 0)
 		{
 
 			//Directional
-			TDirectionalLight& Directional = DirectionalLights[0];
+			TDirectionalLight& Directional = static_cast<TDirectionalLight&>(GatheredLights[ELightType::eDirectional][0]);
 
-			lightBuffer.DirectionalColor = float4(
-				Directional.m_color.x,
-				Directional.m_color.y,
-				Directional.m_color.z,
-				0.f);
+			lightBuffer.DirectionalColor = Directional.m_color;
 
 			lightBuffer.DirectionalPositionAndIntensity = float4(
 				Directional.m_position.x,
@@ -102,86 +86,100 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 				Directional.m_position.z,
 				Directional.m_intensity);
 
-			lightBuffer.DirectionalDirection = DirectionalLights[0].m_direction;
+			lightBuffer.DirectionalDirection = Directional.m_direction;
 		}
 
 		//Point
-		for (int32 i = 0; i < (int32)PointLights.size(); ++i)
-		{
-			TPointLight& Point = PointLights[i];
-
-
-		}
-
-
-		DeferredLightingPS.WriteConstants("DirectionalColor", (void*)&lightBuffer.DirectionalColor, permutationIndex);
-		DeferredLightingPS.WriteConstants("DirectionalPositionAndIntensity", (void*)&lightBuffer.DirectionalPositionAndIntensity, permutationIndex);
-		DeferredLightingPS.WriteConstants("DirectionalDirection", (void*)&lightBuffer.DirectionalDirection, permutationIndex);
+		//	lightBuffer.PointLightCount = PointLights.size();
+		//for (int32 i = 0; i < (int32)PointLights.size(); ++i)
+		//{
+		//	TPointLight& Point = PointLights[i];
+		//}
 	}
 
 
-	//set Gbuffer and samplers
+	//init Gbuffer and samplers
+	TD3DSampler sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
+	DeferredLightingPS.BindSampler(context, "s_Sampler", sampler.m_samplerstate);
+
+	TD3DTexture DiffuseTex = renderer->GetTexture(
+		renderer->GetGBufferRTV(EGBufferKeys::eBaseColor).m_textureid);
+
+	TD3DTexture WorldNormalTex = renderer->GetTexture(
+		renderer->GetGBufferRTV(EGBufferKeys::eWorldNormal).m_textureid);
+
+	TD3DTexture RoughnessMetallicSpecularTex = renderer->GetTexture(
+		renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicSpecular).m_textureid);
+
+	TD3DTexture DepthTexture = renderer->GetTexture(renderer->GetGBufferDepth().m_textureid);
+
+	check(DiffuseTex.IsValid()
+		&& WorldNormalTex.IsValid()
+		&& RoughnessMetallicSpecularTex.IsValid()
+		&& DepthTexture.IsValid());
+
+	TMesh& ScreenQuadMesh = GetScreenQuad().m_models[0].m_meshes[0];
+
+	for (int32 i = 0; i < ELightType::eMax; ++i)
 	{
-		TD3DSampler sampler = renderer->GetSampler((SamplerID)EStaticSamplerKey::eDefault);
-		DeferredLightingPS.BindSampler(context, "s_Sampler", sampler.m_samplerstate);
+		if ((int32)GatheredLights[i].size() <= 0)
+			continue;
 
-		TD3DTexture DiffuseTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eBaseColor).m_textureid);
+		int32 permutationIndex = DeferredLightingPS.m_permutations.GetShaderWithPermutation({
+			{"LIGHT_TYPE_DIRECTIONAL",	(int32)i == (int32)ELightType::eDirectional ? 1 : 0},
+			{"LIGHT_TYPE_POINT",		(int32)i == (int32)ELightType::ePoint ? 1 : 0},
+			{"LIGHT_TYPE_SPOT",			(int32)i == (int32)ELightType::eSpot ? 1 : 0},
+			{"SHADOWED",				(int32)0} });
 
-		TD3DTexture WorldNormalTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eWorldNormal).m_textureid);
-
-		TD3DTexture RoughnessMetallicSpecularTex = renderer->GetTexture(
-			renderer->GetGBufferRTV(EGBufferKeys::eRoughnessMetallicSpecular).m_textureid);
-
-		TD3DTexture DepthTexture = renderer->GetTexture(renderer->GetGBufferDepth().m_textureid);
+		//Bind Shader Data
+		{
+			DeferredLightingPS.WriteConstants("DirectionalColor", (void*)&lightBuffer.DirectionalColor, permutationIndex);
+			DeferredLightingPS.WriteConstants("DirectionalPositionAndIntensity", (void*)&lightBuffer.DirectionalPositionAndIntensity, permutationIndex);
+			DeferredLightingPS.WriteConstants("DirectionalDirection", (void*)&lightBuffer.DirectionalDirection, permutationIndex);
+			DeferredLightingPS.WriteConstants("AmbientStrength", (void*)&lightBuffer.AmbientStrength, permutationIndex);
 
 			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex);
 			DeferredLightingPS.BindTexture(context, "t_Depth", DepthTexture.m_srv, permutationIndex);
 			DeferredLightingPS.BindTexture(context, "t_WorldNormal", WorldNormalTex.m_srv, permutationIndex);
 			DeferredLightingPS.BindTexture(context, "t_RoughnessMetallicSpecular", RoughnessMetallicSpecularTex.m_srv, permutationIndex);
 
-		check(DiffuseTex.IsValid() 
-			&& WorldNormalTex.IsValid() 
-			&& RoughnessMetallicSpecularTex.IsValid()
-			&& DepthTexture.IsValid());
-	}
-	
-	TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];
+			ScreenQuadVS.BindFrameBuffer(frameBuffer);
+			DeferredLightingPS.BindFrameBuffer(frameBuffer, permutationIndex);
 
-	//Bind Shader Data
-	{
-		ScreenQuadVS.BindFrameBuffer(frameBuffer, permutationIndex);
-		DeferredLightingPS.BindFrameBuffer(frameBuffer, permutationIndex);
-		ScreenQuadVS.SetShaderStages(context);
-		DeferredLightingPS.SetShaderStages(context);
-		ScreenQuadVS.BindData(context);
-		DeferredLightingPS.BindData(context);
+			ScreenQuadVS.SetShaderStages(context);
+			DeferredLightingPS.SetShaderStages(context, permutationIndex);
 
-		D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
-		TMesh& ScreenQuadMesh = ScreenQuadModel.m_meshes[0];
-		check(ScreenQuadMesh.m_bInitialized);
-		context->OMSetRenderTargets(1, &backbuffer, nullptr); //no depth
-		context->RSSetViewports(1, &d3dview);
-		context->IASetInputLayout(ScreenQuadVS.m_inputlayout);
-		context->RSSetState(renderer->GetRenderState((int32)ERasterizerStates::eFillSolidCullNone));
-		context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(ScreenQuadMesh.m_topology));
-	}
+			ScreenQuadVS.BindData(context);
+			DeferredLightingPS.BindData(context, permutationIndex);
 
-	//Draw quad
-	{
+			D3D11_VIEWPORT& d3dview = renderer->GetView(EViews::eMain);
+			TMesh& ScreenQuadMesh = GetScreenQuad().m_models[0].m_meshes[0];
+			check(ScreenQuadMesh.m_bInitialized);
+			context->OMSetRenderTargets(1, &ColorRTV, nullptr); //no depth
+			context->RSSetViewports(1, &d3dview);
+			context->IASetInputLayout(ScreenQuadVS.m_inputlayout);
+			context->RSSetState(renderer->GetRenderState((int32)ERasterizerStates::eFillSolidCullNone));
+			context->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(ScreenQuadMesh.m_topology));
+		}
 
-		TD3DBuffer vbuffer;
-		vbuffer = renderer->GetVertexBuffer(ScreenQuadMesh.m_vertexkey);
-		TD3DBuffer ibuffer;
-		ibuffer = renderer->GetIndexBuffer(ScreenQuadMesh.m_indexkey);
+		//Draw quad
+		{
+			TD3DBuffer vbuffer;
+			vbuffer = renderer->GetVertexBuffer(ScreenQuadMesh.m_vertexkey);
+			TD3DBuffer ibuffer;
+			ibuffer = renderer->GetIndexBuffer(ScreenQuadMesh.m_indexkey);
 
 
-		UINT stride = vbuffer.m_info.m_stride;
-		UINT offset = 0;
+			UINT stride = vbuffer.m_info.m_stride;
+			UINT offset = 0;
 
-		context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
-		context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
+			context->IASetVertexBuffers(0, 1, &vbuffer.m_pGPUdata, &stride, &offset);
+			context->IASetIndexBuffer(ibuffer.m_pGPUdata, DXGI_FORMAT_R32_UINT, 0);
+			context->DrawIndexed(ibuffer.m_info.m_elementcount, 0, 0);
+		}
+
+		renderer->UnbindRTV();
+		renderer->UnbindSRV(ScreenQuadVS);
+		renderer->UnbindSRV(DeferredLightingPS);
 	}
 }

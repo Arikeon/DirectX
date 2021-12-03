@@ -62,7 +62,8 @@ TextureID CRenderer::CreateTexture(
 	unsigned int depth,
 	unsigned int arraySize,
 	unsigned int mipLevels,
-	DXGI_FORMAT format)
+	DXGI_FORMAT format,
+	D3D11_BIND_FLAG bindflag = D3D11_BIND_SHADER_RESOURCE)
 {
 	m_textures.push_back(m_D3DInterface->CreateTexture(
 		width,
@@ -70,7 +71,8 @@ TextureID CRenderer::CreateTexture(
 		depth,
 		arraySize,
 		mipLevels,
-		format));
+		format,
+		bindflag));
 
 	return TextureID(m_textures.size() - 1);
 }
@@ -377,10 +379,10 @@ void CRenderer::CompileShaders()
 	const int NumGlobalShaders = EShaderList::eCount;
 	m_shaders.resize(NumGlobalShaders);
 
-
 	std::vector<TShaderPermutationKey> BasePassPermutations = { 
 		{"USE_TEXTURE_DIFFUSE", 0, 1 },
 		{"USE_TEXTURE_NORMAL", 0, 1 },
+		{"USE_GBUFFER", 0, 1 },
 		{"USE_INSTANCING", 0, 1 }};
 
 	std::vector<TShaderPermutationKey> DepthPermutations = {
@@ -391,12 +393,16 @@ void CRenderer::CompileShaders()
 		{"LIGHT_TYPE_POINT", 0, 1 },
 		{"LIGHT_TYPE_SPOT", 0, 1 },
 		{"SHADOWED", 0, 1 }};
+
+	std::vector<TShaderPermutationKey> HelperPermutations = {};
+
 	
 	m_shaders[EShaderList::eBasePass].			Initialize<true, false, false, false, true, false>("BasePass", BasePassPermutations);
 	m_shaders[EShaderList::eDepth].				Initialize<true, false, false, false, true, false>("Depth", DepthPermutations);
 	m_shaders[EShaderList::eDebugBasePass].		Initialize<true, false, false, false, true, false>("DebugLines");
 	m_shaders[EShaderList::eScreenQuad].		Initialize<true, false, false, false, false, false>("ScreenQuad");
 	m_shaders[EShaderList::eDeferredLighting].	Initialize<false, false, false, false, true, false>("DeferredLighting", DeferredLightingPermutations);
+	m_shaders[EShaderList::eHelper].			Initialize<false, false, false, false, true, false>("HelperPass", HelperPermutations);
 
 	for (int i = 0; i < NumGlobalShaders; ++i)
 	{

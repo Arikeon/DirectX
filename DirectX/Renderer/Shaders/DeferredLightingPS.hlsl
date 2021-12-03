@@ -7,7 +7,8 @@
 #define MAX_SPOT_LIGHT 10
 
 START_CBUFFER(LightBuffer, b1)
-float4 DirectionalColor;
+float AmbientStrength;
+float3 DirectionalColor;
 float4 DirectionalPositionAndIntensity;
 float3 DirectionalDirection;
 
@@ -59,23 +60,53 @@ float3 GetPositionVS(float2 uv, float depth)
 	return viewPosition.xyz / viewPosition.w;
 }
 
+void CalcDirectionalLighting(inout float4 color, float3 position, float3 N, float roughness, float metallic, float specularPower)
+{
+	float3 Phong;
+	float3 lightDir = normalize(DirectionalPositionAndIntensity.xyz - position);
+	float3 lightColor = DirectionalColor * DirectionalPositionAndIntensity.w;
+	
+	//Ambient
+	float3 ambient = AmbientStrength * lightColor;
+
+	//Diffuse
+	float3 diffuse = max(dot(N, lightDir), 0.f) * lightColor;
+
+	//Specular
+	float3 viewDir = normalize(CameraPosition.xyz - position);
+	float3 reflectionDir = reflect(-lightDir, N);
+
+	float s = max(dot(viewDir, reflectionDir), 0.f);
+	s = pow(s, 16);
+	float3 specular = specularPower * s * lightColor;
+	
+	Phong = (ambient + diffuse + specular) * color;
+
+	color.xyz = Phong;
+}
+
 float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 {
-	//float4 worldNormal = t_WorldNormal.Sample(s_Sampler, input.uv);
-	//float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
-	//float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
+	float4 worldNormal = t_WorldNormal.Sample(s_Sampler, input.uv);
+	float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
+	float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
+
+	//float specular = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).z; //our model loader can't grab specular TODO
+	float specular = 0.5f;
 
 	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
 	float distance = t_Depth.Sample(s_Sampler, input.uv).r;
 
-	float3 WorldPos = GetPositionVS(input.uv, distance);
-	WorldPos = mul(InverseView, WorldPos);
-	//color.xyz = WorldPos + CameraPosition;
+	float3 worldPos = GetPositionVS(input.uv, distance);
+	worldPos = mul(InverseView, worldPos) + CameraPosition;
 
 #if LIGHT_TYPE_DIRECTIONAL
+		CalcDirectionalLighting(color, worldPos, worldNormal.xyz, roughness, metallic, specular);
 #endif
+
 #if LIGHT_TYPE_POINT
 #endif
+
 #if LIGHT_TYPE_SPOT
 #endif
 

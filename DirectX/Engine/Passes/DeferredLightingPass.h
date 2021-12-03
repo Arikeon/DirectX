@@ -5,7 +5,6 @@ struct TDeferredLightingPass : public TPass
 {
 	void Render(CRenderer* renderer,
 		std::vector<TLight> Lights,
-		TObject& ScreenQuadObject,
 		CCamera camera,
 		TWindow window,
 		float delta);
@@ -15,7 +14,7 @@ private:
 		std::vector<TLight> Lights,
 		TShader DeferredLightingPS,
 		TShader ScreenQuadVS,
-		TModel& ScreenQuadModel,
+
 		CCamera camera,
 		TWindow window,
 		float delta);

@@ -26,6 +26,7 @@ namespace ERenderTargetKey
 	enum ID
 	{
 		eBackBufeer		= 0,
+		eColor,
 		eMax
 	};
 }
@@ -72,7 +73,8 @@ public:
 		unsigned int depth,
 		unsigned int arraySize,
 		unsigned int mipLevels,
-		DXGI_FORMAT format);
+		DXGI_FORMAT format,
+		D3D11_BIND_FLAG bindflag);
 
 	TextureID CreateTexture(struct ID3D11Resource* resource, struct ID3D11ShaderResourceView* srv);
 

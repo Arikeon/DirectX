@@ -9,7 +9,7 @@
 #include "DepthPrepass.h"
 #include "BasePass.h"
 #include "DeferredLightingPass.h"
-
+#include "HelperPass.h"
 
 CScene::~CScene()
 {
@@ -17,45 +17,6 @@ CScene::~CScene()
 
 void CScene::Initialize(CRenderer* renderer)
 {
-	InitializeScreenQuad(renderer);
-}
-
-void CScene::InitializeScreenQuad(CRenderer* renderer)
-{
-	const float size = 1.0f;
-
-	std::vector<uint32> indicies;
-	indicies.resize(6);
-	indicies[0] = 0;
-	indicies[1] = 1;
-	indicies[2] = 2;
-
-	indicies[3] = 0;
-	indicies[4] = 2;
-	indicies[5] = 3;
-
-
-	/**
-	1	2
-	0	3
-	**/
-
-	std::vector<ScreenQuadInVS> verticies;
-	verticies.resize(4);
-	verticies[0] = ScreenQuadInVS(float3(-size, -size, 0.f), float2(0.f, 1.0f));
-	verticies[1] = ScreenQuadInVS(float3(-size, size, 0.f), float2(0.f, 0.0f));
-	verticies[2] = ScreenQuadInVS(float3(size, size, 0.f), float2(1.f, 0.0f));
-	verticies[3] = ScreenQuadInVS(float3(size, -size, 0.f), float2(1.f, 1.0f));
-
-	TModel ScreenQuadModel = {};
-	ScreenQuadModel.m_name = "ScreenQuadModel";
-
-	TMesh newMesh = {};
-	newMesh.CreateMesh<ScreenQuadInVS>(renderer, verticies, indicies);
-	check(newMesh.m_vertexkey != -1 && newMesh.m_indexkey != -1);
-
-	ScreenQuadModel.m_meshes.push_back(newMesh);
-	m_ScreenQuad.m_models.push_back(ScreenQuadModel);
 }
 
 void CScene::DrawTransform(TModel& model)
@@ -109,15 +70,18 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 	static TBasePass* basePass = nullptr;
 	static TDeferredLightingPass* deferredLightingPass = nullptr;
 	static TDepthPrePass* depthprepass = nullptr;
+	static THelperPass* helperpass = nullptr;
 
 	//This is a hack to some weird compile error TODO static class?
 	bool bSingletonInitialized = false;
 	if (!bSingletonInitialized)
 	{
+		TPass::Initialize(renderer);
 		bSingletonInitialized = true;
 		basePass = new TBasePass;
 		deferredLightingPass = new TDeferredLightingPass;
 		depthprepass = new TDepthPrePass;
+		helperpass = new THelperPass;
 	}
 
 	m_camera.Update(delta);
@@ -126,8 +90,10 @@ void CScene::RenderScene(CRenderer* renderer, TWindow window, float delta)
 	renderer->ConstructFrameBuffer(window, m_camera);
 
 	depthprepass->Render(renderer, GetObjects(), m_debuglines, m_camera, window, delta);
-	basePass->Render(renderer, GetObjects(), m_debuglines, m_camera, window,delta);
-	deferredLightingPass->Render(renderer, GetLights(), m_ScreenQuad, m_camera, window, delta);
+	basePass->RenderSceneMesh(renderer, GetObjects(), m_camera, window,delta);
+	deferredLightingPass->Render(renderer, GetLights(), m_camera, window, delta);
+	basePass->RenderSkyBoxAndUI(renderer, Skybox, m_debuglines, m_camera, window,delta);
 
+	helperpass->CopyBuffer(renderer, renderer->GetRenderTarget(ERenderTargetKey::eColor), renderer->GetRenderTarget(ERenderTargetKey::eBackBufeer));
 	renderer->GetFrameBuffer().bIsUpToDate = false;
 }
