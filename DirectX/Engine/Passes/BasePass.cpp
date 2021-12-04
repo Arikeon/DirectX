@@ -159,7 +159,7 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 			}
 			else
 			{
-				world = model.m_transform.GetMatrix<true, false, true>();
+				world = model.m_transform.GetMatrix<true, true, true>();
 
 				float4x4 WorldViewProjection;
 				XMStoreFloat4x4(&WorldViewProjection, (world * view) * projection);
@@ -219,14 +219,13 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 					ConstantMaterial.InstancedSpecular[ins] = float4(InstancedMaterial.m_specularColor.x,
 						InstancedMaterial.m_specularColor.y, InstancedMaterial.m_specularColor.z, 0.f);
 
-					ConstantMaterial.InstancedRoughness[ins] = InstancedMaterial.m_roughness;
-					ConstantMaterial.InstancedMetallic[ins] = InstancedMaterial.m_metallic;
+					ConstantMaterial.InstancedRoughnessMetallic[ins].x = InstancedMaterial.m_roughness;
+					ConstantMaterial.InstancedRoughnessMetallic[ins].y = InstancedMaterial.m_metallic;
 				}
 
 				shader.WriteConstants("InstancedDiffuseColor", (void*)&ConstantMaterial.InstancedDiffuseColor, permutationIndex);
 				shader.WriteConstants("InstancedSpecular", (void*)&ConstantMaterial.InstancedSpecular, permutationIndex);
-				shader.WriteConstants("InstancedRoughness", (void*)&ConstantMaterial.InstancedRoughness, permutationIndex);
-				shader.WriteConstants("InstancedMetallic", (void*)&ConstantMaterial.InstancedMetallic, permutationIndex);
+				shader.WriteConstants("InstancedRoughnessMetallic", (void*)&ConstantMaterial.InstancedRoughnessMetallic, permutationIndex);
 			}
 			else
 			{

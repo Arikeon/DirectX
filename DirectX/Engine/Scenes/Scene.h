@@ -45,5 +45,6 @@ protected:
 	std::vector<TObject> m_objects;
 	std::vector<TLight> m_Lights;
 	TDebugLines m_debuglines;
+	TextureID m_skyboxCubeMap;
 	bool m_bDrawTransforms = true;
 };

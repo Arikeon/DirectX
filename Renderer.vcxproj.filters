@@ -75,5 +75,8 @@
     <FxCompile Include="DirectX\Renderer\Shaders\HelperPassPS.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="DirectX\Renderer\Shaders\BRDF.hlsl">
+      <Filter>Source Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

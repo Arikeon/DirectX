@@ -496,6 +496,7 @@ struct TShader
 
 	void BindFrameBuffer(FrameBuffer& frameBuffer, int32 permutationIndex = 0)
 	{
+		WriteConstants("CameraDirection", (void*)&frameBuffer.CameraDirection, permutationIndex);
 		WriteConstants("CameraPosition", (void*)&frameBuffer.CameraPosition, permutationIndex);
 		WriteConstants("View", (void*)&frameBuffer.View, permutationIndex);
 		WriteConstants("Projection", (void*)&frameBuffer.Projection, permutationIndex);

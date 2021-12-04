@@ -22,7 +22,9 @@ float4 SpotDirection[MAX_SPOT_LIGHT];
 int PointLightCount;
 int SpotLightCount;
 END_CBUFFER(LightBuffer);
+
 #if SHADER
+#include "BRDF.hlsl"
 
 SamplerState s_Sampler;
 Texture2D t_Diffuse						: register(t0);
@@ -31,24 +33,6 @@ Texture2D t_WorldNormal					: register(t2);
 Texture2D t_RoughnessMetallicSpecular	: register(t3);
 
 //Texture2D t_DirectionalShadow;
-
-float4 SpecularComponentReflection(float3 ViewDirection, float SpecularPower, float3 SpecularIntensity,
-	float3 Normal, float3 LightDirection, float LightIntensity)
-{
-	float4 SpecularComponent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-	if (LightIntensity > 0.0f)
-	{
-		float3 SpecularReflection = normalize(2 * LightIntensity * Normal + LightDirection);
-
-		SpecularComponent = pow(saturate(dot(SpecularReflection, ViewDirection)), SpecularPower);
-
-		//Multiply it by the intensity
-		SpecularComponent = SpecularComponent * float4(SpecularIntensity, 1.0f);
-	}
-
-	return SpecularComponent;
-}
 
 float3 GetPositionVS(float2 uv, float depth)
 {
@@ -60,30 +44,6 @@ float3 GetPositionVS(float2 uv, float depth)
 	return viewPosition.xyz / viewPosition.w;
 }
 
-void CalcDirectionalLighting(inout float4 color, float3 position, float3 N, float roughness, float metallic, float specularPower)
-{
-	float3 Phong;
-	float3 lightDir = normalize(DirectionalPositionAndIntensity.xyz - position);
-	float3 lightColor = DirectionalColor * DirectionalPositionAndIntensity.w;
-	
-	//Ambient
-	float3 ambient = AmbientStrength * lightColor;
-
-	//Diffuse
-	float3 diffuse = max(dot(N, lightDir), 0.f) * lightColor;
-
-	//Specular
-	float3 viewDir = normalize(CameraPosition.xyz - position);
-	float3 reflectionDir = reflect(-lightDir, N);
-
-	float s = max(dot(viewDir, reflectionDir), 0.f);
-	s = pow(s, 16);
-	float3 specular = specularPower * s * lightColor;
-	
-	Phong = (ambient + diffuse + specular) * color;
-
-	color.xyz = Phong;
-}
 
 float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 {
@@ -91,8 +51,9 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 	float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
 	float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
 
-	//float specular = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).z; //our model loader can't grab specular TODO
-	float specular = 0.5f;
+	const float SpecularIntensity = 1.0f;
+	const int SpecularExponent = 64;
+
 
 	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
 	float distance = t_Depth.Sample(s_Sampler, input.uv).r;
@@ -101,7 +62,16 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 	worldPos = mul(InverseView, worldPos) + CameraPosition;
 
 #if LIGHT_TYPE_DIRECTIONAL
-		CalcDirectionalLighting(color, worldPos, worldNormal.xyz, roughness, metallic, specular);
+		PhongShade(color,
+			DirectionalPositionAndIntensity,
+			DirectionalColor,
+			DirectionalPositionAndIntensity.w,
+			worldPos,
+			worldNormal.xyz,
+			roughness,
+			metallic,
+			SpecularIntensity,
+			SpecularExponent);
 #endif
 
 #if LIGHT_TYPE_POINT

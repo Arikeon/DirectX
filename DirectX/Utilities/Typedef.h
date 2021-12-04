@@ -1,3 +1,4 @@
+#if __cplusplus
 #pragma once
 #include <iostream>
 typedef uint8_t		uint8;
@@ -10,6 +11,7 @@ typedef int16_t		int16;
 typedef int32_t		int32;
 //typedef int32_t		int;
 typedef int64_t		int64;
+#endif
 
 #define PI 3.141592f
 #define DEG2RAD (PI/180.f)

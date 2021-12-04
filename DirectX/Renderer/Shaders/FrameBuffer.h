@@ -10,6 +10,7 @@
 
 //Whole Frame buffer
 START_CBUFFER(FrameBuffer, b0)
+float4 CameraDirection;
 float4 CameraPosition;
 float4x4 View;
 float4x4 Projection;

@@ -21,6 +21,9 @@ void CRenderer::ConstructFrameBuffer(TWindow window, CCamera camera)
 	vector viewDeterminant = XMMatrixDeterminant(view);
 	vector projectionDeterminant = XMMatrixDeterminant(projection);
 
+	matrix CameraInverse = XMMatrixInverse(nullptr, XMLoadFloat4x4(&camera.m_cameramatrix));
+
+	XMStoreFloat4(&frameBuffer.CameraDirection, XMVectorSet(CameraInverse.r[0].m128_f32[2], CameraInverse.r[1].m128_f32[2], CameraInverse.r[2].m128_f32[2], 1.0f));
 	XMStoreFloat4(&frameBuffer.CameraPosition, camera.m_pos);
 	frameBuffer.View = camera.m_cameramatrix;
 	XMStoreFloat4x4(&frameBuffer.Projection, projection);

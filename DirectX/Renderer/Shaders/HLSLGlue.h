@@ -4,6 +4,16 @@
 	#define SHADER 0
 #endif
 
+#if SHADER
+	#ifndef PI
+	#define PI 3.141592f
+	#endif
+
+	#ifndef EPSILON
+	#define EPSILON 1.192092896e-07F
+	#endif
+#endif
+
 #define CPU_SHADER_READABLE __cplusplus || SHADER
 #define CPP __cplusplus
 

@@ -235,7 +235,7 @@ namespace IO
 		TMesh mesh = {};
 		TMaterial material = {};
 
-		model.m_name = "Skybox_" + std::to_string(numCubes++);
+		model.m_name = "Cube_" + std::to_string(numCubes++);
 
 		float scale = size * 0.5f;
 		{

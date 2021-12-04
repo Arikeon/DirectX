@@ -4,7 +4,7 @@
 #if CPP || !USE_INSTANCING
 START_CBUFFER(BasePassMaterial, b0)
 float3 DiffuseColor;
-//float3 Specular;
+float3 Specular;
 float Roughness;
 float Metallic;
 END_CBUFFER(BasePassMaterial);
@@ -14,8 +14,7 @@ END_CBUFFER(BasePassMaterial);
 START_CBUFFER(InstancedBasePassMaterial, b0)
 float4	InstancedDiffuseColor[MAX_INSTANCE];
 float4	InstancedSpecular[MAX_INSTANCE];
-float	InstancedRoughness[MAX_INSTANCE];
-float	InstancedMetallic[MAX_INSTANCE];
+float4	InstancedRoughnessMetallic[MAX_INSTANCE];
 END_CBUFFER(InstancedBasePassMaterial);
 #endif
 
@@ -60,13 +59,14 @@ GBufferOut MainPS(BasePassInPS input)
 
 #if USE_GBUFFER
 	#if USE_INSTANCING
-		output.roughnessmetallicspecular.x		= InstancedRoughness[input.instanceid];
-		output.roughnessmetallicspecular.y		= InstancedMetallic[input.instanceid];
-	#else
+		output.roughnessmetallicspecular.x		= InstancedRoughnessMetallic[input.instanceid].x;
+		output.roughnessmetallicspecular.y		= InstancedRoughnessMetallic[input.instanceid].y;
+		output.roughnessmetallicspecular.z		= InstancedSpecular[input.instanceid].x;
+#else
 		output.roughnessmetallicspecular.x		= Roughness;
 		output.roughnessmetallicspecular.y		= Metallic;
+		output.roughnessmetallicspecular.z		= Specular.x;
 	#endif  //USE_INSTANCING
-		//output.roughnessmetallicspecular.z	= Specular;
 #endif
 
 	return output;
