@@ -31,40 +31,45 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	//Gather Lights
 	std::array<std::vector<TLight>, ELightType::eMax> GatheredLights;
 	std::array<std::vector<TLight>, ELightType::eMax> GatheredLightsShadowed;
+	int32 numLights = 0;
 
+	for (int32 i = 0; i < (int32)Lights.size(); ++i)
 	{
-		for (int32 i = 0; i < (int32)Lights.size(); ++i)
+		ELightType::Type type = Lights[i].m_lightType;
+
+		//also check visibility
+		switch (type)
 		{
-			ELightType::Type type = Lights[i].m_lightType;
-
-			//also check visibility
-			switch (type)
-			{
-			case ELightType::eDirectional:
-			{
-				TDirectionalLight light = static_cast<TDirectionalLight&>(Lights[i]);
-				light.m_shadowed ? 
-					GatheredLightsShadowed[ELightType::eDirectional].push_back(light) : GatheredLights[ELightType::eDirectional].push_back(light);
-			}
-			break;
-			case ELightType::ePoint:
-			{
-				TPointLight light = static_cast<TPointLight&>(Lights[i]);
-				light.m_shadowed ? 
-					GatheredLightsShadowed[ELightType::ePoint].push_back(light) : GatheredLights[ELightType::ePoint].push_back(light);
-			}
-			break;
-			case ELightType::eSpot:
-			{
-				TSpotLight light = static_cast<TSpotLight&>(Lights[i]);
-				light.m_shadowed ? 
-					GatheredLightsShadowed[ELightType::eSpot].push_back(light) : GatheredLights[ELightType::eSpot].push_back(light);
-			}
-			break;
-			}
+		case ELightType::eDirectional:
+		{
+			TDirectionalLight light = static_cast<TDirectionalLight&>(Lights[i]);
+			light.m_shadowed ?
+				GatheredLightsShadowed[ELightType::eDirectional].push_back(light) : GatheredLights[ELightType::eDirectional].push_back(light);
+			++numLights;
 		}
-
+		break;
+		case ELightType::ePoint:
+		{
+			TPointLight light = static_cast<TPointLight&>(Lights[i]);
+			light.m_shadowed ?
+				GatheredLightsShadowed[ELightType::ePoint].push_back(light) : GatheredLights[ELightType::ePoint].push_back(light);
+			++numLights;
+		}
+		break;
+		case ELightType::eSpot:
+		{
+			TSpotLight light = static_cast<TSpotLight&>(Lights[i]);
+			light.m_shadowed ?
+				GatheredLightsShadowed[ELightType::eSpot].push_back(light) : GatheredLights[ELightType::eSpot].push_back(light);
+			++numLights;
+		}
+		break;
+		}
 	}
+
+	if (numLights == 0)
+		return;
+
 
 	LightBuffer lightBuffer = {};
 	//Create batched buffer data
@@ -74,19 +79,13 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 
 		if ((int32)GatheredLights[ELightType::eDirectional].size() > 0)
 		{
-
 			//Directional
 			TDirectionalLight& Directional = static_cast<TDirectionalLight&>(GatheredLights[ELightType::eDirectional][0]);
 
-			lightBuffer.DirectionalColor = Directional.m_color;
+			LightData& DirLData = lightBuffer.LData[0];
 
-			lightBuffer.DirectionalPositionAndIntensity = float4(
-				Directional.m_position.x,
-				Directional.m_position.y,
-				Directional.m_position.z,
-				Directional.m_intensity);
-
-			lightBuffer.DirectionalDirection = Directional.m_direction;
+			DirLData.LColor = float4(Directional.m_color);
+			DirLData.LPositionAndIntensity = float4(Directional.m_position, Directional.m_intensity);
 		}
 
 		//Point
@@ -133,9 +132,7 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 
 		//Bind Shader Data
 		{
-			DeferredLightingPS.WriteConstants("DirectionalColor", (void*)&lightBuffer.DirectionalColor, permutationIndex);
-			DeferredLightingPS.WriteConstants("DirectionalPositionAndIntensity", (void*)&lightBuffer.DirectionalPositionAndIntensity, permutationIndex);
-			DeferredLightingPS.WriteConstants("DirectionalDirection", (void*)&lightBuffer.DirectionalDirection, permutationIndex);
+			DeferredLightingPS.WriteConstants("LData", (void*)&lightBuffer.LData, permutationIndex);
 			DeferredLightingPS.WriteConstants("AmbientStrength", (void*)&lightBuffer.AmbientStrength, permutationIndex);
 
 			DeferredLightingPS.BindTexture(context, "t_Diffuse", DiffuseTex.m_srv, permutationIndex);

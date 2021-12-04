@@ -3,22 +3,18 @@
 #include "FrameBuffer.h"
 
 //TODO 2.5d culling?
-#define MAX_POINT_LIGHT 10
-#define MAX_SPOT_LIGHT 10
+#define MAX_NUM_LIGHTS 30
+
+struct LightData
+{
+	float4 LColor;
+	float4 LPositionAndIntensity;
+};
 
 START_CBUFFER(LightBuffer, b1)
+LightData LData[MAX_NUM_LIGHTS];
 float AmbientStrength;
-float3 DirectionalColor;
-float4 DirectionalPositionAndIntensity;
-float3 DirectionalDirection;
-
-float4 PointColor[MAX_POINT_LIGHT];
-float4 PointPositionAndIntensity[MAX_POINT_LIGHT];
-
-float4 SpotColor[MAX_SPOT_LIGHT];
-float4 SpotPositionAndIntensity[MAX_SPOT_LIGHT];
-float4 SpotDirection[MAX_SPOT_LIGHT];
-
+int DirectionalLightCount;
 int PointLightCount;
 int SpotLightCount;
 END_CBUFFER(LightBuffer);
@@ -44,32 +40,38 @@ float3 GetPositionVS(float2 uv, float depth)
 	return viewPosition.xyz / viewPosition.w;
 }
 
+float3 ComputeDirectionalLight(LightData DirD, GBufferData BufferD)
+{
+	float radiance = DirD.LColor * DirD.LPositionAndIntensity.w;
+	return PhongShade(DirD, BufferD) * radiance;
+}
 
 float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 {
+	float4 diffuse = t_Diffuse.Sample(s_Sampler, input.uv);
 	float4 worldNormal = t_WorldNormal.Sample(s_Sampler, input.uv);
-	float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
-	float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
 
-	const float SpecularIntensity = 1.0f;
-
-	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
 	float distance = t_Depth.Sample(s_Sampler, input.uv).r;
-
 	float3 worldPos = GetPositionVS(input.uv, distance);
 	worldPos = mul(InverseView, worldPos) + CameraPosition;
 
+	float roughness = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).x;
+	float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
+	const float SpecularIntensity = 1.0f;
+
+	float4 color = float4(diffuse.xyz * AmbientStrength, 1.0f);
+
+	GBufferData BufferD;
+	BufferD.Diffuse		= diffuse;
+	BufferD.N			= worldNormal;
+	BufferD.P			= worldPos;
+	BufferD.roughness	= roughness;
+	BufferD.metallic	= metallic;
+	BufferD.specular	= SpecularIntensity;
+
 #if LIGHT_TYPE_DIRECTIONAL
-		color.xyz = PhongShade(color,
-			DirectionalPositionAndIntensity,
-			DirectionalColor,
-			DirectionalPositionAndIntensity.w,
-			worldPos,
-			worldNormal.xyz,
-			roughness,
-			metallic,
-			SpecularIntensity,
-			true);
+	LightData LightD = LData[0];
+	color.xyz += ComputeDirectionalLight(LightD, BufferD);
 #endif
 
 #if LIGHT_TYPE_POINT

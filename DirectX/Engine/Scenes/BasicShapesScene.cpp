@@ -80,8 +80,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 		{
 			teapots.m_models[0].m_rasterizationState = ERasterizerStates::eFillSolidCullNone;
 			TTransform transform = teapots.m_models[0].m_transform;
-			transform.m_position.x = xPos;
-			transform.m_position.z = zPos;
+			transform.m_position = float3(xPos, 0.f, zPos);
 	
 			teapots.m_models[0].m_meshes[0].m_instances.m_instanceTransforms.push_back(transform);
 
@@ -116,7 +115,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	TDirectionalLight Star;
 	Star.m_position = float3(0.f, 100, -100);
 	Star.m_color = TColors::White;
-	Star.m_intensity = 0.8f;
+	Star.m_intensity = 1.0f;
 	Star.m_lightType = ELightType::eDirectional;
 
 	m_Lights.push_back(Star);

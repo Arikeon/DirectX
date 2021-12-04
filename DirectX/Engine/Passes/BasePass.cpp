@@ -169,7 +169,6 @@ void TBasePass::DrawMeshes(CRenderer* renderer,
 		}
 
 
-
 		//________________Map Pixel Shader data
 		if (bHasMaterial)
 		{
