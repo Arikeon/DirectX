@@ -65,7 +65,7 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 	const int32 numteapots = 15;
 	TObject teapots;
 
-#if 0 //teapot
+#if 1 //teapot
 	IO::TFileIO::LoadAsset(renderer, "Teapot", "utah-teapot.obj", teapots);
 #else
 	IO::TFileIO::LoadAsset(renderer, "Shapes", "Sphere.obj", teapots);
@@ -103,18 +103,20 @@ void CBasicShapesScene::LoadScene(CRenderer* renderer)
 
 	m_objects.push_back(teapots);
 
-	//TObject floor;
-	//IO::TFileIO::LoadAsset(renderer, "Shapes", "CheckeredFloor.obj", floor);
-	//floor.m_models[0].m_transform.m_position.z += 8.0f;
-	//floor.m_models[0].m_transform.m_position.y -= .5f;
-	//
-	//m_objects.push_back(floor);
+#if 0 //floor
+	TObject floor;
+	IO::TFileIO::LoadAsset(renderer, "Shapes", "CheckeredFloor.obj", floor);
+	floor.m_models[0].m_transform.m_position.z += 8.0f;
+	floor.m_models[0].m_transform.m_position.y -= .5f;
+	
+	m_objects.push_back(floor);
+#endif
 
 	//______________lights
 	TDirectionalLight Star;
-	Star.m_position = float3(0.f, 1000, -1000);
+	Star.m_position = float3(0.f, 100, -100);
 	Star.m_color = TColors::White;
-	Star.m_intensity = 0.7f;
+	Star.m_intensity = 0.8f;
 	Star.m_lightType = ELightType::eDirectional;
 
 	m_Lights.push_back(Star);

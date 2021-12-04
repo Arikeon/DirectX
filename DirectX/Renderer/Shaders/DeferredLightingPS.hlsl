@@ -52,8 +52,6 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 	float metallic = t_RoughnessMetallicSpecular.Sample(s_Sampler, input.uv).y;
 
 	const float SpecularIntensity = 1.0f;
-	const int SpecularExponent = 64;
-
 
 	float4 color = t_Diffuse.Sample(s_Sampler, input.uv);
 	float distance = t_Depth.Sample(s_Sampler, input.uv).r;
@@ -62,7 +60,7 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 	worldPos = mul(InverseView, worldPos) + CameraPosition;
 
 #if LIGHT_TYPE_DIRECTIONAL
-		PhongShade(color,
+		color.xyz = PhongShade(color,
 			DirectionalPositionAndIntensity,
 			DirectionalColor,
 			DirectionalPositionAndIntensity.w,
@@ -71,7 +69,7 @@ float4 MainPS(ScreenQuadInPS input) : SV_TARGET0
 			roughness,
 			metallic,
 			SpecularIntensity,
-			SpecularExponent);
+			true);
 #endif
 
 #if LIGHT_TYPE_POINT

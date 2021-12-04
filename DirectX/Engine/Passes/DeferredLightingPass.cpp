@@ -70,7 +70,7 @@ void TDeferredLightingPass::DrawScreenQuad(CRenderer* renderer,
 	//Create batched buffer data
 	if (1)
 	{
-		lightBuffer.AmbientStrength = .18f;
+		lightBuffer.AmbientStrength = .04f;
 
 		if ((int32)GatheredLights[ELightType::eDirectional].size() > 0)
 		{
